@@ -67,11 +67,11 @@
         .dropdown-item.logout:hover { background: #ff6b6b; color: #fff; }
 
         /* Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
         .modal-overlay.show { display: flex; }
-        .modal-content { background: #1a1a1a; border: 1px solid var(--luxury-gold); padding: 30px; width: 90%; max-width: 600px; border-radius: 15px; color: #fff; position: relative; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-content { background: #1a1a1a; border: 1px solid var(--luxury-gold); padding: 30px; width: 90%; max-width: 600px; border-radius: 15px; color: #fff; position: relative; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .modal-header { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.2s; }
         .close-modal:hover { color: #fff; }
 
         .profile-detail-row { margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
@@ -83,8 +83,8 @@
         .history-container { overflow-y: auto; flex: 1; padding-right: 10px; }
         .history-container::-webkit-scrollbar { width: 6px; }
         .history-container::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-        .order-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .order-card:hover { border-color: var(--luxury-gold); }
+        .order-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px; transition: 0.3s; }
+        .order-card:hover { border-color: var(--luxury-gold); transform: translateX(5px); }
         .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
         .order-id { font-weight: bold; color: var(--luxury-gold); font-size: 0.9rem; }
         .order-date { font-size: 0.8rem; color: #888; }
@@ -222,7 +222,7 @@
             <span>&larr;</span>Back
         </a>
         
-        <!-- Konten Header Akan Di-Render oleh JS (Selalu Tampil Profile Avatar) -->
+        <!-- Konten Header Akan Di-Render oleh JS -->
         <div class="store-nav" id="navContainer">
             <!-- Placeholder loading -->
             <span style="color:#666;">Loading...</span>
@@ -305,8 +305,8 @@
 
         // Variabel Global
         let productsData = []; 
-        let currentUser = null; // null = Guest, Object = User
-        let dbUser = null;
+        let currentUser = null; // null = Guest, Object = User dari localStorage
+        let dbUser = null;      // Data user lengkap dari DB 'ngebelusers'
         
         // State Filter & Search
         let currentCategory = 'all';
@@ -354,8 +354,17 @@
 
             if (currentUser) {
                 // Jika SUDAH LOGIN
-                // PERBAIKAN: Ambil full_name jika ada, fallback ke username
-                displayName = currentUser.full_name || currentUser.username || "User";
+                // PERBAIKAN UTAMA: Mengutamakan dbUser.full_name jika ada, fallback ke currentUser, lalu "User"
+                if (dbUser && dbUser.full_name) {
+                    displayName = dbUser.full_name;
+                } else if (currentUser.full_name) {
+                    displayName = currentUser.full_name;
+                } else if (currentUser.username) {
+                    displayName = currentUser.username;
+                } else {
+                    displayName = "User";
+                }
+                
                 avatarLetter = displayName.charAt(0).toUpperCase();
                 
                 // Menu untuk User
@@ -372,7 +381,7 @@
                 `;
             }
 
-            // Render HTML Container (Tampilan fisik selalu sama)
+            // Render HTML Container
             navContainer.innerHTML = `
                 <div class="user-menu-container">
                     <div class="user-btn" onclick="toggleDropdown()">
@@ -385,41 +394,53 @@
                     </div>
                 </div>
             `;
-
-            // Jika User, sync ke background
-            if (currentUser) {
-                syncUserToSupabase(currentUser);
-            }
         }
 
         // ==========================================
-        // 3. SYNC USER KE SUPABASE
+        // 3. SYNC USER KE SUPABASE (TABEL: ngebelusers)
         // ==========================================
         async function syncUserToSupabase(piUser) {
             try {
+                // PERBAIKAN: Mengganti tabel 'users' menjadi 'ngebelusers'
                 const { data: existingUser, error } = await supabaseClient
-                    .from('users')
+                    .from('ngebelusers')
                     .select('*')
                     .eq('pi_uid', piUser.uid)
-                    .single();
+                    .maybeSingle(); // maybeSingle agar tidak error jika not found
 
-                if (error && error.code !== 'PGRST116') return; 
+                if (error) {
+                    console.warn("Error checking ngebelusers:", error.message);
+                    // Lanjutkan saja, mungkin user belum ada di DB
+                }
 
                 if (existingUser) {
+                    // User ditemukan di DB ngebelusers
                     dbUser = existingUser;
+                    console.log("User synced from ngebelusers:", dbUser.full_name);
+                    // Update header agar nama langsung berubah
+                    renderHeader(); 
                 } else {
+                    console.log("User not found in ngebelusers, creating new entry...");
+                    // Jika belum ada, buat entry baru
                     const { data: newUser, error: insertError } = await supabaseClient
-                        .from('users')
+                        .from('ngebelusers')
                         .insert([{
-                            username: piUser.username,
+                            username: piUser.username || 'User',
+                            full_name: piUser.full_name || null,
                             pi_uid: piUser.uid,
+                            email: piUser.email || null,
+                            phone: piUser.phone || null,
                             total_spent: 0,
                             total_orders: 0,
                             points: 0
                         }])
                         .select()
                         .single();
-                    if (!insertError) dbUser = newUser;
+                        
+                    if (!insertError && newUser) {
+                        dbUser = newUser;
+                        renderHeader(); // Render ulang header untuk menampilkan nama baru
+                    }
                 }
             } catch (e) {
                 console.error("Sync user error:", e);
@@ -430,13 +451,16 @@
         // 4. INISIALISASI (PUBLIC ACCESS)
         // ==========================================
         async function initApp() {
-            // PERBAIKAN UTAMA: Membaca dari 'ngebelusers' agar sesuai dengan login.html
+            // Membaca dari 'ngebelusers' key di localStorage
             const localUserStr = localStorage.getItem('ngebelusers');
             
             if (localUserStr) {
                 try {
                     currentUser = JSON.parse(localUserStr);
+                    // Jika ada user login, lakukan sync ke tabel DB
+                    await syncUserToSupabase(currentUser);
                 } catch (e) {
+                    console.error("Gagal parse user localStorage", e);
                     localStorage.removeItem('ngebelusers'); 
                 }
             }
@@ -493,16 +517,17 @@
             const modal = document.getElementById('profileModal');
             modal.classList.add('show');
 
-            // PERBAIKAN: Tampilkan data UUID, Email, Phone dari localStorage (ngebelusers)
-            // Jika ingin data dari Database Supabase, gunakan dbUser
-            
-            // Mengambil data langsung dari session localStorage
-            const uuid = currentUser.uid || currentUser.uuid || "-";
-            const email = currentUser.email || "-";
-            const phone = currentUser.phone || "-";
+            // Gunakan dbUser (dari tabel ngebelusers) jika ada, karena itu sumber kebenaran full_name
+            // Fallback ke currentUser jika sync belum selesai
+            const displayUser = dbUser || currentUser;
+
+            const uuid = displayUser.uid || displayUser.uuid || "-";
+            const email = displayUser.email || "-";
+            const phone = displayUser.phone || "-";
+            const fullName = displayUser.full_name || displayUser.username || "-";
 
             contentDiv.innerHTML = `
-                <div class="profile-detail-row"><span class="profile-label">Nama Lengkap</span><span class="profile-value">${currentUser.full_name || currentUser.username || "-"}</span></div>
+                <div class="profile-detail-row"><span class="profile-label">Nama Lengkap</span><span class="profile-value">${fullName}</span></div>
                 <div class="profile-detail-row"><span class="profile-label">UUID</span><span class="profile-value">${uuid}</span></div>
                 <div class="profile-detail-row"><span class="profile-label">Email</span><span class="profile-value">${email}</span></div>
                 <div class="profile-detail-row"><span class="profile-label">Phone</span><span class="profile-value">${phone}</span></div>
