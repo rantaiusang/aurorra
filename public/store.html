@@ -37,6 +37,7 @@
         .price-container {
             display: inline-block;
             transition: filter 0.3s ease, color 0.3s ease;
+            position: relative; /* Penting untuk positioning tooltip */
         }
 
         /* Class ini ditambahkan via JS jika user belum login */
@@ -375,14 +376,14 @@
         }
 
         // ==========================================
-        // 2. RENDER HEADER DINAMIS (FIXED)
+        // 2. RENDER HEADER DINAMIS
         // ==========================================
         function renderHeader() {
             let displayName = "Guest";
             let avatarLetter = "G";
             let menuItems = '';
 
-            // Update flag isLoggedIn
+            // Update flag isLoggedIn berdasarkan keberadaan user
             isLoggedIn = (dbUser !== null) || (currentUser !== null);
 
             if (isLoggedIn) {
@@ -437,6 +438,8 @@
                 if (isLoggedIn) {
                     // Jika login, hapus efek blur
                     el.classList.remove('price-blurred');
+                    // Hapus event listener onclick untuk mencegah redirect saat sudah login
+                    el.onclick = null;
                 } else {
                     // Jika belum login, tambahkan efek blur
                     el.classList.add('price-blurred');
@@ -762,7 +765,7 @@
         }
 
         // ==========================================
-        // FLOATING CART LOGIC
+        // CART LOGIC (UPDATED: WAJIB LOGIN)
         // ==========================================
         function updateFloatingCart(count) {
             if (count > 0) {
@@ -778,6 +781,14 @@
         }
 
         function addToCart(clickedId) {
+            // === PERBAIKAN: CEK LOGIN SEBELUM TAMBAH KE KERANJANG ===
+            if (!isLoggedIn) {
+                alert("Anda harus Login terlebih dahulu untuk menambahkan produk ke keranjang.");
+                // Redirect otomatis ke halaman login
+                window.location.href = 'login.html';
+                return;
+            }
+
             const product = productsData.find(p => String(p.id) === String(clickedId));
             if (!product) return alert("Produk tidak ditemukan.");
             
@@ -800,6 +811,7 @@
             localStorage.setItem('aurora_cart', JSON.stringify(cart));
             renderSidebarCart();
 
+            // Feedback visual pada tombol
             const btn = event.target;
             const originalText = btn.innerHTML;
             btn.innerHTML = "✓ Masuk";
@@ -863,7 +875,7 @@
         }
 
         // ==========================================
-        // PROCEED TO CHECKOUT (FIXED & RECOMMENDED)
+        // PROCEED TO CHECKOUT
         // ==========================================
         async function proceedToCheckout() {
             // Menggunakan getUser() untuk auth check yang lebih stabil
