@@ -352,14 +352,20 @@
             let avatarLetter = "G";
             let menuItems = '';
 
-            if (currentUser) {
-                // Jika SUDAH LOGIN
-                // PERBAIKAN UTAMA: Mengutamakan dbUser.full_name jika ada, fallback ke currentUser, lalu "User"
+            // LOGIKA UTAMA: Deteksi Login
+            // Kita anggap user sudah "Benar-Benar Login" jika dbUser terisi (berarti data sudah sinkron dari DB)
+            // ATAU jika currentUser ada dan sedang dalam proses sinkronisasi
+            const isUserLoggedIn = (dbUser !== null) || (currentUser !== null);
+
+            if (isUserLoggedIn) {
+                // --- JIKA SUDAH LOGIN ---
+                // Prioritas 1: Ambil nama dari dbUser (ngebelusers)
+                // Prioritas 2: Ambil nama dari currentUser (localStorage) jika dbUser belum siap
                 if (dbUser && dbUser.full_name) {
                     displayName = dbUser.full_name;
-                } else if (currentUser.full_name) {
+                } else if (currentUser && currentUser.full_name) {
                     displayName = currentUser.full_name;
-                } else if (currentUser.username) {
+                } else if (currentUser && currentUser.username) {
                     displayName = currentUser.username;
                 } else {
                     displayName = "User";
@@ -367,14 +373,14 @@
                 
                 avatarLetter = displayName.charAt(0).toUpperCase();
                 
-                // Menu untuk User
+                // Menu untuk User (TIDAK ADA tombol Login)
                 menuItems = `
                     <div class="dropdown-item" onclick="openProfileModal()">Profil Saya</div>
                     <div class="dropdown-item" onclick="openHistoryModal()">Riwayat Pesanan</div>
                     <div class="dropdown-item logout" onclick="handleLogout()">Logout</div>
                 `;
             } else {
-                // Jika BELUM LOGIN (Guest)
+                // --- JIKA BELUM LOGIN (GUEST) ---
                 // Menu hanya berisi tombol Login
                 menuItems = `
                     <div class="dropdown-item login-action" onclick="window.location.href='login.html'">Login Sekarang</div>
@@ -465,7 +471,7 @@
                 }
             }
             
-            // Render Header (Akan otomatis deteksi Guest atau User)
+            // Render Header (Akan otomatis deteksi Guest atau User berdasarkan status dbUser)
             renderHeader();
         }
 
