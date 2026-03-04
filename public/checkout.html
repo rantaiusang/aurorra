@@ -118,6 +118,25 @@
             border-color: var(--luxury-gold); 
         }
 
+        /* --- PERBAIKAN DROPDOWN KOTA --- */
+        select.input-box {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            /* Menambahkan panah custom warna emas */
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23d4af37%22%20d%3D%22287.6%209.7c-.9-.9-2.5-.9-3.4%200L256%2038l-28.2-28.3c-.9-.9-2.5-.9-3.4%200-.9.9-1.3%202.2-.7%203.4l27.4%2027.5c.9.9%202.5.9%203.4%200l27.4-27.5c.6-1.2.2-2.5-.7-3.4z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 0.8em auto;
+        }
+
+        /* Mengatur background daftar pilihan agar gelap (agar teks putih terlihat) */
+        select.input-box option {
+            background-color: #2a2a2a; 
+            color: #ffffff;
+            padding: 10px;
+        }
+
         .item-summary { 
             background: rgba(0,0,0, 0.2); 
             padding: 15px; 
@@ -217,7 +236,7 @@
                     <input type="tel" id="phoneNumber" class="input-box" placeholder="0812..." required>
                 </div>
                 
-                <!-- DROPDOWN KOTA (LANGKAH 1) -->
+                <!-- DROPDOWN KOTA -->
                 <div class="form-group">
                     <label for="city">Kota Tujuan</label>
                     <select id="city" class="input-box" required>
@@ -230,7 +249,7 @@
                     <textarea id="address" class="input-box" rows="2" placeholder="Jalan, No Rumah, Kecamatan, Kota..." required></textarea>
                 </div>
 
-                <!-- DISPLAY ONGKIR (LANGKAH 1) -->
+                <!-- DISPLAY ONGKIR -->
                 <div class="form-group">
                     <label>Ongkir (JNE)</label>
                     <input type="text" id="shippingCostDisplay" class="input-box" readonly value="Rp 0">
@@ -287,12 +306,12 @@
         const PI_SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
 
         let currentTotal = 0;
-        let shippingCost = 0; // VARIABLE ONGKIR (LANGKAH 2)
+        let shippingCost = 0; // VARIABLE ONGKIR
         let cartItems = [];
         let currentUser = null;
         let orderId = "ORD-" + Date.now();
 
-        // --- 4. FUNGSI LOAD KOTA (LANGKAH 3) ---
+        // --- 4. FUNGSI LOAD KOTA ---
         async function loadCities() {
             try {
                 const { data, error } = await supabaseClient
@@ -315,7 +334,7 @@
             }
         }
 
-        // --- 5. FUNGSI AMBIL ONGKIR (LANGKAH 4) ---
+        // --- 5. FUNGSI AMBIL ONGKIR ---
         async function loadShippingCost() {
             const city = document.getElementById("city").value;
             if (!city) {
@@ -343,25 +362,33 @@
             }
         }
 
-        // --- 6. FUNGSI UPDATE TOTAL (LANGKAH 5) ---
+        // --- 6. FUNGSI UPDATE TOTAL ---
         function updateFinalTotal() {
             const finalTotal = currentTotal + shippingCost;
             document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
         }
 
-        // --- 7. INISIALISASI UTAMA ---
+        // --- 7. INISIALISASI UTAMA (FIX URUTAN) ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
-            
-            try {
-                // A. Cek Pi SDK
-                if (typeof Pi === 'undefined') {
-                    throw new Error("Pi SDK tidak ditemukan. Harap gunakan Pi Browser.");
-                }
-                await Pi.init({ version: "2.0", sandbox: true });
 
-                // B. CEK AUTH SUPABASE
+            // 🔥 LANGKAH KRUSIAL: LOAD KOTA DI LUAR TRY-CATCH
+            // Ini memastikan kota selalu muncul meskipun Pi SDK error atau user belum login
+            await loadCities();
+            document.getElementById("city").addEventListener("change", loadShippingCost);
+
+            try {
+                // Cek Pi SDK (Opsional/Tidak memblokir jika tidak ada)
+                if (typeof Pi !== 'undefined') {
+                    await Pi.init({ version: "2.0", sandbox: true });
+                } else {
+                    // Jika tidak ada Pi SDK (bukan Pi Browser), tampilkan warning tapi lanjutkan
+                    console.warn("Pi SDK tidak ditemukan. Mode testing/Non-Pi Browser.");
+                    // Kita tidak me-throw error di sini agar kode di bawah tetap jalan
+                }
+
+                // CEK AUTH SUPABASE
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
                 if (authError || !user) {
@@ -369,19 +396,21 @@
                     localStorage.removeItem('aurora_checkout');
                     localStorage.removeItem('aurora_cart');
                     localStorage.removeItem('aurora_user');
-                    throw new Error("Sesi habis atau Anda telah logout. Silakan login ulang.");
+                    
+                    // Tampilkan error UI tapi jangan throw agar kota tetap terlihat
+                    errorBox.style.display = "block";
+                    errorBox.innerText = "Sesi habis atau Anda telah logout. Silakan login ulang.";
+                    payBtn.innerText = "Gagal Memuat";
+                    payBtn.disabled = true;
+                    return; // Stop di sini jika tidak ada user
                 }
 
                 currentUser = user;
 
-                // C. Load Data Keranjang
+                // Load Data Keranjang
                 const successLoad = loadCartAndCalculateTotal();
 
-                // D. Load Kota & Event Listener (LANGKAH 6)
-                await loadCities();
-                document.getElementById("city").addEventListener("change", loadShippingCost);
-
-                // E. Update UI
+                // Update UI
                 if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false;
                     payBtn.innerText = "Bayar Sekarang";
@@ -439,8 +468,7 @@
 
                 summaryList.innerHTML = html;
                 currentTotal = total;
-                // Panggil updateFinalTotal agar total awal ter-render (walaupun ongkir masih 0)
-                updateFinalTotal();
+                updateFinalTotal(); // Update total tampilan awal
                 return true;
 
             } catch (e) {
@@ -480,6 +508,11 @@
                 return showError("Sesi berubah. Silakan refresh halaman.");
             }
 
+            // Cek Pi SDK lagi sebelum bayar
+            if (typeof Pi === 'undefined') {
+                return showError("Pembayaran memerlukan Pi Browser.");
+            }
+
             payBtn.disabled = true;
             payBtn.innerText = "Menghubungkan ke Pi Wallet...";
 
@@ -495,7 +528,7 @@
                 
                 const piUser = auth.user;
 
-                // (LANGKAH 7) Ubah amount menjadi Total + Ongkir
+                // Ubah amount menjadi Total + Ongkir
                 const paymentData = {
                     amount: parseFloat(finalBill),
                     memo: `Order Aurora: ${orderId}`,
