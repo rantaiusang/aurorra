@@ -167,10 +167,10 @@
             padding:15px; 
             border-radius: 8px; 
             margin-bottom: 20px; 
-            text-align: left; /* Ubah ke left agar JSON lebih mudah dibaca */
+            text-align: left; 
             font-size: 0.85rem;
-            word-break: break-all; /* Agar JSON panjang terbaca di layar HP */
-            font-family: monospace; /* Font monospace agar struktur JSON jelas */
+            word-break: break-all;
+            font-family: monospace;
             white-space: pre-wrap;
         }
         
@@ -234,6 +234,7 @@
         // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        // PASTIKAN INI ADALAH ANON KEY (Public Key), BUKAN SERVICE ROLE KEY
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         
         const { createClient } = supabase;
@@ -299,7 +300,7 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER UNTUK PEMBAYARAN (DEBUG MODE)
+                // 4. EVENT LISTENER UNTUK PEMBAYARAN (FIXED AUTH HEADER)
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
@@ -313,11 +314,11 @@
                             {
                                 method: "POST",
                                 headers: {
-                                    // ✅ PERBAIKAN: Hanya kirim Content-Type
-                                    "Content-Type": "application/json"
+                                    "Content-Type": "application/json",
+                                    // ✅ PERBAIKAN: Kembalikan Authorization Header menggunakan ANON KEY
+                                    "Authorization": "Bearer " + SUPABASE_KEY
                                 },
                                 body: JSON.stringify({
-                                    // ✅ PERBAIKAN: Pastikan amount adalah Integer
                                     amount: parseInt(data.total),
                                     order_id: data.orderId,
                                     customer_name: data.customer.name,
@@ -329,21 +330,20 @@
 
                         const result = await response.json();
 
-                        // ✅ DEBUG: Log result lengkap ke console browser
+                        // Debug: Tampilkan result lengkap di console
                         console.log("FULL RESULT:", result);
 
                         if (result.response?.payment_url) {
                             // Redirect user ke halaman pembayaran DOKU
                             window.location.href = result.response.payment_url;
                         } else {
-                            // ✅ DEBUG: Paksa stringify result agar error JSON asli DOKU muncul di layar
+                            // Jika respons tidak mengandung URL payment
                             throw new Error(JSON.stringify(result));
                         }
 
                     } catch (err) {
                         console.error("Payment Error:", err);
                         errorBox.style.display = "block";
-                        // Tampilkan pesan error lengkap (JSON) di layar
                         errorBox.innerText = "Terjadi kesalahan saat membuat pembayaran:\n\n" + err.message;
                         
                         // Kembalikan tombol ke kondisi semula
