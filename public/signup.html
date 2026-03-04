@@ -351,7 +351,7 @@
 
                 // PERHATIAN: GANTI 'aurorausers' JIKA NAMA TABEL ANDA 'ngebelusers'
                 const { error: insertError } = await db
-                    .from('aurorausers')
+                    .from('ngebelusers')
                     .insert([newData]);
 
                 if (insertError) {
