@@ -322,7 +322,7 @@
                 
                 // PERHATIAN: GANTI 'aurorausers' JIKA NAMA TABEL ANDA 'ngebelusers'
                 const { data: existingUser, error: checkError } = await db
-                    .from('aurorausers') 
+                    .from('ngebelusers') 
                     .select('id')
                     .eq('phone', phoneNumber)
                     .maybeSingle(); 
