@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pembayaran - Aurora Store</title>
+    <title>Pembayaran - Aurorra Store</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS (Ditambahkan untuk cek Auth) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
@@ -192,7 +195,7 @@
         <a href="store.html" class="back-link">
             <span>&larr;</span> Kembali
         </a>
-        <div class="brand-name">Aurora Parfumerie</div>
+        <div class="brand-name">Aurorra Parfumerie</div>
     </header>
 
     <div class="payment-wrapper">
@@ -237,7 +240,14 @@
 
         <script>
         // ==========================================
-        // 1. HELPER FUNCTIONS (FORMAT RUPIAH)
+        // 1. KONFIGURASI SUPABASE (AGAR BISA CEK AUTH)
+        // ==========================================
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // 2. HELPER FUNCTIONS (FORMAT RUPIAH)
         // ==========================================
         function cleanPrice(priceInput) {
             if (priceInput === null || priceInput === undefined) return 0;
@@ -258,47 +268,49 @@
             }).format(numPrice);
         }
 
-        // --- 2. KONFIGURASI & SETUP ---
-        // URL Edge Function Supabase Anda
-        const SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA";
+        // --- 3. SETUP PEMBAYARAN PI ---
+        const PI_SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
 
         let currentTotal = 0;
         let cartItems = [];
         let currentUser = null;
         let orderId = "ORD-" + Date.now();
 
-        // --- 3. INISIALISASI HALAMAN (FIX TOTAL 0 & DATA CHECKOUT) ---
+        // --- 4. INISIALISASI (FIX LOGOUT MULTI-TAB) ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
             
             try {
-                // A. Cek Pi SDK Availability
+                // A. Cek Pi SDK
                 if (typeof Pi === 'undefined') {
                     throw new Error("Pi SDK tidak ditemukan. Harap gunakan Pi Browser.");
                 }
-                
-                // B. Inisialisasi SDK
                 await Pi.init({ version: "2.0", sandbox: true });
-                console.log("Pi SDK Berhasil diinisialisasi.");
 
-                // C. Cek Session User Login
-                const userStr = localStorage.getItem('aurora_user');
-                if(!userStr) {
-                    // SECURITY: Jika user logout, data checkout harus dihapus agar tidak bisa dibayar sembarangan
-                    console.warn("Sesi tidak ditemukan (Logout terdeteksi). Menghapus data checkout...");
+                // B. CEK AUTH SUPABASE YANG SEBENARNYA (PENTING UNTUK MULTI-TAB)
+                // Ini mengecek session aktif, bukan cuma localStorage string
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+                if (authError || !user) {
+                    // SECURITY: Jika session Supabase invalid/hilang (misal logout di tab lain),
+                    // WAJIB hapus data checkout lokal agar nominal tidak muncul lagi.
+                    console.warn("Session Invalid/Logout Terdeteksi. Menghapus data checkout...");
+                    
                     localStorage.removeItem('aurora_checkout');
                     localStorage.removeItem('aurora_cart');
+                    localStorage.removeItem('aurora_user'); // Bersihkan sisa data lama
                     
-                    throw new Error("Sesi habis atau Anda telah logout. Silakan login ulang dan pilih produk kembali.");
+                    throw new Error("Sesi habis atau Anda telah logout. Silakan login ulang.");
                 }
-                currentUser = JSON.parse(userStr);
 
-                // D. Load Data Keranjang
+                // Update user object dari session asli
+                currentUser = user;
+
+                // C. Load Data Keranjang
                 const successLoad = loadCartAndCalculateTotal();
 
-                // E. Update UI berdasarkan hasil load
+                // D. Update UI
                 if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false;
                     payBtn.innerText = "Bayar Sekarang";
@@ -313,13 +325,12 @@
                 console.error("Init Error:", err);
                 errorBox.style.display = "block";
                 errorBox.innerText = err.message;
-                payBtn.innerText = "Error System";
+                payBtn.innerText = "Gagal Memuat";
             }
         }
 
         // Fungsi Khusus: Membaca & Menghitung Total dari LocalStorage
         function loadCartAndCalculateTotal() {
-            // PERBAIKAN BUG: Gunakan key 'aurora_checkout', bukan 'cart'
             const checkoutRaw = localStorage.getItem('aurora_checkout');
             
             if (!checkoutRaw) {
@@ -329,7 +340,7 @@
 
             try {
                 const checkout = JSON.parse(checkoutRaw);
-                cartItems = checkout.items || []; // Ambil array items
+                cartItems = checkout.items || []; 
                 
                 const summaryList = document.getElementById('summaryList');
                 let html = '';
@@ -348,7 +359,6 @@
                     
                     total += subtotal;
                     
-                    // MENGGANTI FORMAT MENJADI RUPIAH
                     html += `
                         <div class="item-row">
                             <span>${name} <small style="color:#888;">(x${qty})</small></span>
@@ -358,7 +368,6 @@
 
                 summaryList.innerHTML = html;
                 currentTotal = total;
-                // MENGGANTI FORMAT TOTAL MENJADI RUPIAH
                 document.getElementById('displayTotal').innerText = formatPrice(total);
                 return true;
 
@@ -368,13 +377,13 @@
             }
         }
 
-        // --- 4. PROSES PEMBAYARAN UTAMA ---
+        // --- 5. PROSES PEMBAYARAN UTAMA ---
         async function handleAutoPayment(event) {
             event.preventDefault();
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
             
-            // 1. Validasi Input Form
+            // Validasi Input
             const fullName = document.getElementById('fullName').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const address = document.getElementById('address').value.trim();
@@ -385,15 +394,20 @@
 
             if (parseFloat(currentTotal) <= 0) return showError("Total pembayaran tidak valid (0).");
 
-            // 2. Mulai Proses Payment
+            // Cek ulang auth sebelum bayar
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
+            if (error || !user) {
+                localStorage.removeItem('aurora_checkout');
+                return showError("Sesi berubah. Silakan refresh halaman.");
+            }
+
             payBtn.disabled = true;
             payBtn.innerText = "Menghubungkan ke Pi Wallet...";
 
             try {
-                // Langkah A: Autentikasi Ulang (Wajib untuk keamanan Pi SDK)
                 const auth = await Pi.authenticate(
                     ["payments", "username"], 
-                    onIncompletePaymentFound // Callback jika ada payment terpending
+                    onIncompletePaymentFound
                 );
 
                 if (!auth || !auth.accessToken) {
@@ -402,21 +416,17 @@
                 
                 const piUser = auth.user;
 
-                // Langkah B: Buat Objek Payment
                 const paymentData = {
                     amount: parseFloat(currentTotal),
                     memo: `Order Aurora: ${orderId}`,
                     metadata: { orderId: orderId, itemsCount: cartItems.length }
                 };
 
-                // Langkah C: Eksekusi Payment Flow
                 await Pi.createPayment(paymentData, {
-                    // Fase 1: User menyetujui di Wallet -> App minta approve ke Server
                     onReadyForServerApproval: async (paymentId) => {
                         console.log("Payment ID dibuat, meminta approval server:", paymentId);
-                        
                         try {
-                            const response = await fetch(SUPABASE_URL, {
+                            const response = await fetch(PI_SUPABASE_URL, {
                                 method: 'POST',
                                 headers: { 
                                     "Content-Type": "application/json",
@@ -429,21 +439,17 @@
                                     uid: piUser.uid
                                 })
                             });
-                            
                             if(!response.ok) throw new Error("Server Approval Failed");
                         } catch (err) {
                             console.error("Approval Error:", err);
-                            // Jika server gagal approve, payment dibatalkan di client
                             throw new Error("Gagal menghubungi server pembayaran.");
                         }
                     },
                     
-                    // Fase 2: User selesai bayar -> App konfirmasi ke Server
                     onReadyForServerCompletion: async (paymentId, txid) => {
                         console.log("Pembayaran sukses dari user. TXID:", txid);
-                        
                         try {
-                            const response = await fetch(SUPABASE_URL, {
+                            const response = await fetch(PI_SUPABASE_URL, {
                                 method: 'POST',
                                 headers: { 
                                     "Content-Type": "application/json",
@@ -471,20 +477,14 @@
                                 throw new Error(errData.message || "Gagal menyimpan pesanan.");
                             }
 
-                            // SUKSES TOTAL
                             alert("Pembayaran Berhasil! Pesanan Anda sedang diproses.");
-                            
-                            // Bersihkan LocalStorage
                             localStorage.removeItem('aurora_checkout'); 
                             localStorage.removeItem("aurora_cart");
-                            
-                            // Redirect
                             window.location.href = "payment-success.html";
 
                         } catch (err) {
                             console.error("Completion Error:", err);
                             alert("Pembayaran tercatat di Blockchain, namun gagal menyimpan ke database kami. Hubungi admin dengan TXID: " + txid);
-                            // Jangan redirect, biarkan user screenshot txid
                         }
                     },
                     
@@ -510,11 +510,9 @@
             }
         }
 
-        // Callback untuk menangani payment yang terputus sebelumnya
         function onIncompletePaymentFound(payment) {
             console.log("Ditemukan pembayaran tidak lengkap:", payment);
-            // Logika tambahan bisa ditambahkan di sini, misalnya auto-resume
-            return; // Default behaviour: biarkan user buat payment baru
+            return; 
         }
 
         function showError(msg) {
@@ -524,7 +522,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Jalankan saat halaman load
         window.onload = initPayment;
     </script>
 </body>
