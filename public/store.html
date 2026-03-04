@@ -69,7 +69,7 @@
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
         .modal-overlay.show { display: flex; }
-        .modal-content { background: #1a1a1a; border: 1px solid var(--luxury-gold); padding: 30px; width: 90%; max-width: 600px; border-radius: 15px; color: #fff; position: relative; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .modal-content { background: #1a1a1a; border: 1px solid var(--luxury-gold); padding: 30px; width: 90%; max-width: 600px; border-radius: 15px; color: #fff; position: relative; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .modal-header { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.2s; }
         .close-modal:hover { color: #fff; }
@@ -165,7 +165,7 @@
         .product-stock.out-of-stock { color: #ff6b6b; font-weight: 600; }
         .product-price { font-size: 1rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 15px; display: block; }
         .btn-buy { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--luxury-gold); color: var(--luxury-gold); font-weight: 600; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; border-radius: 5px; }
-        .btn-buy:hover:not(:disabled) { background: var(--luxury-gold); color: #000; }
+        .btn-buy:hover:not(:disabled) { background: var(--luxury-gold); color: #500; text-decoration: none; }
         .btn-buy:disabled { border-color: #444; color: #666; cursor: not-allowed; background: transparent; }
         .category-badge { position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.7); color: #fff; padding: 4px 10px; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; z-index: 2; }
 
@@ -617,7 +617,7 @@
 
         function filterCategory(category, btnElement) {
             currentCategory = category;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active');
             if(btnElement) btnElement.classList.add('active');
             renderProducts();
         }
@@ -796,19 +796,27 @@
             updateFloatingCart(totalItems);
         }
 
-        function proceedToCheckout() {
-            // Cek session Auth yang benar
-            const { data: { session } } = supabaseClient.auth.getSession();
+        // ==========================================
+        // CHECKOUT LOGIC (FIXED AWALITY + LOCALSTORAGE FALLBACK)
+        // ==========================================
+        // ✅ PERBAIKAN PENTING: Menambahkan await
+        async function proceedToCheckout() {
+            // ✅ WAJIB pakai await
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
             if (!session) {
                 const confirmLogin = confirm("Anda harus login terlebih dahulu untuk melanjutkan pembayaran. Ingin login sekarang?");
                 if (confirmLogin) window.location.href = 'login.html';
                 return;
             }
 
-            const cartItems = JSON.parse(localStorage.getItem('aurora_cart')) || [];
+            const cartItems = JSON.parse(localStorage.getItem('aurant_cart')) || [];
+            
+            // Cek Stok Produk Sebelum Redirect
             for (let item of cartItems) {
                 const dbProduct = productsData.find(p => String(p.id) === String(item.id));
                 if (!dbProduct || parseInt(dbProduct.stock) <= 0) {
+                    // ✅ LOGIKA TAMBAHAN: Memberi pesan alasan stok habis
                     alert(`Maaf, stok untuk ${item.name} telah habis.`);
                     renderSidebarCart(); 
                     return; 
@@ -832,6 +840,7 @@
                 currency: 'IDR'
             }));
 
+            // Redirect ke payment
             window.location.href = 'payment.html';
         }
 
