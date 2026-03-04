@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pembayaran - Aurorra Store</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS (Untuk cek auth & order logic) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- DOKU JS (Library Resmi) -->
+    <script src="https://sdk.doku.com/js/doku.js"></script>
+    <!-- Config File (Opsional, jika Anda punya file terpisah) -->
+    <script src="./doku-config.js"></script>
+
+    <style>
+        :root { 
+            --luxury-gold: #d4af37; 
+            --dark-bg: #0f0c15; 
+            --card-bg: #1a1620; 
+            --doku-color: #118EEA; 
+            --danger-color: #ff4d4d; 
+        }
+        body { 
+            background-color: var(--dark-bg); 
+            color: #ffffff; 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        header { 
+            background: rgba(15, 12, 21, 0.95); 
+            border-bottom:1px solid rgba(212, 175, 55, 0.2); 
+            padding: 20px 8%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+        }
+        .back-link { 
+            color: #fff; 
+            text-decoration: none; 
+            font-weight: 500; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: color 0.3s; 
+            cursor: pointer; 
+        }
+        .back-link:hover { color: var(--luxury-gold); }
+        .brand-name { 
+            font-family: 'Playfair Display', serif; 
+            color: var(--luxury-gold); 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+        }
+        
+        .payment-wrapper { 
+            flex:1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 40px 8%; 
+            position: relative; 
+        }
+        .payment-card { 
+            background: var(--card-bg); 
+            width: 100%; 
+            max-width: 600px; 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); 
+            position: relative; 
+            text-align: center;
+        }
+        
+        /* --- LOGO PAYMENT (MENGGANTI DOKU) --- */
+        .payment-logo { 
+            width: 80px; 
+            height: 80px; 
+            margin: 0 auto 30px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: linear-gradient(135deg, #FFD700, #FDB931); 
+            border-radius: 50%; 
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+        .payment-logo svg {
+            width: 50%;
+            height: 50%;
+            fill: #000; /* Warna ikon hitam agar kontras dengan background emas */
+        }
+
+        h2 { 
+            font-family: 'Playfair Display', serif; 
+            text-align: center; 
+            color: var(--luxury-gold); 
+            margin-bottom: 10px; 
+        }
+        .sub-text { text-align: center; color: #aaa; margin-bottom: 30px; font-size: 0.9rem; }
+        
+        .item-summary { 
+            background: rgba(0,0,0, 0.2); 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-bottom: 25px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            text-align: left;
+        }
+        .summary-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            font-size: 0.9rem; 
+            color: #ddd; 
+        }
+        .summary-total { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 15px; 
+            padding-top: 15px; 
+            border-top: 1px solid var(--luxury-gold); 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            color: var(--luxury-gold); 
+        }
+        
+        .btn-doku { 
+            width: 100%; 
+            padding: 18px; 
+            background: var(--luxury-gold); 
+            color: #000; 
+            border: none; 
+            border-radius: 50px; 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            cursor: pointer; 
+            margin-top: 30px; 
+            transition: background 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        .btn-doku:hover:not(:disabled) { 
+            background: #ffed4a; 
+            transform: translateY(-2px);
+        }
+        .btn-doku:disabled { 
+            background: #444; 
+            cursor: not-allowed; 
+            color: #888; 
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .error-box { 
+            display:none; 
+            background:rgba(255, 77, 77, 0.1); 
+            border: 1px solid var(--danger-color); 
+            color:#ffcccc; 
+            padding:15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            text-align: center; 
+            font-size: 0.9rem;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="checkout.htm" class="back-link">
+            <span>&larr;</span> Kembali
+        </a>
+        <div class="brand-name">Aurorra Parfumerie</div>
+    </header>
+
+    <div class="payment-wrapper">
+        <div class="payment-card">
+            
+            <!-- LOGO PAYMENT ICON (SVG) -->
+            <div class="payment-logo">
+                <!-- Ikon Kartu Kredit/Uang -->
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 4H4C2.9 4 2 6.9 2 9V10H4V9C4 7.34 5.34 6 8 6H16C18.66 6 20 7.34 20 9V15H22V9C22 6.34 20.66 4 18 4H20ZM19 9H18V18H5V9H4V18H3V9H19ZM12 13H11V15H12V13ZM12 11H11V12H12V11ZM12 17H13V19H12V17ZM8 11H9V12H8V11ZM8 13H9V14H8V13Z" fill="#000000"/>
+                    <path d="M4 18H20" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 7H17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 10H22" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <h2>Pembayaran Aman</h2>
+            <p class="sub-text">Sistem pembayaran otomatis via DOKU. Silakan selesaikan pembayaran Anda.</p>
+
+            <div id="error-message" class="error-box"></div>
+
+            <!-- Ringkasan Pesanan -->
+            <div id="orderSummary" class="item-summary">
+                <div style="text-align:center; color:#888;">Memuat data pesanan...</div>
+            </div>
+
+            <!-- Form Tersembunyi untuk DOKU -->
+            <form id="dokuPaymentForm" method="POST" action="https://uat.doku.com/s2s/checkout">
+                <!-- DATA PARAMETER DOKU -->
+                <!-- Pastikan CLIENT_ID sesuai dengan akun DOKU Anda -->
+                <input type="hidden" id="doku_client_id" name="client_id" value="YOUR_DOKU_CLIENT_ID">
+                
+                <input type="hidden" id="doku_amount" name="amount" value="">
+                <input type="hidden" id="doku_currency" name="currency" value="IDR">
+                <input type="hidden" id="doku_order_id" name="order_id" value="">
+                <input type="hidden" id="doku_customer_name" name="customer.name" value="">
+                <input type="hidden" id="doku_customer_email" name="customer.email" value="">
+                <input type="hidden" id="doku_customer_phone" name="customer.phone" value="">
+                <input type="hidden" id="doku_address" name="customer.address" value="">
+                <input type="hidden" id="doku_city" name="customer.city" value="">
+                <input type="hidden" id="doku_country" name="customer.country" value="ID">
+                
+                <!-- Parameter Tambahan untuk backend (optional, untuk reference) -->
+                <input type="hidden" name="metadata.items_data" id="doku_items_data">
+
+                <button type="submit" class="btn-doku" id="btnPay" disabled>
+                    <span>Bayar Sekarang</span>
+                </button>
+            </form>
+        </div>
+    </div>    
+
+        <script>
+        // ==========================================
+        // 1. KONFIGURASI
+        // ==========================================
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // 2. HELPER FUNCTIONS
+        // ==========================================
+        function formatPrice(price) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(price);
+        }
+
+        // ==========================================
+        // 3. INISIALISASI
+        // ==========================================
+        async function initPaymentPage() {
+            const errorBox = document.getElementById('error-message');
+            const summaryDiv = document.getElementById('orderSummary');
+            const btnPay = document.getElementById('btnPay');
+            const dokuForm = document.getElementById('dokuPaymentForm');
+
+            try {
+                // A. Ambil Data dari LocalStorage (Dikirim dari checkout.htm)
+                const paymentDataRaw = localStorage.getItem('pending_payment_data');
+                
+                if (!paymentDataRaw) {
+                    throw new Error("Data pembayaran tidak ditemukan. Silakan ulangi dari keranjang.");
+                }
+
+                const data = JSON.parse(paymentDataRaw);
+
+                // B. Cek Auth User (Validasi Keamanan)
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                if (authError || !user) {
+                    throw new Error("Sesi login tidak valid. Silakan login ulang.");
+                }
+
+                // C. Tampilkan Ringkasan
+                let html = `
+                    <div class="summary-row">
+                        <span>Order ID</span>
+                        <span>#${data.orderId}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Nama Penerima</span>
+                        <span>${data.customer.name}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Kota</span>
+                        <span>${data.customer.city.toUpperCase()}</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total Tagihan</span>
+                        <span>${formatPrice(data.total)}</span>
+                    </div>
+                `;
+                summaryDiv.innerHTML = html;
+
+                // D. Isi Hidden Input Form DOKU
+                document.getElementById('doku_client_id').value = "YOUR_DOKU_CLIENT_ID"; // <-- GANTI INI DENGAN CLIENT ID DOKU ANDA
+                document.getElementById('doku_amount').value = data.total;
+                document.getElementById('doku_order_id').value = data.orderId;
+                document.getElementById('doku_customer_name').value = data.customer.name;
+                document.getElementById('doku_customer_email').value = user.email || "customer@aurorra.com"; // DOKU wajib email
+                document.getElementById('doku_customer_phone').value = data.customer.phone;
+                document.getElementById('doku_address').value = `${data.customer.address}, ${data.customer.city}`;
+                document.getElementById('doku_city').value = data.customer.city;
+                document.getElementById('doku_items_data').value = JSON.stringify(data.items); // Untuk referensi backend
+
+                // E. Enable Tombol
+                btnPay.disabled = false;
+                
+                // F. Set Action Form ke URL Payment DOKU
+                // Pastikan URL ini sesuai dengan Payment Page yang Anda buat di Dashboard DOKU
+                dokuForm.action = "https://uat.doku.com/s2s/checkout"; 
+                
+                // GANTI URL PRODUCTION JIKA SUDAH SIAP
+                // dokuForm.action = "https://[PRODUCTION_URL]"; 
+
+            } catch (err) {
+                console.error("Init Payment Page Error:", err);
+                errorBox.style.display = 'block';
+                errorBox.innerText = err.message;
+                document.getElementById('btnPay').innerText = "Gagal Memuat";
+            }
+        }
+
+        window.onload = initPaymentPage;
+    </script>
+</body>
+</html>
