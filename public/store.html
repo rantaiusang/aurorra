@@ -290,7 +290,6 @@
     </div>
 
     <!-- TOMBOl KERANJANG MELAYANG (FLOATING CART) -->
-    <!-- Menghapus π di sini -->
     <div id="floating-cart" onclick="proceedToCheckout()" style="position: fixed; bottom: 30px; right: 30px; background: var(--luxury-gold); color: #000; padding: 15px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; z-index: 999; font-weight: bold; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.2s;">
         🛒 <span id="cart-count-float">0</span> Item - Check Out
     </div>
@@ -305,7 +304,7 @@
 
         // Variabel Global
         let productsData = []; 
-        let currentUser = null; // Data dari localStorage
+        let currentUser = null; // Data dari localStorage / Supabase Auth
         let dbUser = null;      // Data user lengkap dari DB 'ngebelusers'
         
         // State Filter & Search
@@ -336,7 +335,6 @@
             let numPrice = cleanPrice(price);
             
             // Menggunakan Intl.NumberFormat untuk format Rupiah Indonesia yang benar
-            // Contoh output: Rp 150.000
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR',
@@ -447,27 +445,36 @@
         }
 
         // ==========================================
-        // 4. INISIALISASI APLIKASI
+        // 4. INISIALISASI APLIKASI (UPDATED AUTH LOGIC)
         // ==========================================
         async function initApp() {
-            const localUserStr = localStorage.getItem('ngebelusers');
-            
-            if (localUserStr) {
-                try {
-                    currentUser = JSON.parse(localUserStr);
-                    const syncSuccess = await syncUserToSupabase(currentUser);
-                    
-                    if (syncSuccess) {
-                        console.log("Sinkronisasi berhasil. Render header dengan data DB.");
-                    } else {
-                        console.warn("Sinkronisasi gagal/RLS Error. Tampilkan data localStorage saja.");
+            try {
+                // 1️⃣ Cek Supabase Auth dulu
+                const { data: { user } } = await supabaseClient.auth.getUser();
+
+                if (user) {
+                    // mapping ke format yang dipakai syncUserToSupabase
+                    currentUser = {
+                        uid: user.id,
+                        username: user.user_metadata?.name || user.email,
+                        full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+                        email: user.email
+                    };
+
+                    await syncUserToSupabase(currentUser);
+                } else {
+                    // fallback ke localStorage kalau ada
+                    const localUserStr = localStorage.getItem('ngebelusers');
+                    if (localUserStr) {
+                        currentUser = JSON.parse(localUserStr);
+                        await syncUserToSupabase(currentUser);
                     }
-                } catch (e) {
-                    console.error("Gagal parse user localStorage", e);
-                    localStorage.removeItem('ngebelusers'); 
                 }
+
+            } catch (e) {
+                console.error("Init error:", e);
             }
-            
+
             renderHeader();
         }
 
@@ -814,7 +821,7 @@
             localStorage.setItem('aurora_checkout', JSON.stringify({
                 items: cartItems,
                 total: total,
-                currency: 'IDR' // DIUBAH KE IDR
+                currency: 'IDR'
             }));
 
             window.location.href = 'payment.html';
@@ -827,8 +834,14 @@
 
         function handleLogout() {
             if(confirm("Yakin ingin keluar?")) {
+                // Hapus session auth Supabase
+                supabaseClient.auth.signOut();
+                
+                // Hapus local storage
                 localStorage.removeItem('ngebelusers');
                 localStorage.removeItem('aurora_token');
+                
+                // Reload halaman
                 window.location.reload(); 
             }
         }
