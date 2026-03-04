@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koleksi Aurora - Store</title>
+    <title>Koleksi Aurorra - Store</title>
     
     <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,7 +76,7 @@
 
         .profile-detail-row { margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
         .profile-label { color: #888; font-size: 0.9rem; }
-        .profile-value { font-weight: 600; color: var(--luxury-gold); }
+        .profile-value { font-weight: 600; color: var(--luxury-gold); text-align: right; word-break: break-all; }
         .profile-value.points { color: #4CAF50; font-size: 1.1rem; }
 
         /* History Styles */
@@ -329,7 +329,7 @@
             return isNaN(val) || val < 0 ? 0 : val;
         }
 
-                function formatPrice(price) {
+        function formatPrice(price) {
             let numPrice = cleanPrice(price);
             
             // Cek jika harga 0, tampilkan tanpa desimal
@@ -343,6 +343,7 @@
             // Jika angka pecahan (contoh: 450.5), tampilkan "450.50"
             return Number.isInteger(numPrice) ? numPrice.toString() : numPrice.toFixed(2);
         }
+
         // ==========================================
         // 2. RENDER HEADER DINAMIS (GUEST / USER)
         // ==========================================
@@ -353,7 +354,8 @@
 
             if (currentUser) {
                 // Jika SUDAH LOGIN
-                displayName = currentUser.username || "User";
+                // PERBAIKAN: Ambil full_name jika ada, fallback ke username
+                displayName = currentUser.full_name || currentUser.username || "User";
                 avatarLetter = displayName.charAt(0).toUpperCase();
                 
                 // Menu untuk User
@@ -428,13 +430,14 @@
         // 4. INISIALISASI (PUBLIC ACCESS)
         // ==========================================
         async function initApp() {
-            const localUserStr = localStorage.getItem('aurora_user');
+            // PERBAIKAN UTAMA: Membaca dari 'ngebelusers' agar sesuai dengan login.html
+            const localUserStr = localStorage.getItem('ngebelusers');
             
             if (localUserStr) {
                 try {
                     currentUser = JSON.parse(localUserStr);
                 } catch (e) {
-                    localStorage.removeItem('aurora_user'); 
+                    localStorage.removeItem('ngebelusers'); 
                 }
             }
             
@@ -445,7 +448,7 @@
         async function fetchProducts() {
             try {
                 const { data, error } = await supabaseClient
-                    .from('productspi') 
+                    .from('products') 
                     .select('*')
                     .order('created_at', { ascending: false });
 
@@ -461,7 +464,7 @@
                 return productsData;
             } catch (e) {
                 console.error("Error Fetch:", e);
-                alert("Gagal memuat produk: " + e.message + "\n\nCek: 1. Nama Tabel 'productspi' 2. RLS (Matikan RLS di Supabase) 3. Koneksi Internet");
+                alert("Gagal memuat produk: " + e.message + "\n\nCek: 1. Nama Tabel 'products' 2. RLS (Matikan RLS di Supabase) 3. Koneksi Internet");
                 productGrid.innerHTML = `<div class="error-message"><p>Error: ${e.message}</p></div>`;
                 return [];
             }
@@ -490,26 +493,34 @@
             const modal = document.getElementById('profileModal');
             modal.classList.add('show');
 
-            if (dbUser) {
-                contentDiv.innerHTML = `
-                    <div class="profile-detail-row"><span class="profile-label">Username</span><span class="profile-value">${dbUser.username || "-"}</span></div>
+            // PERBAIKAN: Tampilkan data UUID, Email, Phone dari localStorage (ngebelusers)
+            // Jika ingin data dari Database Supabase, gunakan dbUser
+            
+            // Mengambil data langsung dari session localStorage
+            const uuid = currentUser.uid || currentUser.uuid || "-";
+            const email = currentUser.email || "-";
+            const phone = currentUser.phone || "-";
+
+            contentDiv.innerHTML = `
+                <div class="profile-detail-row"><span class="profile-label">Nama Lengkap</span><span class="profile-value">${currentUser.full_name || currentUser.username || "-"}</span></div>
+                <div class="profile-detail-row"><span class="profile-label">UUID</span><span class="profile-value">${uuid}</span></div>
+                <div class="profile-detail-row"><span class="profile-label">Email</span><span class="profile-value">${email}</span></div>
+                <div class="profile-detail-row"><span class="profile-label">Phone</span><span class="profile-value">${phone}</span></div>
+                
+                ${dbUser ? `
+                <div style="margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px;">
+                    <h4 style="color:var(--luxury-gold); margin-bottom:10px;">Data Statistik</h4>
                     <div class="profile-detail-row"><span class="profile-label">Total Belanja</span><span class="profile-value">${formatPrice(dbUser.total_spent || 0)} π</span></div>
                     <div class="profile-detail-row"><span class="profile-label">Poin Loyalitas</span><span class="profile-value points">${dbUser.points || 0} Pts</span></div>
-                `;
-            } else {
-                contentDiv.innerHTML = `<div class="profile-detail-row" style="justify-content:center;">Memuat data...</div>`;
-                setTimeout(async () => {
-                    await syncUserToSupabase(currentUser);
-                    if(dbUser) openProfileModal(); 
-                }, 500);
-            }
+                </div>` : '<p style="text-align:center; color:#666; margin-top:10px;">Memuat statistik...</p>'}
+            `;
         }
 
         async function openHistoryModal() {
             if (!currentUser) return; 
             const contentDiv = document.getElementById('historyContent');
             const modal = document.getElementById('historyModal');
-            contentDiv.innerHTML = '<p class="loading-text">Memuat riwayat...</p>';
+            contentDiv.innerHTML = '<p class="loading-text">Memuat riwayat pesanan...</p>';
             modal.classList.add('show');
 
             try {
@@ -780,7 +791,8 @@
         // CHECKOUT LOGIC (WAJIB LOGIN DISINI)
         // ==========================================
         function proceedToCheckout() {
-            if (!localStorage.getItem('aurora_user')) {
+            // PERBAIKAN: Cek session 'ngebelusers' juga di sini
+            if (!localStorage.getItem('ngebelusers')) {
                 // Jika Guest, tampilkan popup konfirmasi
                 const confirmLogin = confirm("Anda harus login terlebih dahulu untuk melanjutkan pembayaran. Ingin login sekarang?");
                 if (confirmLogin) {
@@ -827,7 +839,8 @@
 
         function handleLogout() {
             if(confirm("Yakin ingin keluar?")) {
-                localStorage.removeItem('aurora_user');
+                // Hapus kunci yang benar
+                localStorage.removeItem('ngebelusers');
                 localStorage.removeItem('aurora_token');
                 // Reload halaman agar UI kembali ke Guest
                 window.location.reload(); 
