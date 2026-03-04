@@ -296,7 +296,7 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER UNTUK PEMBAYARAN (NEW LOGIC)
+                // 4. EVENT LISTENER UNTUK PEMBAYARAN (FIXED HEADERS)
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
@@ -310,14 +310,15 @@
                             {
                                 method: "POST",
                                 headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${SUPABASE_KEY}` // Opsional jika anon public
+                                    // ✅ PERBAIKAN: Hanya kirim Content-Type
+                                    "Content-Type": "application/json"
                                 },
                                 body: JSON.stringify({
-                                    amount: data.total,
+                                    // ✅ PERBAIKAN: Pastikan amount adalah Integer
+                                    amount: parseInt(data.total),
                                     order_id: data.orderId,
                                     customer_name: data.customer.name,
-                                    customer_email: user.email, // Ambil email dari auth session
+                                    customer_email: user.email, 
                                     customer_phone: data.customer.phone
                                 })
                             }
