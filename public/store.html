@@ -33,6 +33,37 @@
             overflow-x: hidden; 
         }
 
+        /* --- STYLE BARU: HARGA BURAM SAAT BELUM LOGIN --- */
+        .price-container {
+            display: inline-block;
+            transition: filter 0.3s ease, color 0.3s ease;
+        }
+
+        /* Class ini ditambahkan via JS jika user belum login */
+        .price-blurred {
+            filter: blur(4px);
+            color: transparent; /* Menyembunyikan teks asli agar tidak terbaca jika select text */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); /* Efek siluet */
+            user-select: none;
+            cursor: pointer;
+        }
+
+        /* Tooltip kecil untuk mendorong login */
+        .price-blurred::after {
+            content: 'Login untuk melihat harga';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.6rem;
+            color: var(--luxury-gold);
+            white-space: nowrap;
+            filter: blur(0); /* Tooltip harus jelas */
+            text-shadow: none;
+            opacity: 1;
+            pointer-events: none;
+        }
+
         /* Header */
         header {
             background: rgba(15, 12, 21, 0.95);
@@ -306,6 +337,7 @@
         let productsData = []; 
         let currentUser = null; // Data dari localStorage / Supabase Auth
         let dbUser = null;      // Data user lengkap dari DB 'ngebelusers'
+        let isLoggedIn = false; // Flag status login global
         
         // State Filter & Search
         let currentCategory = 'all';
@@ -343,16 +375,17 @@
         }
 
         // ==========================================
-        // 2. RENDER HEADER DINAMIS
+        // 2. RENDER HEADER DINAMIS (FIXED)
         // ==========================================
         function renderHeader() {
             let displayName = "Guest";
             let avatarLetter = "G";
             let menuItems = '';
 
-            const isUserLoggedIn = (dbUser !== null) || (currentUser !== null);
+            // Update flag isLoggedIn
+            isLoggedIn = (dbUser !== null) || (currentUser !== null);
 
-            if (isUserLoggedIn) {
+            if (isLoggedIn) {
                 if (dbUser && dbUser.full_name) {
                     displayName = dbUser.full_name;
                 } else if (currentUser && currentUser.full_name) {
@@ -388,10 +421,36 @@
                     </div>
                 </div>
             `;
+
+            // Panggil updatePriceVisibility setiap kali header dirender (status login berubah)
+            updatePriceVisibility();
         }
 
         // ==========================================
-        // 3. SYNC USER KE TABEL ngebelusers (FIXED STRUKTUR DB)
+        // 🔧 FUNGSI UPDATE VISIBILITAS HARGA (BLUR/JERNIH)
+        // ==========================================
+        function updatePriceVisibility() {
+            // Pilih semua elemen dengan kelas .product-price
+            const priceElements = document.querySelectorAll('.product-price');
+            
+            priceElements.forEach(el => {
+                if (isLoggedIn) {
+                    // Jika login, hapus efek blur
+                    el.classList.remove('price-blurred');
+                } else {
+                    // Jika belum login, tambahkan efek blur
+                    el.classList.add('price-blurred');
+                    // Tambahkan event listener untuk redirect login jika diklik
+                    el.onclick = function() {
+                        alert("Silakan Login untuk melihat harga produk.");
+                        window.location.href = 'login.html';
+                    };
+                }
+            });
+        }
+
+        // ==========================================
+        // 3. SYNC USER KE TABEL ngebelusers
         // ==========================================
         async function syncUserToSupabase(user) {
             try {
@@ -447,7 +506,7 @@
         }
 
         // ==========================================
-        // 4. INISIALISASI APLIKASI (UPDATED AUTH LOGIC)
+        // 4. INISIALISASI APLIKASI
         // ==========================================
         async function initApp() {
             try {
@@ -477,7 +536,7 @@
                 console.error("Init error:", e);
             }
 
-            renderHeader();
+            renderHeader(); // Ini akan memanggil updatePriceVisibility()
         }
 
         async function fetchProducts() {
@@ -507,6 +566,8 @@
             
             if(productsData && productsData.length > 0) {
                 renderProducts(); 
+                // Panggil lagi setelah render produk memastikan elemen harga tersedia
+                updatePriceVisibility(); 
             }
             renderSidebarCart(); 
         });
@@ -674,6 +735,7 @@
                 const descText = getSafeValue(product, 'description', 'desc', '-');
                 const productId = String(product.id);
 
+                // Tambahkan class 'price-container' pada harga
                 card.innerHTML = `
                     <div class="category-badge">${displayCategory}</div>
                     <div class="product-img-wrapper">
@@ -683,7 +745,8 @@
                         <div>
                             <h3 class="product-name">${displayName}</h3>
                             <p class="product-desc" title="${descText}">${descText}</p>
-                            <span class="product-price">${displayPrice}</span>
+                            <!-- Elemen Harga dengan class product-price -->
+                            <span class="product-price price-container">${displayPrice}</span>
                             <div class="${isOutOfStock ? 'product-stock out-of-stock' : 'product-stock'}">
                                 ${isOutOfStock ? 'Stok Habis' : 'Stok: ' + stockVal}
                             </div>
@@ -693,6 +756,9 @@
                 productGrid.appendChild(card);
                 delay += 0.05; 
             });
+            
+            // Penting: Update blur effect setelah elemen HTML baru ditambahkan
+            updatePriceVisibility();
         }
 
         // ==========================================
