@@ -796,14 +796,20 @@
             updateFloatingCart(totalItems);
         }
 
-        function proceedToCheckout() {
-            // Cek session Auth yang benar
-            const { data: { session } } = supabaseClient.auth.getSession();
-            if (!session) {
-                const confirmLogin = confirm("Anda harus login terlebih dahulu untuk melanjutkan pembayaran. Ingin login sekarang?");
-                if (confirmLogin) window.location.href = 'login.html';
+        // ==========================================
+        // PROCEED TO CHECKOUT (FIXED & RECOMMENDED)
+        // ==========================================
+        async function proceedToCheckout() {
+            // Menggunakan getUser() untuk auth check yang lebih stabil
+            const { data, error } = await supabaseClient.auth.getUser();
+
+            if (error || !data?.user) {
+                alert("Harus login dulu.");
+                window.location.href = "login.html";
                 return;
             }
+
+            const user = data.user;
 
             const cartItems = JSON.parse(localStorage.getItem('aurora_cart')) || [];
             for (let item of cartItems) {
@@ -832,6 +838,7 @@
                 currency: 'IDR'
             }));
 
+            // Redirect ke checkout.htm
             window.location.href = 'checkout.htm';
         }
 
