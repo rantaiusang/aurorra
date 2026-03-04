@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora Store - Exclusive Fragrances</title>
+    <title>Aurrora Store - Exclusive Fragrances</title>
     <!-- Font Google -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -464,7 +464,7 @@
 <body>
     <!-- Header -->
     <header>
-        <a href="#" class="logo">Aurora ⚡</a>
+        <a href="#" class="logo">Aurorra ⚡</a>
         <nav class="nav-links">
             <!-- Class btn-header adalah target script kita -->
             <a href="login.html" class="btn-header" id="headerBtn">Login</a>
@@ -500,7 +500,7 @@
     <!-- Features Section -->
     <section class="features">
         <div class="section-header fade-on-scroll">
-            <h2>Standar Aurora</h2>
+            <h2>Standar Aurorra</h2>
             <p>Mengapa kami berbeda dari yang lain.</p>
         </div>
 
@@ -530,23 +530,23 @@
 
     <!-- Footer -->
     <footer class="fade-on-scroll">
-        <p style="font-family: 'Playfair Display'; font-size: 1.2rem; color: var(--luxury-gold); margin-bottom: 20px;">Aurora Parfumerie</p>
+        <p style="font-family: 'Playfair Display'; font-size: 1.2rem; color: var(--luxury-gold); margin-bottom: 20px;">Aurorra Parfumerie</p>
             
         <div class="footer-links" style="margin-bottom: 20px;">
             <a href="privacy.html">Privacy Policy</a> |     
             <a href="terms.html">Terms & Conditions</a>
         </div>
             
-        <p>&copy; 2026 Aurora Store. All rights reserved.</p>
+        <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
     
     <!-- SCRIPT ANIMASI SCROLL & SESSION HANDLER -->
     <script>
-        // --- 1. FUNGSI CEK SESI & UPDATE TOMBOL (FIX: aurora_user) ---
+        // --- 1. FUNGSI CEK SESI & UPDATE TOMBOL (FIX: ngebeluser) ---
         // Kita jalankan ini otomatis saat halaman dimuat
         (function updateHeaderBasedOnSession() {
             // PERBAIKAN: Kita baca 'aurora_user' agar sama dengan login.html dan store.html
-            const userSession = localStorage.getItem('aurora_user');
+            const userSession = localStorage.getItem('ngebelusers');
             const btnLogin = document.getElementById('headerBtn');
 
             if (userSession) {
@@ -571,7 +571,7 @@
                             
                             if(confirm("Apakah Anda yakin ingin keluar?")) {
                                 // 1. Hapus data sesi
-                                localStorage.removeItem('aurora_user');
+                                localStorage.removeItem('ngebeluusers');
                                 
                                 // 2. Refresh halaman agar tombol kembali jadi "Login"
                                 window.location.reload(); 
@@ -581,7 +581,7 @@
 
                 } catch (e) {
                     console.error("Data session rusak, mereset...", e);
-                    localStorage.removeItem('aurora_user'); // Hapus data rusak
+                    localStorage.removeItem('ngebelusers'); // Hapus data rusak
                     // Tidak perlu redirect, biarkan user tetap di landing page
                 }
             } else {
