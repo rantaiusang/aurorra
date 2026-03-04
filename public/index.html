@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aurorra Store - Exclusive Fragrances</title>
+    
     <!-- Font Google -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS (Wajib ada di Index untuk cek Auth) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* --- 1. VARIABLE & RESET --- */
         :root {
@@ -39,7 +44,7 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 15px 5%;
             display: flex;
-            justify-content: space-between; /* Logo Kiri, Tombol Kanan */
+            justify-content: space-between;
             align-items: center;
             position: fixed;
             top: 0;
@@ -47,7 +52,7 @@
             z-index: 1000;
             transition: 0.3s;
             box-sizing: border-box;
-            height: 70px; /* Tinggi tetap agar stabil */
+            height: 70px;
         }
 
         .logo {
@@ -66,12 +71,12 @@
             display: flex;
             gap: 20px;
             align-items: center;
-            flex-shrink: 0; /* Mencegah mengecil */
+            flex-shrink: 0;
         }
 
-        /* Tombol Login - Diperbaiki agar ukuran pas di semua device */
+        /* Tombol Login/User */
         .btn-header {
-            padding: 8px 24px; /* Padding lebar agar tombol proporsional */
+            padding: 8px 24px;
             background: var(--luxury-gold);
             color: #000;
             border-radius: 30px;
@@ -80,12 +85,13 @@
             font-size: 0.85rem;
             transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
             white-space: nowrap;
-            flex-shrink: 0; /* PENTING: Agar tombol tidak gepeng saat layar mengecil */
+            flex-shrink: 0;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 100px; /* Lebar minimum agar tidak terlalu kecil */
+            min-width: 100px;
             cursor: pointer;
+            border: none; /* Pastikan border default */
         }
 
         .btn-header:hover {
@@ -94,13 +100,27 @@
             box-shadow: 0 0 15px 2px var(--luxury-gold-light);
         }
 
+        /* Style khusus saat User Logged In (Outline) */
+        .btn-header.logged-in {
+            background: transparent;
+            border: 1px solid var(--luxury-gold);
+            color: var(--luxury-gold);
+        }
+        
+        .btn-header.logged-in:hover {
+            background: rgba(212, 175, 55, 0.1);
+            color: #fff;
+            box-shadow: none;
+            border-color: #fff;
+        }
+
         /* --- 3. HERO SECTION --- */
         .hero {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 120px 5% 80px; /* Padding atas disesuaikan dengan header fixed */
+            padding: 120px 5% 80px;
             position: relative;
         }
 
@@ -113,14 +133,13 @@
             max-width: 1400px;
         }
 
-        /* Dekorasi Background Halus */
         .glow-bg {
             position: absolute;
             width: 600px;
             height: 600px;
             background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
             top: 10%;
-            right: -10%; /* Pindah ke kanan agar tidak menutupi teks */
+            right: -10%;
             z-index: -1;
             pointer-events: none;
         }
@@ -186,7 +205,7 @@
             box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
             display: inline-block;
             text-align: center;
-            flex: 1 1 auto; /* Responsif di dalam flex container */
+            flex: 1 1 auto;
         }
 
         .btn-primary:hover {
@@ -207,7 +226,7 @@
             transition: all 0.3s ease;
             display: inline-block;
             text-align: center;
-            flex: 1 1 auto; /* Responsif di dalam flex container */
+            flex: 1 1 auto;
         }
 
         .btn-outline:hover {
@@ -387,7 +406,7 @@
             
             .hero h1 { font-size: 2.8rem; }
             
-            .hero p { margin: 0 auto 30px; } /* Center text paragraph */
+            .hero p { margin: 0 auto 30px; }
             
             .hero-buttons { justify-content: center; width: 100%; }
             
@@ -395,7 +414,7 @@
                 grid-column: 1;
                 grid-row: 2;
                 margin-top: 20px;
-                animation: fadeInUp 1.2s ease forwards; /* Ubah animasi jadi slide up di mobile */
+                animation: fadeInUp 1.2s ease forwards;
                 transform: translateY(30px);
             }
             
@@ -407,10 +426,9 @@
 
         /* Mobile Portrait */
         @media (max-width: 600px) {
-            /* Header Fix */
             header {
                 padding: 10px 20px;
-                height: 60px; /* Sedikit lebih rendah di HP */
+                height: 60px;
             }
             
             .logo {
@@ -420,12 +438,11 @@
             .btn-header {
                 padding: 6px 16px;
                 font-size: 0.75rem;
-                min-width: 80px; /* Tetap ada lebar minimum */
+                min-width: 80px;
             }
 
-            /* Hero Fix */
             .hero {
-                padding-top: 80px; /* Jarak untuk header fixed */
+                padding-top: 80px;
                 padding-left: 20px;
                 padding-right: 20px;
             }
@@ -440,7 +457,6 @@
                 margin-bottom: 25px;
             }
 
-            /* Tombol Full Width di Mobile tapi button login tetap pas di header */
             .hero-buttons {
                 flex-direction: column;
                 gap: 12px;
@@ -455,7 +471,6 @@
 
             .hero-img { max-width: 260px; }
 
-            /* Features Grid */
             .features-grid { grid-template-columns: 1fr; }
             .section-header h2 { font-size: 1.8rem; }
         }
@@ -466,7 +481,6 @@
     <header>
         <a href="#" class="logo">Aurorra ⚡</a>
         <nav class="nav-links">
-            <!-- Class btn-header adalah target script kita -->
             <a href="login.html" class="btn-header" id="headerBtn">Login</a>
         </nav>
     </header>
@@ -540,87 +554,87 @@
         <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
     
-    <!-- SCRIPT ANIMASI SCROLL & SESSION HANDLER (FULL FIX) -->
+    <!-- SCRIPT ANIMASI SCROLL & SUPABASE AUTH HANDLER -->
     <script>
-        // --- 1. DEFINISIKAN FUNGSI UPDATE HEADER ---
-        // Kita ubah dari IIFE (function langsung jalan) menjadi function biasar
-        // agar bisa dipanggil ulang saat tombol Back ditekan.
-        function updateHeaderBasedOnSession() {
-            // PERBAIKAN 1: Key LocalStorage dibaca 'ngebelusers' (sesuai login)
-            const userSession = localStorage.getItem('ngebelusers');
+        // ==========================================
+        // 1. CONFIG SUPABASE (Sama dengan file lain)
+        // ==========================================
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // 2. LOGIKA UPDATE HEADER (BERDASARKAN SUPABASE SESSION)
+        // ==========================================
+        async function updateHeaderBasedOnSession() {
             const btnLogin = document.getElementById('headerBtn');
 
-            if (userSession) {
-                // Jika ADA data user (Sudah Login)
-                try {
-                    const user = JSON.parse(userSession);
+            // ✅ FIX: Cek Session langsung dari Supabase, bukan LocalStorage
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session) {
+                // User SUDAH LOGIN
+                const userEmail = session.user.email;
+                const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || userEmail.split('@')[0];
+                
+                // Update Teks Tombol
+                btnLogin.innerText = userName;
+                btnLogin.href = "#";
+                
+                // Update Style ke Logged In (Outline Gold)
+                btnLogin.classList.add('logged-in');
+
+                // Event Listener Logout
+                // Kita gunakan cara mengganti onclick secara langsung
+                btnLogin.onclick = async function(e) {
+                    e.preventDefault();
                     
-                    // PERBAIKAN 2: Mengambil full_name, jika tidak ada ambil username, jika tidak ada "User"
-                    // Ini mencegah tampilan "undefined"
-                    const displayName = user.full_name || user.username || "User";
-                    console.log("User aktif:", displayName);
-
-                    // Ubah Tombol Header
-                    if (btnLogin) {
-                        btnLogin.innerText = displayName;
-                        btnLogin.href = "#"; // Link kosong
+                    if(confirm("Apakah Anda yakin ingin keluar?")) {
+                        // ✅ FIX: Panggil SignOut Supabase
+                        await supabaseClient.auth.signOut();
                         
-                        // Ubah Style jadi Outline Gold
-                        btnLogin.style.background = "transparent";
-                        btnLogin.style.border = "1px solid var(--luxury-gold)";
-                        btnLogin.style.color = "var(--luxury-gold)";
-
-                        // --- LOGIKA LOGOUT ---
-                        // Kita clone node untuk menghapus event listener lama agar tidak menumpuk
-                        const newBtn = btnLogin.cloneNode(true);
-                        btnLogin.parentNode.replaceChild(newBtn, btnLogin);
-                        
-                        // Pasang event listener baru pada tombol yang sudah di-clone
-                        newBtn.onclick = function(e) {
-                            e.preventDefault(); 
-                            
-                            if(confirm("Apakah Anda yakin ingin keluar?")) {
-                                // PERBAIKAN 3: Perbaiki Typo Key (ngebeluusers -> ngebelusers)
-                                localStorage.removeItem('ngebelusers');
-                                
-                                // Refresh halaman agar tombol kembali jadi "Login"
-                                window.location.reload(); 
-                            }
-                        };
+                        // ✅ FIX: Jangan reload, panggil ulang fungsi update agar UI berubah instan
+                        // Tapi untuk UX yang bersih di halaman ini, reload lebih aman
+                        window.location.reload(); 
                     }
+                };
 
-                } catch (e) {
-                    console.error("Data session rusak, mereset...", e);
-                    localStorage.removeItem('ngebelusers'); // Hapus data rusak
-                    // Refresh untuk membersihkan UI
-                    window.location.reload(); 
-                }
             } else {
-                // Jika TIDAK ADA data (Belum Login)
-                if (btnLogin) {
-                    // Pastikan tombol kembali ke style awal (Login)
-                    btnLogin.innerText = "Login";
-                    btnLogin.href = "login.html"; // Arahkan ke halaman login jika diklik
-                    
-                    // Reset Style ke Default (Gold Solid)
-                    btnLogin.style.background = "var(--luxury-gold)";
-                    btnLogin.style.border = "none";
-                    btnLogin.style.color = "#000";
-                }
+                // User BELUM LOGIN
+                btnLogin.innerText = "Login";
+                btnLogin.href = "login.html";
+                btnLogin.classList.remove('logged-in');
+                btnLogin.onclick = null; // Hapus event logout
             }
         }
 
-        // --- 2. JALANKAN PERTAMA KALI ---
+        // ==========================================
+        // 3. EVENT LISTENERS UTAMA
+        // ==========================================
+        
+        // Saat DOM siap
         document.addEventListener("DOMContentLoaded", function() {
             updateHeaderBasedOnSession();
         });
 
-        // --- 3. FUNGSI ANIMASI SCROLL ---
+        // Saat Halaman selesai load
         window.onload = function() {
             window.scrollTo(0, 0);
             initScrollAnimations();
         };
 
+        // Saat Tombol Back ditekan (BFCache Fix)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                console.log("Halaman dimuat dari cache. Cek ulang session Supabase...");
+                updateHeaderBasedOnSession();
+                window.scrollTo(0, 0);
+            }
+        });
+
+        // ==========================================
+        // 4. FUNGSI ANIMASI SCROLL
+        // ==========================================
         function initScrollAnimations() {
             const observerOptions = {
                 root: null, 
@@ -639,22 +653,6 @@
             const fadeElements = document.querySelectorAll('.fade-on-scroll');
             fadeElements.forEach(el => observer.observe(el));
         }
-
-        // --- 4. FIX TOMBOL BACK (BFCACHE) ---
-        // Event ini akan terpicu saat halaman dimuat ulang dari cache (saat user tekan Back)
-        window.addEventListener('pageshow', function(event) {
-            // Cek apakah halaman dimuat dari cache (event.persisted)
-            if (event.persisted) {
-                console.log("Halaman dimuat dari cache (Back Button). Memperbarui UI...");
-                
-                // Jalankan ulang fungsi cek sesi (Sekarang tidak error karena bukan IIFE)
-                updateHeaderBasedOnSession();
-                
-                // Reset posisi scroll (Opsional)
-                window.scrollTo(0, 0);
-            }
-        });
     </script>
-
 </body>
 </html>
