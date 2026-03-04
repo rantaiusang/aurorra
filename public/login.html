@@ -67,6 +67,7 @@
             width: 50px; height: 50px; border: 3px solid rgba(212, 175, 55, 0.1);
             border-top: 3px solid var(--luxury-gold); border-radius: 50%; animation: spin 1s linear infinite;
         }
+        /* Ganti Icon Pi jadi Icon Aurora/Google */
         .pi-icon { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--luxury-gold); position: absolute; font-weight: bold; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -86,8 +87,20 @@
         .debug-log p { margin-bottom: 4px; border-bottom: 1px solid #111; }
     </style>
 
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <script src="pi-config.js"></script>
+    <!-- SUPABASE SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    
+    <!-- Konfigurasi Supabase (Anda bisa ubah di sini atau buat file external) -->
+    <script>
+        // ============================================================
+        // KONFIGURASI SUPABASE (ISI DATA DASHBOARD SUPABASE ANDA DISINI)
+        // ============================================================
+        const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co"; 
+        const SUPABASE_KEY = "YOUR_ANON_PUBLIC_KEY";
+        
+        // Inisialisasi Supabase Client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
 </head>
 <body>
 
@@ -100,11 +113,12 @@
         <div class="card">
             <div class="spinner-wrapper">
                 <div class="spinner" id="spinnerAnim"></div>
-                <div class="pi-icon">π</div>
+                <!-- Icon di tengah spinner bisa diganti 'G' untuk Google atau 'A' untuk Aurora -->
+                <div class="pi-icon">G</div>
             </div>
 
             <h2 id="status-title">Menghubungkan...</h2>
-            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman ke Pi Network</p>
+            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman ke Aurora System</p>
 
             <div id="error-box" class="error-box">
                 <span class="error-title">Kesalahan Sistem</span>
@@ -140,70 +154,61 @@
                 btnRetry: document.getElementById('btn-retry')
             };
 
-            // --- PERBAIKAN LOGIKA: DETEKSI LOOP ---
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('retry') === 'true') {
-                console.warn("Terdeteksi Loop Login. Menghapus cache lama...");
-                localStorage.clear(); // Hapus pi_user, aurora_user, dll
-                // Hapus parameter dari URL agar tidak terus-terusan clear
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
             try {
-                logDebug("Cek Environment...");
-                if (typeof Pi === 'undefined') {
-                    throw new Error("Pi SDK tidak terdeteksi. Pastikan buka di Pi Browser.");
+                logDebug("Inisialisasi Sistem...");
+
+                // 1. CEK SESSION SUPABASE (Apakah user sudah login sebelumnya?)
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    // USER SUDAH LOGIN
+                    logDebug("Session ditemukan: " + session.user.email);
+                    ui.title.innerText = "Login Berhasil";
+                    ui.desc.innerText = "Selamat datang kembali, " + (session.user.user_metadata.full_name || session.user.email);
+                    ui.spinner.style.borderTopColor = "#10b981";
+                    
+                    // Simpan ke localStorage agar halaman lain bisa akses
+                    localStorage.setItem('aurora_user', JSON.stringify(session.user));
+                    localStorage.setItem('aurora_token', session.access_token);
+
+                    setTimeout(() => {
+                        window.location.href = "store.html";
+                    }, 1500);
+                } else {
+                    // USER BELUM LOGIN -> LAKUKAN OAUTH GOOGLE OTOMATIS
+                    logDebug("Belum ada session. Memulai Google OAuth...");
+                    ui.title.innerText = "Menghubungkan ke Google...";
+                    ui.desc.innerText = "Anda akan diarahkan ke halaman login Google.";
+                    
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.href // Kembali ke halaman ini setelah login sukses
+                        }
+                    });
+
+                    if (error) throw error;
                 }
-
-                // Init
-                logDebug("Memulai Pi.init()...");
-                const isSandbox = (typeof window.APP_CONFIG !== 'undefined') ? window.APP_CONFIG.sandbox: true;
-                await Pi.init({ version: "2.0", sandbox: isSandbox }); 
-                logDebug("Pi.init() Sukses.");
-
-                // Authenticate
-                ui.title.innerText = "Autentikasi...";
-                ui.desc.innerText = "Mohon izinkan akses akun Pi Anda...";
-                
-                const scopes = ['username', 'payments'];
-                const onIncompletePaymentFound = (payment) => {
-                    logDebug("Incomplete payment: " + payment.identifier);
-                };
-
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                
-                logDebug("Auth Sukses! User: " + auth.user.username);
-                
-                ui.title.innerText = "Berhasil!";
-                ui.desc.innerText = "Selamat datang, " + auth.user.username;
-                ui.spinner.style.borderTopColor = "#10b981";
-                
-                // ===========================================================
-                // PERBAIKAN KRUSIAL: GANTI KEY MENJADI 'aurora_user'
-                // ===========================================================
-                
-                // Simpan user data
-                localStorage.setItem('aurora_user', JSON.stringify(auth.user));
-                
-                // Simpan access token (opsional tapi disarankan)
-                localStorage.setItem('aurora_token', auth.accessToken);
-
-                // ===========================================================
-
-                setTimeout(() => {
-                    window.location.href = "store.html";
-                }, 1500);
 
             } catch (err) {
                 logDebug(err.message, true);
-                ui.title.innerText = "Login Gagal";
-                ui.desc.innerText = "Terjadi kendala saat menyambungkan.";
+                
+                // Handle khusus jika error karena URL/Config salah
+                if(err.message.includes("URL") || err.message.includes("Key")) {
+                    ui.errorMsg.innerText = "Konfigurasi Supabase Salah. Cek script di head HTML.";
+                } else {
+                    ui.errorMsg.innerText = err.message;
+                }
+
+                ui.title.innerText = "Koneksi Gagal";
+                ui.desc.innerText = "Gagal terhubung ke penyedia identitas.";
                 ui.errorBox.style.display = 'block';
-                ui.errorMsg.innerText = err.message;
                 ui.btnRetry.style.display = 'block';
+                ui.spinner.style.display = 'none'; // Matikan spinner jika error
             }
         }
 
+        // Jalankan saat halaman dimuat
         window.onload = runLoginProcess;
     </script>
 </body>
