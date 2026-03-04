@@ -226,7 +226,7 @@
 
                     // Cek data di tabel 'aurorausers' (Ganti nama tabel jika berbeda)
                     const { data: userData, error: fetchError } = await sb
-                        .from('aurorausers') 
+                        .from('ngebelusers') 
                         .select('role') 
                         .eq('id', session.user.id)
                         .maybeSingle(); 
