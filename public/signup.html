@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lengkapi Profil | Aurora Store</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- SUPABASE SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* --- 1. AURORA LUXURY THEME --- */
+        :root {
+            --luxury-gold: #d4af37;
+            --luxury-gold-dim: rgba(212, 175, 55, 0.15);
+            --dark-bg: #0f0c15;
+            --dark-card: rgba(25, 23, 28, 0.98);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --text-white: #ffffff;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --error-red: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            /* Background halus */
+            background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+                              radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
+        }
+
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        /* --- HEADER --- */
+        header {
+            padding: 24px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 1.4rem;
+            color: var(--text-white);
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #fff, var(--luxury-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- CONTAINER --- */
+        .auth-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .auth-card {
+            background: var(--dark-card);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FORM ELEMENTS --- */
+        .header-icon {
+            font-size: 3rem;
+            color: var(--luxury-gold);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 { font-size: 1.8rem; margin-bottom: 10px; text-align: center; }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .form-group { margin-bottom: 20px; text-align: left; }
+        
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper { position: relative; }
+
+        input {
+            width: 100%;
+            padding: 14px 16px 14px 45px; /* Padding kiri lebih besar untuk icon */
+            font-size: 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder { color: rgba(255,255,255,0.3); }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--luxury-gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+
+        input:focus + .input-icon { color: var(--luxury-gold); }
+
+        /* --- BUTTON --- */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--luxury-gold);
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+            background: #e5bd3f;
+        }
+        
+        .btn-primary:disabled {
+            background: #4b5563;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- ERROR BOX --- */
+        .feedback {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: none;
+            text-align: left;
+            background: var(--error-bg);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid #000;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: none;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">Aurora ⚡</a>
+    </header>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            
+            <!-- Icon Header -->
+            <div class="header-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+
+            <h2>Lengkapi Profil</h2>
+            <p class="subtitle">Terhubung dengan Google. Silakan lengkapi detail akun Aurora Anda.</p>
+
+            <form id="completeForm">
+                
+                <div class="form-group">
+                    <label for="fullName">Nama Lengkap</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <input type="text" id="fullName" placeholder="Nama lengkap Anda" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Nomor WhatsApp</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.0 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <input type="tel" id="phoneNumber" placeholder="0812xxxx" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    <span class="spinner" id="btnSpinner"></span>
+                    <span id="btnText">Lanjut ke Store</span>
+                </button>
+
+                <div id="feedbackMsg" class="feedback"></div>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. KONFIGURASI SUPABASE ---
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- 2. CEK SESSION SAAT HALAMAN DIMUAT ---
+        window.addEventListener('load', async () => {
+            console.log("Halaman Setup dimuat. Mengecek sesi...");
+            
+            const { data: { session }, error } = await db.auth.getSession();
+
+            if (error || !session) {
+                console.error("Sesi tidak ditemukan:", error);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Pre-fill Nama dari Metadata Google
+            const user = session.user;
+            const metaName = user.user_metadata.full_name || user.user_metadata.name;
+            
+            if (metaName) {
+                document.getElementById('fullName').value = metaName;
+            }
+        });
+
+        // --- 3. HANDLE FORM SUBMIT ---
+        document.getElementById('completeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+            const feedback = document.getElementById('feedbackMsg');
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+
+            // UI Loading State
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.innerText = 'Memproses...';
+            feedback.style.display = 'none';
+
+            // Validasi Sederhana
+            if (phoneNumber.length < 10) {
+                showError("Nomor HP minimal 10 digit.");
+                resetBtn();
+                return;
+            }
+
+            try {
+                // 1. Ambil Data User Saat Ini
+                const { data: { user }, error: userError } = await db.auth.getUser();
+                if (userError) throw userError;
+                if (!user) throw new Error("Sesi habis, silakan login ulang.");
+
+                // 2. Validasi Unik Nomor HP
+                console.log("Step 1: Cek ketersediaan nomor HP...");
+                
+                // PERHATIAN: GANTI 'aurorausers' JIKA NAMA TABEL ANDA 'ngebelusers'
+                const { data: existingUser, error: checkError } = await db
+                    .from('aurorausers') 
+                    .select('id')
+                    .eq('phone', phoneNumber)
+                    .maybeSingle(); 
+
+                if (checkError && checkError.code !== 'PGRST116') {
+                    console.error("Error cek nomor:", checkError);
+                    throw new Error("Gagal mengecek nomor HP. Cek koneksi database.");
+                }
+
+                if (existingUser) {
+                    if (existingUser.id !== user.id) {
+                        throw new Error("Nomor HP sudah terdaftar pada akun lain.");
+                    }
+                }
+
+                // 3. INSERT DATA KE TABEL
+                console.log("Step 2: Menyimpan data user...");
+                
+                const newData = {
+                    id: user.id,
+                    email: user.email,
+                    full_name: fullName,    
+                    phone: phoneNumber
+                    // role & created_at sebaiknya di-handle default value di database
+                };
+
+                // PERHATIAN: GANTI 'aurorausers' JIKA NAMA TABEL ANDA 'ngebelusers'
+                const { error: insertError } = await db
+                    .from('aurorausers')
+                    .insert([newData]);
+
+                if (insertError) {
+                    console.error("Gagal Insert:", insertError);
+                    if(insertError.code === '23505') {
+                        throw new Error("Nomor HP sudah terdaftar.");
+                    } else if (insertError.code === '42501') {
+                        throw new Error("Akses Database Ditolak (RLS Policy).");
+                    } else {
+                        throw new Error(insertError.message);
+                    }
+                }
+
+                // 4. Update Metadata Auth (Opsional)
+                await db.auth.updateUser({
+                    data: { full_name: fullName, phone: phoneNumber }
+                });
+
+                // 5. Redirect Sukses ke Store
+                console.log("Sukses! Redirect ke store...");
+                
+                // Simpan data ke localStorage agar halaman store bisa baca
+                localStorage.setItem('aurora_user', JSON.stringify(user));
+                localStorage.setItem('aurora_phone', phoneNumber);
+
+                setTimeout(() => {
+                    window.location.href = 'store.html';
+                }, 1000);
+
+            } catch (err) {
+                console.error("Error:", err);
+                showError(err.message);
+                resetBtn();
+            }
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('feedbackMsg');
+            el.innerText = msg;
+            el.style.display = 'block';
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+            
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.innerText = 'Lanjut ke Store';
+        }
+    </script>
+</body>
+</html>
