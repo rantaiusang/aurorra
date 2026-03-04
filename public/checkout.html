@@ -251,7 +251,7 @@
 
                 <!-- DISPLAY ONGKIR -->
                 <div class="form-group">
-                    <label>Ongkir (JNE)</label>
+                    <label>Ongkir</label>
                     <input type="text" id="shippingCostDisplay" class="input-box" readonly value="Rp 0">
                 </div>
 
@@ -274,11 +274,14 @@
 
         <script>
         // ==========================================
-        // 1. KONFIGURASI SUPABASE
+        // 1. KONFIGURASI SUPABASE (FIX V2 INIT)
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // FIX: Menggunakan destructuring untuk v2 CDN
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
         // 2. HELPER FUNCTIONS (FORMAT RUPIAH)
@@ -311,17 +314,30 @@
         let currentUser = null;
         let orderId = "ORD-" + Date.now();
 
-        // --- 4. FUNGSI LOAD KOTA ---
+        // --- 4. FUNGSI LOAD KOTA (DENGAN DEBUG & ORDER) ---
         async function loadCities() {
             try {
                 const { data, error } = await supabaseClient
                     .from("ongkir")
                     .select("tujuan")
-                    .eq("ekspedisi", "jne");
+                    .eq("ekspedisi", "jne")
+                    .order("tujuan", { ascending: true }); // FIX: Tambahkan order by
 
-                if (error || !data) return;
+                console.log("LOAD CITIES DATA:", data);
+                console.log("LOAD CITIES ERROR:", error);
+
+                if (error) {
+                    console.error("Supabase Error Load Cities:", error);
+                    return;
+                }
 
                 const citySelect = document.getElementById("city");
+                citySelect.innerHTML = `<option value="">Pilih Kota</option>`; // Reset dulu
+
+                if (!data || data.length === 0) {
+                    console.warn("Data kota kosong.");
+                    return;
+                }
                 
                 // Ambil kota unik saja
                 const uniqueCities = [...new Set(data.map(item => item.tujuan))];
@@ -330,7 +346,7 @@
                     citySelect.innerHTML += `<option value="${city}">${city.toUpperCase()}</option>`;
                 });
             } catch (e) {
-                console.error("Gagal load kota:", e);
+                console.error("Gagal load kota (Catch):", e);
             }
         }
 
@@ -368,24 +384,21 @@
             document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
         }
 
-        // --- 7. INISIALISASI UTAMA (FIX URUTAN) ---
+        // --- 7. INISIALISASI UTAMA ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
 
-            // 🔥 LANGKAH KRUSIAL: LOAD KOTA DI LUAR TRY-CATCH
-            // Ini memastikan kota selalu muncul meskipun Pi SDK error atau user belum login
+            // 🔥 LOAD KOTA DI LUAR TRY-CATCH
             await loadCities();
             document.getElementById("city").addEventListener("change", loadShippingCost);
 
             try {
-                // Cek Pi SDK (Opsional/Tidak memblokir jika tidak ada)
+                // Cek Pi SDK (Opsional)
                 if (typeof Pi !== 'undefined') {
                     await Pi.init({ version: "2.0", sandbox: true });
                 } else {
-                    // Jika tidak ada Pi SDK (bukan Pi Browser), tampilkan warning tapi lanjutkan
                     console.warn("Pi SDK tidak ditemukan. Mode testing/Non-Pi Browser.");
-                    // Kita tidak me-throw error di sini agar kode di bawah tetap jalan
                 }
 
                 // CEK AUTH SUPABASE
@@ -397,12 +410,11 @@
                     localStorage.removeItem('aurora_cart');
                     localStorage.removeItem('aurora_user');
                     
-                    // Tampilkan error UI tapi jangan throw agar kota tetap terlihat
                     errorBox.style.display = "block";
                     errorBox.innerText = "Sesi habis atau Anda telah logout. Silakan login ulang.";
                     payBtn.innerText = "Gagal Memuat";
                     payBtn.disabled = true;
-                    return; // Stop di sini jika tidak ada user
+                    return; 
                 }
 
                 currentUser = user;
@@ -468,7 +480,7 @@
 
                 summaryList.innerHTML = html;
                 currentTotal = total;
-                updateFinalTotal(); // Update total tampilan awal
+                updateFinalTotal(); 
                 return true;
 
             } catch (e) {
@@ -497,7 +509,7 @@
                 return showError("Mohon pilih kota tujuan.");
             }
 
-            // Validasi Total (Barang + Ongkir)
+            // Validasi Total
             const finalBill = currentTotal + shippingCost;
             if (parseFloat(finalBill) <= 0) return showError("Total pembayaran tidak valid.");
 
@@ -508,7 +520,6 @@
                 return showError("Sesi berubah. Silakan refresh halaman.");
             }
 
-            // Cek Pi SDK lagi sebelum bayar
             if (typeof Pi === 'undefined') {
                 return showError("Pembayaran memerlukan Pi Browser.");
             }
@@ -528,7 +539,6 @@
                 
                 const piUser = auth.user;
 
-                // Ubah amount menjadi Total + Ongkir
                 const paymentData = {
                     amount: parseFloat(finalBill),
                     memo: `Order Aurora: ${orderId}`,
@@ -543,6 +553,7 @@
                                 method: 'POST',
                                 headers: { 
                                     "Content-Type": "application/json",
+                                    // CATATAN: Untuk production, ganti SUPABASE_KEY ini dengan Service Role Key yang disimpan di environment variables server.
                                     "Authorization": `Bearer ${SUPABASE_KEY}` 
                                 },
                                 body: JSON.stringify({ 
@@ -575,14 +586,14 @@
                                     orderId,
                                     uid: piUser.uid,
                                     username: piUser.username,
-                                    amount: finalBill, // Kirim final amount
+                                    amount: finalBill,
                                     items: cartItems,
                                     customer: { 
                                         name: fullName, 
                                         phone: phoneNumber, 
                                         address: address,
-                                        city: city, // Tambahkan kota ke data customer
-                                        shippingCost: shippingCost // Info tambahan ongkir
+                                        city: city, 
+                                        shippingCost: shippingCost 
                                     }
                                 })
                             });
