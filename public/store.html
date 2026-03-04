@@ -37,19 +37,17 @@
         .price-container {
             display: inline-block;
             transition: filter 0.3s ease, color 0.3s ease;
-            position: relative; /* Penting untuk positioning tooltip */
+            position: relative;
         }
 
-        /* Class ini ditambahkan via JS jika user belum login */
         .price-blurred {
             filter: blur(4px);
-            color: transparent; /* Menyembunyikan teks asli agar tidak terbaca jika select text */
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); /* Efek siluet */
+            color: transparent; 
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
             user-select: none;
             cursor: pointer;
         }
 
-        /* Tooltip kecil untuk mendorong login */
         .price-blurred::after {
             content: 'Login untuk melihat harga';
             position: absolute;
@@ -59,7 +57,7 @@
             font-size: 0.6rem;
             color: var(--luxury-gold);
             white-space: nowrap;
-            filter: blur(0); /* Tooltip harus jelas */
+            filter: blur(0);
             text-shadow: none;
             opacity: 1;
             pointer-events: none;
@@ -376,6 +374,58 @@
         }
 
         // ==========================================
+        // 🆕 FUNGSI SYNC HARGA KERANJANG (LIVE UPDATE)
+        // ==========================================
+        function syncCartPricesWithDB() {
+            let cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
+            if (!cart.length) return; // Keranjang kosong, tidak perlu sync
+
+            let hasChanges = false;
+            let itemsToRemove = [];
+
+            // Loop setiap item di keranjang
+            const updatedCart = cart.map(item => {
+                // Cari produk terbaru di array productsData (dari fetchProducts tadi)
+                const dbProduct = productsData.find(p => String(p.id) === String(item.id));
+
+                if (dbProduct) {
+                    const cartPrice = cleanPrice(item.price);
+                    const dbPrice = cleanPrice(dbProduct.price);
+
+                    // 1. Jika harga di database beda dengan harga di keranjang
+                    if (cartPrice !== dbPrice) {
+                        console.log(`⚡ Update harga: ${item.name || item.product_name} dari ${cartPrice} ke ${dbPrice}`);
+                        hasChanges = true;
+                        // Update harga item dengan harga DB terbaru
+                        return { ...item, price: dbPrice };
+                    }
+                } else {
+                    // 2. Jika produk tidak ditemukan di DB (mungkin dihapus admin)
+                    console.warn(`⚠️ Produk ${item.id} tidak ditemukan di DB. Menghapus dari keranjang.`);
+                    itemsToRemove.push(item.id);
+                }
+                
+                return item;
+            });
+
+            // Hapus item yang sudah tidak ada di DB
+            if (itemsToRemove.length > 0) {
+                const finalCart = updatedCart.filter(item => !itemsToRemove.includes(String(item.id)));
+                localStorage.setItem('aurora_cart', JSON.stringify(finalCart));
+                hasChanges = true;
+            } else if (hasChanges) {
+                // Simpan perubahan harga
+                localStorage.setItem('aurora_cart', JSON.stringify(updatedCart));
+            }
+
+            if (hasChanges) {
+                console.log("🛒 Keranjang berhasil disinkronkan dengan database.");
+                // Panggil render ulang agar tampilan sidebar langsung berubah
+                renderSidebarCart();
+            }
+        }
+
+        // ==========================================
         // 2. RENDER HEADER DINAMIS
         // ==========================================
         function renderHeader() {
@@ -567,6 +617,9 @@
         window.addEventListener('load', async () => {
             await Promise.all([initApp(), fetchProducts()]);
             
+            // 🆕 PENTING: Panggil fungsi sync harga setelah data produk dimuat
+            syncCartPricesWithDB(); 
+
             if(productsData && productsData.length > 0) {
                 renderProducts(); 
                 // Panggil lagi setelah render produk memastikan elemen harga tersedia
