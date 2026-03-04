@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurrora Store - Exclusive Fragrances</title>
+    <title>Aurorra Store - Exclusive Fragrances</title>
     <!-- Font Google -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -540,12 +540,13 @@
         <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
     
-    <!-- SCRIPT ANIMASI SCROLL & SESSION HANDLER -->
+    <!-- SCRIPT ANIMASI SCROLL & SESSION HANDLER (FULL FIX) -->
     <script>
-        // --- 1. FUNGSI CEK SESI & UPDATE TOMBOL (FIX: ngebeluser) ---
-        // Kita jalankan ini otomatis saat halaman dimuat
-        (function updateHeaderBasedOnSession() {
-            // PERBAIKAN: Kita baca 'aurora_user' agar sama dengan login.html dan store.html
+        // --- 1. DEFINISIKAN FUNGSI UPDATE HEADER ---
+        // Kita ubah dari IIFE (function langsung jalan) menjadi function biasar
+        // agar bisa dipanggil ulang saat tombol Back ditekan.
+        function updateHeaderBasedOnSession() {
+            // PERBAIKAN 1: Key LocalStorage dibaca 'ngebelusers' (sesuai login)
             const userSession = localStorage.getItem('ngebelusers');
             const btnLogin = document.getElementById('headerBtn');
 
@@ -553,11 +554,15 @@
                 // Jika ADA data user (Sudah Login)
                 try {
                     const user = JSON.parse(userSession);
-                    console.log("User aktif:", user.username);
+                    
+                    // PERBAIKAN 2: Mengambil full_name, jika tidak ada ambil username, jika tidak ada "User"
+                    // Ini mencegah tampilan "undefined"
+                    const displayName = user.full_name || user.username || "User";
+                    console.log("User aktif:", displayName);
 
-                    // Ubah Tombol Header jadi Username
+                    // Ubah Tombol Header
                     if (btnLogin) {
-                        btnLogin.innerText = user.username;
+                        btnLogin.innerText = displayName;
                         btnLogin.href = "#"; // Link kosong
                         
                         // Ubah Style jadi Outline Gold
@@ -565,15 +570,20 @@
                         btnLogin.style.border = "1px solid var(--luxury-gold)";
                         btnLogin.style.color = "var(--luxury-gold)";
 
-                        // --- LOGIKA LOGOUT (TIDAK DIREDIRECT KE LOGIN) ---
-                        btnLogin.onclick = function(e) {
-                            e.preventDefault(); // Mencegah link naik ke atas
+                        // --- LOGIKA LOGOUT ---
+                        // Kita clone node untuk menghapus event listener lama agar tidak menumpuk
+                        const newBtn = btnLogin.cloneNode(true);
+                        btnLogin.parentNode.replaceChild(newBtn, btnLogin);
+                        
+                        // Pasang event listener baru pada tombol yang sudah di-clone
+                        newBtn.onclick = function(e) {
+                            e.preventDefault(); 
                             
                             if(confirm("Apakah Anda yakin ingin keluar?")) {
-                                // 1. Hapus data sesi
-                                localStorage.removeItem('ngebeluusers');
+                                // PERBAIKAN 3: Perbaiki Typo Key (ngebeluusers -> ngebelusers)
+                                localStorage.removeItem('ngebelusers');
                                 
-                                // 2. Refresh halaman agar tombol kembali jadi "Login"
+                                // Refresh halaman agar tombol kembali jadi "Login"
                                 window.location.reload(); 
                             }
                         };
@@ -582,12 +592,11 @@
                 } catch (e) {
                     console.error("Data session rusak, mereset...", e);
                     localStorage.removeItem('ngebelusers'); // Hapus data rusak
-                    // Tidak perlu redirect, biarkan user tetap di landing page
+                    // Refresh untuk membersihkan UI
+                    window.location.reload(); 
                 }
             } else {
                 // Jika TIDAK ADA data (Belum Login)
-                // Halaman TETAP DITAMPILKAN (Landing Page Publik)
-                
                 if (btnLogin) {
                     // Pastikan tombol kembali ke style awal (Login)
                     btnLogin.innerText = "Login";
@@ -599,9 +608,14 @@
                     btnLogin.style.color = "#000";
                 }
             }
-        })();
+        }
 
-        // --- 2. FUNGSI ANIMASI SCROLL ---
+        // --- 2. JALANKAN PERTAMA KALI ---
+        document.addEventListener("DOMContentLoaded", function() {
+            updateHeaderBasedOnSession();
+        });
+
+        // --- 3. FUNGSI ANIMASI SCROLL ---
         window.onload = function() {
             window.scrollTo(0, 0);
             initScrollAnimations();
@@ -626,14 +640,18 @@
             fadeElements.forEach(el => observer.observe(el));
         }
 
-        // --- 3. CACHE HANDLING MOBILE ---
+        // --- 4. FIX TOMBOL BACK (BFCACHE) ---
+        // Event ini akan terpicu saat halaman dimuat ulang dari cache (saat user tekan Back)
         window.addEventListener('pageshow', function(event) {
+            // Cek apakah halaman dimuat dari cache (event.persisted)
             if (event.persisted) {
+                console.log("Halaman dimuat dari cache (Back Button). Memperbarui UI...");
+                
+                // Jalankan ulang fungsi cek sesi (Sekarang tidak error karena bukan IIFE)
+                updateHeaderBasedOnSession();
+                
+                // Reset posisi scroll (Opsional)
                 window.scrollTo(0, 0);
-                initScrollAnimations();
-                // Jalankan ulang cek sesi saat navigasi balik (back/forward)
-                // PERBAIKAN: Panggil fungsi yang ada di atas
-                updateHeaderBasedOnSession(); 
             }
         });
     </script>
