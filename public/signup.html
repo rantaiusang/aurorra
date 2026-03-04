@@ -36,7 +36,6 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            /* Background halus */
             background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
                               radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
         }
@@ -80,6 +79,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
             animation: fadeInUp 0.6s ease-out;
+            display: none; /* Default hidden (Anti-Flicker) */
         }
 
         @keyframes fadeInUp {
@@ -120,7 +120,7 @@
 
         input {
             width: 100%;
-            padding: 14px 16px 14px 45px; /* Padding kiri lebih besar untuk icon */
+            padding: 14px 16px 14px 45px;
             font-size: 1rem;
             background: var(--input-bg);
             border: 1px solid var(--border-color);
@@ -265,22 +265,49 @@
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- 2. CEK SESSION SAAT HALAMAN DIMUAT ---
+        // --- 2. CEK SESSION & STATUS USER SAAT HALAMAN DIMUAT ---
         window.addEventListener('load', async () => {
             console.log("Halaman Setup dimuat. Mengecek sesi...");
-            
+
+            // 1️⃣ Ambil Session Supabase
             const { data: { session }, error } = await db.auth.getSession();
 
+            // 2️⃣ Tidak ada session → balik ke login
             if (error || !session) {
-                console.error("Sesi tidak ditemukan:", error);
+                console.log("Tidak ada session. Redirect ke login.");
                 window.location.href = 'login.html';
                 return;
             }
 
-            // Pre-fill Nama dari Metadata Google
             const user = session.user;
-            const metaName = user.user_metadata.full_name || user.user_metadata.name;
+
+            // 3️⃣ Cek apakah user SUDAH ADA di tabel ngebelusers
+            const { data: existingUser, error: checkError } = await db
+                .from('ngebelusers')
+                .select('id')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            if (checkError && checkError.code !== 'PGRST116') {
+                console.error("Error Cek DB:", checkError);
+                alert("Gagal mengecek database. Mohon cek koneksi Anda.");
+                return;
+            }
+
+            // 4️⃣ Kalau SUDAH ADA → langsung ke store (Jangan tampilkan form)
+            if (existingUser) {
+                console.log("User sudah terdaftar di DB. Redirect ke store.");
+                window.location.href = 'store.html';
+                return;
+            }
+
+            // 5️⃣ Kalau BELUM ADA → tampilkan form dan prefill nama
+            console.log("User belum ada di DB. Menampilkan form.");
             
+            // ✅ PERBAIKAN: Munculkan form dengan halus
+            document.querySelector('.auth-card').style.display = 'block';
+            
+            const metaName = user.user_metadata.full_name || user.user_metadata.name;
             if (metaName) {
                 document.getElementById('fullName').value = metaName;
             }
@@ -312,7 +339,7 @@
             }
 
             try {
-                // 1. Ambil Data User Saat Ini
+                // 1. Ambil Data User Saat Ini (Untuk memastikan session masih valid)
                 const { data: { user }, error: userError } = await db.auth.getUser();
                 if (userError) throw userError;
                 if (!user) throw new Error("Sesi habis, silakan login ulang.");
@@ -320,7 +347,6 @@
                 // 2. Validasi Unik Nomor HP
                 console.log("Step 1: Cek ketersediaan nomor HP...");
                 
-                // PERHATIAN: GANTI 'aurorausers' JIKA NAMA TABEL ANDA 'ngebelusers'
                 const { data: existingUser, error: checkError } = await db
                     .from('ngebelusers') 
                     .select('id')
@@ -333,50 +359,48 @@
                 }
 
                 if (existingUser) {
+                    // Jika nomor HP ditemukan, pastikan itu milik user ini sendiri
                     if (existingUser.id !== user.id) {
                         throw new Error("Nomor HP sudah terdaftar pada akun lain.");
                     }
                 }
 
-                // 3. INSERT DATA KE TABEL
-                console.log("Step 2: Menyimpan data user...");
+                // 3. INSERT/UPDATE DATA KE TABEL ngebelusers
+                console.log("Step 2: Menyimpan data user ke tabel ngebelusers...");
                 
-                const newData = {
-                    id: user.id,
-                    email: user.email,
-                    full_name: fullName,    
-                    phone: phoneNumber
-                    // role & created_at sebaiknya di-handle default value di database
-                };
-
-                // PERHATIAN: GANTI 'aurorausers' JIKA NAMA TABEL ANDA 'ngebelusers'
-                const { error: insertError } = await db
+                // ✅ PERBAIKAN KEAMANAN: Hapus hardcoding role & is_admin dari frontend.
+                // Biarkan database (Default Value atau Trigger) yang menangani ini agar lebih aman.
+                const { error: upsertError } = await db
                     .from('ngebelusers')
-                    .insert([newData]);
+                    .upsert({
+                        id: user.id,                // PK (UUID dari Auth)
+                        email: user.email,
+                        full_name: fullName,    
+                        phone: phoneNumber
+                        // Role & is_admin diatur oleh DEFAULT VALUE di Database, bukan di sini
+                    }, {
+                        onConflict: 'id'          // Target kolom Primary Key untuk konflik (Update jika id sama)
+                    });
 
-                if (insertError) {
-                    console.error("Gagal Insert:", insertError);
-                    if(insertError.code === '23505') {
-                        throw new Error("Nomor HP sudah terdaftar.");
-                    } else if (insertError.code === '42501') {
+                if (upsertError) {
+                    console.error("Gagal Insert/Update:", upsertError);
+                    if(upsertError.code === '23505') {
+                        throw new Error("Nomor HP sudah terdaftar pada akun lain.");
+                    } else if (upsertError.code === '42501') {
                         throw new Error("Akses Database Ditolak (RLS Policy).");
                     } else {
-                        throw new Error(insertError.message);
+                        throw new Error(upsertError.message);
                     }
                 }
 
-                // 4. Update Metadata Auth (Opsional)
+                // 4. Update Metadata Auth (Opsional, untuk konsistensi tampilan)
                 await db.auth.updateUser({
                     data: { full_name: fullName, phone: phoneNumber }
                 });
 
                 // 5. Redirect Sukses ke Store
-                console.log("Sukses! Redirect ke store...");
+                console.log("Pendaftaran selesai. Redirect ke store...");
                 
-                // Simpan data ke localStorage agar halaman store bisa baca
-                localStorage.setItem('aurora_user', JSON.stringify(user));
-                localStorage.setItem('aurora_phone', phoneNumber);
-
                 setTimeout(() => {
                     window.location.href = 'store.html';
                 }, 1000);
@@ -401,7 +425,9 @@
             
             btn.disabled = false;
             spinner.style.display = 'none';
-            btnText.innerText = 'Lanjut ke Store';
+            
+            // ✅ PERBAIKAN: Konsistensi teks tombol kembali ke awal ("Signup")
+            btnText.innerText = 'Signup';
         }
     </script>
 </body>
