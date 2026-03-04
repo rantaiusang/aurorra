@@ -227,7 +227,7 @@
 
                 <div class="total-display">
                     <span>Total Tagihan</span>
-                    <span class="total-amount" id="displayTotal">0.00 π</span>
+                    <span class="total-amount" id="displayTotal">Rp 0</span>
                 </div>
 
                 <button type="submit" class="btn-pay" id="payBtn" disabled>Bayar Sekarang</button>
@@ -236,7 +236,29 @@
     </div>    
 
         <script>
-        // --- 1. KONFIGURASI & SETUP ---
+        // ==========================================
+        // 1. HELPER FUNCTIONS (FORMAT RUPIAH)
+        // ==========================================
+        function cleanPrice(priceInput) {
+            if (priceInput === null || priceInput === undefined) return 0;
+            let p = String(priceInput).replace(/[^0-9.-]+/g, "");
+            if (p.length === 0) return 0;
+            let val = parseFloat(p);
+            return isNaN(val) || val < 0 ? 0 : val;
+        }
+
+        function formatPrice(price) {
+            let numPrice = cleanPrice(price);
+            
+            // Menggunakan Intl.NumberFormat untuk format Rupiah Indonesia yang benar
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(numPrice);
+        }
+
+        // --- 2. KONFIGURASI & SETUP ---
         // URL Edge Function Supabase Anda
         const SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA";
@@ -246,7 +268,7 @@
         let currentUser = null;
         let orderId = "ORD-" + Date.now();
 
-        // --- 2. INISIALISASI HALAMAN (FIX TOTAL 0 & DATA CHECKOUT) ---
+        // --- 3. INISIALISASI HALAMAN (FIX TOTAL 0 & DATA CHECKOUT) ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
@@ -319,16 +341,18 @@
                     
                     total += subtotal;
                     
+                    // MENGGANTI FORMAT MENJADI RUPIAH
                     html += `
                         <div class="item-row">
                             <span>${name} <small style="color:#888;">(x${qty})</small></span>
-                            <span>${subtotal.toFixed(7)} π</span>
+                            <span>${formatPrice(subtotal)}</span>
                         </div>`;
                 });
 
                 summaryList.innerHTML = html;
                 currentTotal = total;
-                document.getElementById('displayTotal').innerText = total.toFixed(7) + " π";
+                // MENGGANTI FORMAT TOTAL MENJADI RUPIAH
+                document.getElementById('displayTotal').innerText = formatPrice(total);
                 return true;
 
             } catch (e) {
@@ -337,7 +361,7 @@
             }
         }
 
-        // --- 3. PROSES PEMBAYARAN UTAMA ---
+        // --- 4. PROSES PEMBAYARAN UTAMA ---
         async function handleAutoPayment(event) {
             event.preventDefault();
             const payBtn = document.getElementById('payBtn');
