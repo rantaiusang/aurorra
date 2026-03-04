@@ -391,55 +391,57 @@
         }
 
         // ==========================================
-        // 3. SYNC USER KE TABEL ngebelusers
+        // 3. SYNC USER KE TABEL ngebelusers (FIXED STRUKTUR DB)
         // ==========================================
-        async function syncUserToSupabase(piUser) {
+        async function syncUserToSupabase(user) {
             try {
-                console.log("Mencari user di ngebelusers dengan pi_uid:", piUser.uid);
-                
-                const { data: existingUser, error } = await supabaseClient
+                console.log("Mencari user dengan id:", user.uid);
+
+                // Query menggunakan kolom 'id' yang ada di tabel
+                const { data, error } = await supabaseClient
                     .from('ngebelusers')
                     .select('*')
-                    .eq('pi_uid', piUser.uid)
+                    .eq('id', user.uid)
                     .maybeSingle();
 
                 if (error) {
-                    console.error("Error DB sync:", error.message);
+                    console.error("Error ambil user:", error.message);
                     return false;
                 }
 
-                if (existingUser) {
-                    dbUser = existingUser;
-                    console.log("✅ User ditemukan di DB:", dbUser.full_name);
+                if (data) {
+                    dbUser = data;
+                    console.log("✅ User ditemukan:", dbUser.full_name);
                     return true;
                 } else {
-                    console.log("User belum ada, membuat entry baru...");
+                    console.log("User belum ada di DB, membuat baru...");
+
+                    // Insert HANYA kolom yang ada di tabel
                     const { data: newUser, error: insertError } = await supabaseClient
                         .from('ngebelusers')
                         .insert([{
-                            username: piUser.username || 'User',
-                            full_name: piUser.full_name || null,
-                            pi_uid: piUser.uid,
-                            email: piUser.email || null,
-                            phone: piUser.phone || null,
-                            total_spent: 0,
-                            total_orders: 0,
-                            points: 0
+                            id: user.uid,
+                            email: user.email || null,
+                            full_name: user.full_name || user.username || null,
+                            phone: null,
+                            role: 'user',
+                            is_admin: false
                         }])
                         .select()
                         .single();
 
-                    if (!insertError && newUser) {
-                        dbUser = newUser;
-                        console.log("✅ User baru dibuat:", dbUser.full_name);
-                        return true;
-                    } else {
-                        console.error("Gagal membuat user baru:", insertError);
+                    if (insertError) {
+                        console.error("Insert gagal:", insertError.message);
                         return false;
                     }
+
+                    dbUser = newUser;
+                    console.log("✅ User baru dibuat:", dbUser.full_name);
+                    return true;
                 }
-            } catch (e) {
-                console.error("Sync exception:", e);
+
+            } catch (err) {
+                console.error("Sync error:", err);
                 return false;
             }
         }
@@ -525,7 +527,8 @@
 
             const displayUser = dbUser || currentUser;
 
-            const uuid = displayUser.uid || displayUser.uuid || "-";
+            // FIX: Menggunakan id (UUID) sesuai tabel
+            const uuid = displayUser.id || displayUser.uid || "-";
             const email = displayUser.email || "-";
             const phone = displayUser.phone || "-";
             const fullName = displayUser.full_name || displayUser.username || "-";
@@ -538,10 +541,10 @@
                 
                 ${dbUser ? `
                 <div style="margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px;">
-                    <h4 style="color:var(--luxury-gold); margin-bottom:10px;">Data Statistik</h4>
-                    <div class="profile-detail-row"><span class="profile-label">Total Belanja</span><span class="profile-value">${formatPrice(dbUser.total_spent || 0)}</span></div>
-                    <div class="profile-detail-row"><span class="profile-label">Poin Loyalitas</span><span class="profile-value points">${dbUser.points || 0} Pts</span></div>
-                </div>` : '<p style="text-align:center; color:#666; margin-top:10px;">Data DB belum dimuat (Cek Koneksi/RLS).</p>'}
+                    <h4 style="color:var(--luxury-gold); margin-bottom:10px;">Info Akun</h4>
+                    <div class="profile-detail-row"><span class="profile-label">Role</span><span class="profile-value">${dbUser.role || 'User'}</span></div>
+                    <div class="profile-detail-row"><span class="profile-label">Admin Status</span><span class="profile-value">${dbUser.is_admin ? 'Yes' : 'No'}</span></div>
+                </div>` : '<p style="text-align:center; color:#666; margin-top:10px;">Data DB belum dimuat.</p>'}
             `;
         }
 
@@ -553,10 +556,13 @@
             modal.classList.add('show');
 
             try {
+                // Query riwayat berdasarkan ID user yang benar
+                const userId = dbUser ? dbUser.id : currentUser.uid;
+
                 const { data: orders, error } = await supabaseClient
                     .from('orders')
                     .select('*')
-                    .eq('user_id', currentUser.uid)
+                    .eq('user_id', userId)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -791,7 +797,9 @@
         }
 
         function proceedToCheckout() {
-            if (!localStorage.getItem('ngebelusers')) {
+            // Cek session Auth yang benar
+            const { data: { session } } = supabaseClient.auth.getSession();
+            if (!session) {
                 const confirmLogin = confirm("Anda harus login terlebih dahulu untuk melanjutkan pembayaran. Ingin login sekarang?");
                 if (confirmLogin) window.location.href = 'login.html';
                 return;
