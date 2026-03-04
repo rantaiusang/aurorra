@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
+        /* --- STYLE LUXURY TIDAK DIUBAH --- */
         :root {
             --luxury-gold: #d4af37;
             --luxury-gold-dim: rgba(212, 175, 55, 0.15);
@@ -35,7 +36,6 @@
                               radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 20%);
         }
 
-        /* Header & UI Elements ... */
         header { padding: 24px 20px; text-align: center; z-index: 10; }
         .logo {
             font-family: 'Playfair Display', serif;
@@ -67,40 +67,52 @@
             width: 50px; height: 50px; border: 3px solid rgba(212, 175, 55, 0.1);
             border-top: 3px solid var(--luxury-gold); border-radius: 50%; animation: spin 1s linear infinite;
         }
-        /* Ganti Icon Pi jadi Icon Aurora/Google */
         .pi-icon { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--luxury-gold); position: absolute; font-weight: bold; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         h2 { font-size: 1.5rem; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.5px; }
         p.subtitle { font-size: 0.9rem; color: var(--text-gray); margin-bottom: 30px; line-height: 1.6; min-height: 45px;}
 
+        /* TOMBOL LOGIN (GAYA NGBEL DIPADUKAN DENGAN WARNA AURORA) */
+        .btn-google {
+            display: none; /* Default hidden, muncul jika belum login */
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .btn-google:hover {
+            background: var(--luxury-gold);
+            color: black;
+            border-color: var(--luxury-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        .btn-google:disabled {
+            opacity: 0.6; cursor: not-allowed; transform: none;
+        }
+        .btn-google svg { width: 20px; height: 20px; }
+
         .error-box { display: none; background: var(--error-bg); border: 1px solid rgba(239, 68, 68, 0.3); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.85rem; }
         .error-title { color: #fca5a5; font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         .error-msg { color: #e5e7eb; word-break: break-word; }
-
-        .btn-action {
-            display: none; margin-top: 15px; background: var(--luxury-gold); color: #000; border: none;
-            padding: 14px 30px; border-radius: 50px; font-weight: 600; cursor: pointer; width: 100%;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); font-family: 'Poppins', sans-serif;
-        }
-        .debug-log { display: none; margin-top: 20px; padding: 12px; background: #000; border: 1px solid #333; color: #4ade80; font-family: monospace; font-size: 0.75rem; text-align: left; max-height: 120px; overflow-y: auto; }
-        .debug-log p { margin-bottom: 4px; border-bottom: 1px solid #111; }
+        .spin-anim { animation: spin 1s linear infinite; }
     </style>
 
     <!-- SUPABASE SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    
-    <!-- Konfigurasi Supabase (Anda bisa ubah di sini atau buat file external) -->
-    <script>
-        // ============================================================
-        // KONFIGURASI SUPABASE (ISI DATA DASHBOARD SUPABASE ANDA DISINI)
-        // ============================================================
-        const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co"; 
-        const SUPABASE_KEY = "YOUR_ANON_PUBLIC_KEY";
-        
-        // Inisialisasi Supabase Client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -112,104 +124,166 @@
         <div class="glow-effect"></div>
         <div class="card">
             <div class="spinner-wrapper">
-                <div class="spinner" id="spinnerAnim"></div>
-                <!-- Icon di tengah spinner bisa diganti 'G' untuk Google atau 'A' untuk Aurora -->
-                <div class="pi-icon">G</div>
+                <div class="spinner" id="main-spinner"></div>
+                <!-- Icon Default Aurora -->
+                <div class="pi-icon">A</div>
             </div>
 
             <h2 id="status-title">Menghubungkan...</h2>
             <p class="subtitle" id="status-desc">Menyiapkan koneksi aman ke Aurora System</p>
 
+            <!-- TOMBOL GOOGLE (Hanya muncul jika belum login/timeout) -->
+            <button id="btn-google" class="btn-google" onclick="handleGoogleLogin()">
+                <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                        <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                        <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                        <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.734 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.79 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                        <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                    </g>
+                </svg>
+                Masuk dengan Google
+            </button>
+
             <div id="error-box" class="error-box">
                 <span class="error-title">Kesalahan Sistem</span>
-                <span id="error-msg" class="error-msg">Deskripsi error akan muncul di sini.</span>
+                <span id="error-msg" class="error-msg">Deskripsi error.</span>
             </div>
-            
-            <div id="debug-log" class="debug-log"></div>
-            <button id="btn-retry" class="btn-action" onclick="window.location.reload()">Coba Lagi</button>
         </div>
     </div>
 
     <script>
-        function logDebug(msg, isError = false) {
-            console.log(msg);
-            const debugBox = document.getElementById('debug-log');
-            if(debugBox) {
-                debugBox.style.display = 'block';
-                const p = document.createElement('p');
-                if(isError) p.style.color = '#ef4444';
-                p.innerHTML = `> ${msg}`;
-                debugBox.appendChild(p);
-                debugBox.scrollTop = debugBox.scrollHeight;
+        // --- 1. KONFIGURASI SUPABASE (SAMA DENGAN NGBEL) ---
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA'; 
+        
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const ui = {
+            title: document.getElementById('status-title'),
+            desc: document.getElementById('status-desc'),
+            spinner: document.getElementById('main-spinner'),
+            btnGoogle: document.getElementById('btn-google'),
+            errorBox: document.getElementById('error-box'),
+            errorMsg: document.getElementById('error-msg')
+        };
+
+        // --- 2. FUNGSI LOGIN GOOGLE ---
+        async function handleGoogleLogin() {
+            const originalText = ui.btnGoogle.innerHTML;
+            ui.btnGoogle.disabled = true;
+            ui.btnGoogle.innerHTML = `<svg class="spin-anim" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-6 2.3l-4-4"></path></svg> Menghubungkan...`;
+
+            try {
+                const { data, error } = await sb.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.href 
+                    }
+                });
+                if (error) throw error;
+            } catch (err) {
+                console.error(err);
+                ui.title.innerText = "Gagal";
+                ui.desc.innerText = err.message;
+                ui.errorBox.style.display = 'block';
+                ui.errorMsg.innerText = err.message;
+                ui.btnGoogle.disabled = false;
+                ui.btnGoogle.innerHTML = originalText;
             }
         }
 
-        async function runLoginProcess() {
-            const ui = {
-                title: document.getElementById('status-title'),
-                desc: document.getElementById('status-desc'),
-                spinner: document.getElementById('spinnerAnim'),
-                errorBox: document.getElementById('error-box'),
-                errorMsg: document.getElementById('error-msg'),
-                btnRetry: document.getElementById('btn-retry')
-            };
-
+        // --- 3. LOGIKA UTAMA (ADAPTASI DARI NGBEL) ---
+        async function checkSession() {
             try {
-                logDebug("Inisialisasi Sistem...");
-
-                // 1. CEK SESSION SUPABASE (Apakah user sudah login sebelumnya?)
-                const { data: { session } } = await supabase.auth.getSession();
+                // A. CEK SESSION
+                const { data: { session }, error: sessionError } = await sb.auth.getSession();
                 
+                if (sessionError) throw sessionError;
+
                 if (session) {
-                    // USER SUDAH LOGIN
-                    logDebug("Session ditemukan: " + session.user.email);
-                    ui.title.innerText = "Login Berhasil";
-                    ui.desc.innerText = "Selamat datang kembali, " + (session.user.user_metadata.full_name || session.user.email);
-                    ui.spinner.style.borderTopColor = "#10b981";
+                    // SESSION ADA -> CEK DATABASE
+                    console.log("✅ Login Terdeteksi. Mengecek Database...");
                     
-                    // Simpan ke localStorage agar halaman lain bisa akses
+                    // Ubah UI jadi Loading Cek Database
+                    ui.title.innerText = "Verifikasi Akun...";
+                    ui.desc.innerText = "Mengecek data profil Aurora.";
+                    ui.spinner.style.borderTopColor = "var(--luxury-gold)";
+
+                    // Cek data di tabel 'aurorausers' (Ganti nama tabel jika berbeda)
+                    const { data: userData, error: fetchError } = await sb
+                        .from('aurorausers') 
+                        .select('role, full_name') 
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+
+                    // Handle Error Database (selain data tidak ditemukan)
+                    if (fetchError && fetchError.code !== 'PGRST116') {
+                        console.error("DB Error:", fetchError);
+                        throw new Error("Gagal mengakses database user.");
+                    }
+
+                    // LOGIKA 1: USER BARU (Belum ada data di tabel)
+                    if (!userData) {
+                        console.log("ℹ️ User Baru. Redirect ke Setup Profil.");
+                        ui.title.innerText = "Akun Baru";
+                        ui.desc.innerText = "Mengarahkan ke pembuatan profil...";
+                        
+                        setTimeout(() => {
+                            window.location.href = 'profile-setup.html'; // Halaman lengkapi data
+                        }, 1500);
+                        return;
+                    }
+
+                    // LOGIKA 2: USER LAMA (Data ada)
+                    console.log("✅ Data User Ditemukan:", userData);
+                    
+                    // Simpan ke localStorage
                     localStorage.setItem('aurora_user', JSON.stringify(session.user));
-                    localStorage.setItem('aurora_token', session.access_token);
+                    localStorage.setItem('aurora_role', userData.role || 'user');
 
-                    setTimeout(() => {
-                        window.location.href = "store.html";
-                    }, 1500);
+                    // Tentukan Redirect berdasarkan Role
+                    if (userData.role === 'admin') {
+                        ui.title.innerText = "Admin Terdeteksi";
+                        ui.desc.innerText = "Mengakses Dashboard...";
+                        setTimeout(() => {
+                            window.location.href = 'admin-dashboard.html';
+                        }, 1500);
+                    } else {
+                        // Default User (Customer)
+                        ui.title.innerText = "Selamat Datang";
+                        ui.desc.innerText = "Masuk ke Aurora Store...";
+                        ui.spinner.style.borderTopColor = "#10b981"; // Hijau
+                        setTimeout(() => {
+                            window.location.href = 'store.html';
+                        }, 1500);
+                    }
+
                 } else {
-                    // USER BELUM LOGIN -> LAKUKAN OAUTH GOOGLE OTOMATIS
-                    logDebug("Belum ada session. Memulai Google OAuth...");
-                    ui.title.innerText = "Menghubungkan ke Google...";
-                    ui.desc.innerText = "Anda akan diarahkan ke halaman login Google.";
-                    
-                    const { error } = await supabase.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: {
-                            redirectTo: window.location.href // Kembali ke halaman ini setelah login sukses
-                        }
-                    });
-
-                    if (error) throw error;
+                    // TIDAK ADA SESSION -> TAMPILKAN TOMBOL LOGIN
+                    console.log("ℹ️ Belum login. Tampilkan tombol.");
+                    ui.title.innerText = "Aurora Store";
+                    ui.desc.innerText = "Masuk untuk mengakses koleksi eksklusif.";
+                    ui.spinner.style.display = 'none'; // Sembunyikan spinner otomatis
+                    document.querySelector('.pi-icon').style.display = 'none'; // Sembunyikan icon tengah
+                    ui.btnGoogle.style.display = 'flex'; // Munculkan tombol
                 }
 
             } catch (err) {
-                logDebug(err.message, true);
-                
-                // Handle khusus jika error karena URL/Config salah
-                if(err.message.includes("URL") || err.message.includes("Key")) {
-                    ui.errorMsg.innerText = "Konfigurasi Supabase Salah. Cek script di head HTML.";
-                } else {
-                    ui.errorMsg.innerText = err.message;
-                }
-
-                ui.title.innerText = "Koneksi Gagal";
-                ui.desc.innerText = "Gagal terhubung ke penyedia identitas.";
+                console.error(err);
+                ui.title.innerText = "Error Sistem";
+                ui.desc.innerText = err.message;
                 ui.errorBox.style.display = 'block';
-                ui.btnRetry.style.display = 'block';
-                ui.spinner.style.display = 'none'; // Matikan spinner jika error
+                ui.errorMsg.innerText = err.message;
+                ui.spinner.style.display = 'none';
+                document.querySelector('.pi-icon').style.display = 'none';
+                ui.btnGoogle.style.display = 'flex';
             }
         }
 
-        // Jalankan saat halaman dimuat
-        window.onload = runLoginProcess;
+        // --- 4. INIT ---
+        window.onload = checkSession;
     </script>
 </body>
 </html>
