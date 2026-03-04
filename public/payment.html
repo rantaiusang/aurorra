@@ -167,8 +167,11 @@
             padding:15px; 
             border-radius: 8px; 
             margin-bottom: 20px; 
-            text-align: center; 
-            font-size: 0.9rem;
+            text-align: left; /* Ubah ke left agar JSON lebih mudah dibaca */
+            font-size: 0.85rem;
+            word-break: break-all; /* Agar JSON panjang terbaca di layar HP */
+            font-family: monospace; /* Font monospace agar struktur JSON jelas */
+            white-space: pre-wrap;
         }
         
         .spinner {
@@ -296,7 +299,7 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER UNTUK PEMBAYARAN (FIXED HEADERS)
+                // 4. EVENT LISTENER UNTUK PEMBAYARAN (DEBUG MODE)
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
@@ -326,20 +329,22 @@
 
                         const result = await response.json();
 
-                        console.log("DOKU RESPONSE:", result);
+                        // ✅ DEBUG: Log result lengkap ke console browser
+                        console.log("FULL RESULT:", result);
 
                         if (result.response?.payment_url) {
                             // Redirect user ke halaman pembayaran DOKU
                             window.location.href = result.response.payment_url;
                         } else {
-                            // Jika respons tidak mengandung URL payment
-                            throw new Error(result.error || "Gagal mendapatkan URL pembayaran dari server.");
+                            // ✅ DEBUG: Paksa stringify result agar error JSON asli DOKU muncul di layar
+                            throw new Error(JSON.stringify(result));
                         }
 
                     } catch (err) {
                         console.error("Payment Error:", err);
                         errorBox.style.display = "block";
-                        errorBox.innerText = "Terjadi kesalahan saat membuat pembayaran: " + err.message;
+                        // Tampilkan pesan error lengkap (JSON) di layar
+                        errorBox.innerText = "Terjadi kesalahan saat membuat pembayaran:\n\n" + err.message;
                         
                         // Kembalikan tombol ke kondisi semula
                         btnPay.disabled = false;
