@@ -7,12 +7,12 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Supabase JS (Ditambahkan untuk cek Auth & Load Ongkir) -->
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Pi SDK -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <!-- Config File (Pastikan file ini ada dan berisi ENDPOINT & KEYS) -->
+    <!-- Config File -->
     <script src="./pi-config.js"></script>
 
     <style>
@@ -100,9 +100,9 @@
         }
         .sub-text { text-align: center; color: #aaa; margin-bottom: 25px; font-size: 0.9rem; }
         
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; position: relative; }
         label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
-        .input-box, textarea.input-box, select.input-box { 
+        .input-box, textarea.input-box { 
             width: 100%; 
             padding: 12px 14px; 
             background: rgba(255,255,255, 0.05); 
@@ -113,28 +113,120 @@
             font-family: 'Poppins', sans-serif;
             resize: vertical;
         }
-        .input-box:focus, textarea.input-box:focus, select.input-box:focus { 
+        .input-box:focus, textarea.input-box:focus { 
             outline: none; 
             border-color: var(--luxury-gold); 
         }
 
-        /* --- PERBAIKAN DROPDOWN KOTA --- */
-        select.input-box {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            /* Menambahkan panah custom warna emas */
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23d4af37%22%20d%3D%22287.6%209.7c-.9-.9-2.5-.9-3.4%200L256%2038l-28.2-28.3c-.9-.9-2.5-.9-3.4%200-.9.9-1.3%202.2-.7%203.4l27.4%2027.5c.9.9%202.5.9%203.4%200l27.4-27.5c.6-1.2.2-2.5-.7-3.4z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 0.8em auto;
+        /* --- CUSTOM SELECT WITH SEARCH --- */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            user-select: none;
+        }
+        
+        .custom-select-trigger {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255,255,255, 0.05);
+            border: 1px solid rgba(255,255,255, 0.1);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Mengatur background daftar pilihan agar gelap (agar teks putih terlihat) */
-        select.input-box option {
-            background-color: #2a2a2a; 
-            color: #ffffff;
+        .custom-select-trigger::after {
+            content: '';
+            width: 0.8em;
+            height: 0.8em;
+            border-color: var(--luxury-gold) transparent transparent transparent;
+            border-style: solid;
+            border-width: 0.4em 0.4em 0 0;
+            transform: rotate(45deg);
+            margin-top: -0.2em;
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1e1e1e;
+            border: 1px solid var(--luxury-gold);
+            border-radius: 8px;
+            margin-top: 5px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .custom-select-options.open {
+            display: block;
+        }
+
+        .search-box {
             padding: 10px;
+            position: sticky;
+            top: 0;
+            background: #1e1e1e;
+            z-index: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(255,255,255, 0.1);
+            border: 1px solid rgba(255,255,255, 0.2);
+            border-radius: 4px;
+            color: white;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--luxury-gold);
+        }
+
+        .option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #ddd;
+        }
+
+        .option:hover {
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--luxury-gold);
+        }
+
+        .option.selected {
+            color: var(--luxury-gold);
+            font-weight: 600;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .no-result {
+            padding: 10px;
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        /* Scrollbar options */
+        .custom-select-options::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-select-options::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
         }
 
         .item-summary { 
@@ -236,12 +328,23 @@
                     <input type="tel" id="phoneNumber" class="input-box" placeholder="0812..." required>
                 </div>
                 
-                <!-- DROPDOWN KOTA -->
+                <!-- CUSTOM DROPDOWN KOTA DENGAN SEARCH -->
                 <div class="form-group">
                     <label for="city">Kota Tujuan</label>
-                    <select id="city" class="input-box" required>
-                        <option value="">Pilih Kota</option>
-                    </select>
+                    <div class="custom-select-wrapper" id="cityDropdown">
+                        <div class="custom-select-trigger" id="cityTrigger">Pilih Kota</div>
+                        <div class="custom-select-options">
+                            <div class="search-box">
+                                <input type="text" id="citySearch" placeholder="Cari kota...">
+                            </div>
+                            <div class="options-list" id="cityOptionsList">
+                                <!-- Opsi kota akan dirender di sini -->
+                                <div class="option disabled" style="cursor:default; color:#666;">Memuat daftar kota...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Input tersembunyi untuk validasi form -->
+                    <input type="hidden" id="city" required>
                 </div>
 
                 <div class="form-group">
@@ -257,7 +360,6 @@
 
                 <div class="item-summary">
                     <div id="summaryList">
-                        <!-- Daftar item akan dirender di sini via JS -->
                         <div style="text-align:center; color:#888;">Memuat ringkasan...</div>
                     </div>
                 </div>
@@ -274,17 +376,16 @@
 
         <script>
         // ==========================================
-        // 1. KONFIGURASI SUPABASE (FIX V2 INIT)
+        // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         
-        // FIX: Menggunakan destructuring untuk v2 CDN
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. HELPER FUNCTIONS (FORMAT RUPIAH)
+        // 2. HELPER FUNCTIONS
         // ==========================================
         function cleanPrice(priceInput) {
             if (priceInput === null || priceInput === undefined) return 0;
@@ -296,8 +397,6 @@
 
         function formatPrice(price) {
             let numPrice = cleanPrice(price);
-            
-            // Menggunakan Intl.NumberFormat untuk format Rupiah Indonesia yang benar
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR',
@@ -309,50 +408,122 @@
         const PI_SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
 
         let currentTotal = 0;
-        let shippingCost = 0; // VARIABLE ONGKIR
+        let shippingCost = 0;
         let cartItems = [];
         let currentUser = null;
         let orderId = "ORD-" + Date.now();
+        let allCities = []; // Menyimpan semua kota untuk filter
 
-        // --- 4. FUNGSI LOAD KOTA (DENGAN DEBUG & ORDER) ---
+        // --- 4. CUSTOM DROPDOWN LOGIC ---
+        const cityDropdown = document.getElementById('cityDropdown');
+        const cityTrigger = document.getElementById('cityTrigger');
+        const cityOptions = document.querySelector('.custom-select-options');
+        const cityList = document.getElementById('cityOptionsList');
+        const citySearchInput = document.getElementById('citySearch');
+        const cityInputHidden = document.getElementById('city');
+
+        // Toggle Dropdown
+        cityTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cityOptions.classList.toggle('open');
+            if(cityOptions.classList.contains('open')) {
+                citySearchInput.value = '';
+                citySearchInput.focus();
+                renderCities(allCities); // Reset tampilan saat buka
+            }
+        });
+
+        // Tutup dropdown jika klik di luar
+        window.addEventListener('click', (e) => {
+            if (!cityDropdown.contains(e.target)) {
+                cityOptions.classList.remove('open');
+            }
+        });
+
+        // Mencegah tutup saat klik di dalam dropdown
+        cityOptions.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Logika Search
+        citySearchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allCities.filter(city => city.toLowerCase().includes(keyword));
+            renderCities(filtered);
+        });
+
+        // Render Opsi Kota
+        function renderCities(citiesArray) {
+            cityList.innerHTML = '';
+            if (citiesArray.length === 0) {
+                cityList.innerHTML = '<div class="no-result">Kota tidak ditemukan</div>';
+                return;
+            }
+
+            citiesArray.forEach(city => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = city.toUpperCase();
+                div.dataset.value = city;
+                
+                // Cek apakah ini kota yang sedang dipilih
+                if (city === cityInputHidden.value) {
+                    div.classList.add('selected');
+                }
+
+                div.addEventListener('click', () => {
+                    selectCity(city);
+                });
+                cityList.appendChild(div);
+            });
+        }
+
+        function selectCity(cityName) {
+            cityInputHidden.value = cityName;
+            cityTrigger.textContent = cityName.toUpperCase();
+            cityTrigger.style.color = 'var(--luxury-gold)';
+            cityOptions.classList.remove('open');
+            
+            // Trigger event change manual untuk memuat ongkir
+            loadShippingCost();
+        }
+
+        // --- 5. LOAD DATA KOTA ---
         async function loadCities() {
             try {
                 const { data, error } = await supabaseClient
                     .from("ongkir")
                     .select("tujuan")
                     .eq("ekspedisi", "jne")
-                    .order("tujuan", { ascending: true }); // FIX: Tambahkan order by
+                    .order("tujuan", { ascending: true });
 
                 console.log("LOAD CITIES DATA:", data);
                 console.log("LOAD CITIES ERROR:", error);
 
                 if (error) {
                     console.error("Supabase Error Load Cities:", error);
+                    cityList.innerHTML = '<div class="no-result" style="color:var(--danger-color)">Gagal memuat kota.</div>';
                     return;
                 }
 
-                const citySelect = document.getElementById("city");
-                citySelect.innerHTML = `<option value="">Pilih Kota</option>`; // Reset dulu
-
                 if (!data || data.length === 0) {
-                    console.warn("Data kota kosong.");
+                    cityList.innerHTML = '<div class="no-result">Data kota kosong.</div>';
                     return;
                 }
                 
-                // Ambil kota unik saja
-                const uniqueCities = [...new Set(data.map(item => item.tujuan))];
-
-                uniqueCities.forEach(city => {
-                    citySelect.innerHTML += `<option value="${city}">${city.toUpperCase()}</option>`;
-                });
+                // Simpan ke variabel global untuk search filter
+                allCities = [...new Set(data.map(item => item.tujuan))];
+                
+                // Render awal
+                renderCities(allCities);
             } catch (e) {
                 console.error("Gagal load kota (Catch):", e);
             }
         }
 
-        // --- 5. FUNGSI AMBIL ONGKIR ---
+        // --- 6. FUNGSI AMBIL ONGKIR ---
         async function loadShippingCost() {
-            const city = document.getElementById("city").value;
+            const city = cityInputHidden.value;
             if (!city) {
                 shippingCost = 0;
                 document.getElementById("shippingCostDisplay").value = formatPrice(0);
@@ -372,36 +543,40 @@
                     shippingCost = parseInt(data.tarif) || 0;
                     document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost);
                     updateFinalTotal();
+                } else {
+                    shippingCost = 0;
+                    document.getElementById("shippingCostDisplay").value = "Tarif tidak tersedia";
+                    updateFinalTotal();
                 }
             } catch (e) {
                 console.error("Gagal ambil ongkir:", e);
+                shippingCost = 0;
+                document.getElementById("shippingCostDisplay").value = formatPrice(0);
+                updateFinalTotal();
             }
         }
 
-        // --- 6. FUNGSI UPDATE TOTAL ---
+        // --- 7. FUNGSI UPDATE TOTAL ---
         function updateFinalTotal() {
             const finalTotal = currentTotal + shippingCost;
             document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
         }
 
-        // --- 7. INISIALISASI UTAMA ---
+        // --- 8. INISIALISASI UTAMA ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
 
-            // 🔥 LOAD KOTA DI LUAR TRY-CATCH
+            // Load kota terlebih dahulu
             await loadCities();
-            document.getElementById("city").addEventListener("change", loadShippingCost);
 
             try {
-                // Cek Pi SDK (Opsional)
                 if (typeof Pi !== 'undefined') {
                     await Pi.init({ version: "2.0", sandbox: true });
                 } else {
-                    console.warn("Pi SDK tidak ditemukan. Mode testing/Non-Pi Browser.");
+                    console.warn("Pi SDK tidak ditemukan.");
                 }
 
-                // CEK AUTH SUPABASE
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
                 if (authError || !user) {
@@ -418,11 +593,8 @@
                 }
 
                 currentUser = user;
-
-                // Load Data Keranjang
                 const successLoad = loadCartAndCalculateTotal();
 
-                // Update UI
                 if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false;
                     payBtn.innerText = "Bayar Sekarang";
@@ -441,7 +613,6 @@
             }
         }
 
-        // Fungsi Khusus: Membaca & Menghitung Total dari LocalStorage
         function loadCartAndCalculateTotal() {
             const checkoutRaw = localStorage.getItem('aurora_checkout');
             
@@ -489,17 +660,16 @@
             }
         }
 
-        // --- 8. PROSES PEMBAYARAN UTAMA ---
+        // --- 9. PROSES PEMBAYARAN UTAMA ---
         async function handleAutoPayment(event) {
             event.preventDefault();
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
             
-            // Validasi Input
             const fullName = document.getElementById('fullName').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const address = document.getElementById('address').value.trim();
-            const city = document.getElementById('city').value;
+            const city = cityInputHidden.value; // Ambil dari input hidden custom dropdown
 
             if (fullName.length < 3 || phoneNumber.length < 10 || address.length < 10) {
                 return showError("Mohon lengkapi data pengiriman dengan benar.");
@@ -509,11 +679,9 @@
                 return showError("Mohon pilih kota tujuan.");
             }
 
-            // Validasi Total
             const finalBill = currentTotal + shippingCost;
             if (parseFloat(finalBill) <= 0) return showError("Total pembayaran tidak valid.");
 
-            // Cek ulang auth sebelum bayar
             const { data: { user }, error } = await supabaseClient.auth.getUser();
             if (error || !user) {
                 localStorage.removeItem('aurora_checkout');
@@ -553,7 +721,6 @@
                                 method: 'POST',
                                 headers: { 
                                     "Content-Type": "application/json",
-                                    // CATATAN: Untuk production, ganti SUPABASE_KEY ini dengan Service Role Key yang disimpan di environment variables server.
                                     "Authorization": `Bearer ${SUPABASE_KEY}` 
                                 },
                                 body: JSON.stringify({ 
