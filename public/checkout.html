@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pembayaran - Aurorra Store</title>
+    <title>Checkout - Aurorra Store</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Pi SDK -->
+    <!-- Pi SDK (Dibiarkan jika diperlukan di halaman ini, tapi logika utama pindah ke payment.html) -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <!-- Config File -->
     <script src="./pi-config.js"></script>
 
     <style>
@@ -313,8 +312,8 @@
         <div class="payment-card">
             <div class="coin-visual">π</div>
 
-            <h2>Pembayaran Aman</h2>
-            <p class="sub-text">Sistem pembayaran otomatis via Pi Network. Pastikan Anda menggunakan Pi Browser.</p>
+            <h2>Checkout Pesanan</h2>
+            <p class="sub-text">Lengkapi data alamat pengiriman untuk melanjutkan pembayaran.</p>
 
             <div id="error-message" class="error-box"></div>
 
@@ -338,7 +337,6 @@
                                 <input type="text" id="citySearch" placeholder="Cari kota...">
                             </div>
                             <div class="options-list" id="cityOptionsList">
-                                <!-- Opsi kota akan dirender di sini -->
                                 <div class="option disabled" style="cursor:default; color:#666;">Memuat daftar kota...</div>
                             </div>
                         </div>
@@ -369,7 +367,7 @@
                     <span class="total-amount" id="displayTotal">Rp 0</span>
                 </div>
 
-                <button type="submit" class="btn-pay" id="payBtn" disabled>Bayar Sekarang</button>
+                <button type="submit" class="btn-pay" id="payBtn" disabled>Lanjut ke Pembayaran</button>
             </form>
         </div>
     </div>    
@@ -404,9 +402,6 @@
             }).format(numPrice);
         }
 
-        // --- 3. SETUP PEMBAYARAN PI ---
-        const PI_SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
-
         let currentTotal = 0;
         let shippingCost = 0;
         let cartItems = [];
@@ -414,7 +409,7 @@
         let orderId = "ORD-" + Date.now();
         let allCities = []; // Menyimpan semua kota untuk filter
 
-        // --- 4. CUSTOM DROPDOWN LOGIC ---
+        // --- 3. CUSTOM DROPDOWN LOGIC ---
         const cityDropdown = document.getElementById('cityDropdown');
         const cityTrigger = document.getElementById('cityTrigger');
         const cityOptions = document.querySelector('.custom-select-options');
@@ -433,14 +428,12 @@
             }
         });
 
-        // Tutup dropdown jika klik di luar
         window.addEventListener('click', (e) => {
             if (!cityDropdown.contains(e.target)) {
                 cityOptions.classList.remove('open');
             }
         });
 
-        // Mencegah tutup saat klik di dalam dropdown
         cityOptions.addEventListener('click', (e) => {
             e.stopPropagation();
         });
@@ -452,7 +445,6 @@
             renderCities(filtered);
         });
 
-        // Render Opsi Kota
         function renderCities(citiesArray) {
             cityList.innerHTML = '';
             if (citiesArray.length === 0) {
@@ -465,12 +457,9 @@
                 div.className = 'option';
                 div.textContent = city.toUpperCase();
                 div.dataset.value = city;
-                
-                // Cek apakah ini kota yang sedang dipilih
                 if (city === cityInputHidden.value) {
                     div.classList.add('selected');
                 }
-
                 div.addEventListener('click', () => {
                     selectCity(city);
                 });
@@ -483,12 +472,10 @@
             cityTrigger.textContent = cityName.toUpperCase();
             cityTrigger.style.color = 'var(--luxury-gold)';
             cityOptions.classList.remove('open');
-            
-            // Trigger event change manual untuk memuat ongkir
             loadShippingCost();
         }
 
-        // --- 5. LOAD DATA KOTA ---
+        // --- 4. LOAD DATA KOTA ---
         async function loadCities() {
             try {
                 const { data, error } = await supabaseClient
@@ -496,9 +483,6 @@
                     .select("tujuan")
                     .eq("ekspedisi", "jne")
                     .order("tujuan", { ascending: true });
-
-                console.log("LOAD CITIES DATA:", data);
-                console.log("LOAD CITIES ERROR:", error);
 
                 if (error) {
                     console.error("Supabase Error Load Cities:", error);
@@ -511,17 +495,14 @@
                     return;
                 }
                 
-                // Simpan ke variabel global untuk search filter
                 allCities = [...new Set(data.map(item => item.tujuan))];
-                
-                // Render awal
                 renderCities(allCities);
             } catch (e) {
                 console.error("Gagal load kota (Catch):", e);
             }
         }
 
-        // --- 6. FUNGSI AMBIL ONGKIR ---
+        // --- 5. FUNGSI AMBIL ONGKIR ---
         async function loadShippingCost() {
             const city = cityInputHidden.value;
             if (!city) {
@@ -556,27 +537,21 @@
             }
         }
 
-        // --- 7. FUNGSI UPDATE TOTAL ---
+        // --- 6. FUNGSI UPDATE TOTAL ---
         function updateFinalTotal() {
             const finalTotal = currentTotal + shippingCost;
             document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
         }
 
-        // --- 8. INISIALISASI UTAMA ---
+        // --- 7. INISIALISASI UTAMA ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
 
-            // Load kota terlebih dahulu
             await loadCities();
 
             try {
-                if (typeof Pi !== 'undefined') {
-                    await Pi.init({ version: "2.0", sandbox: true });
-                } else {
-                    console.warn("Pi SDK tidak ditemukan.");
-                }
-
+                // Cek Auth
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
                 if (authError || !user) {
@@ -597,7 +572,7 @@
 
                 if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false;
-                    payBtn.innerText = "Bayar Sekarang";
+                    payBtn.innerText = "Lanjut ke Pembayaran";
                 } else {
                     payBtn.innerText = "Data Tidak Valid";
                     payBtn.disabled = true;
@@ -639,7 +614,6 @@
                     const price = parseFloat(item.price) || 0;
                     const qty = parseInt(item.qty) || 1;
                     const subtotal = price * qty;
-                    
                     total += subtotal;
                     
                     html += `
@@ -660,7 +634,7 @@
             }
         }
 
-        // --- 9. PROSES PEMBAYARAN UTAMA ---
+        // --- 8. HANDLE PAYMENT (REDIRECT KE PAYMENT.HTML) ---
         async function handleAutoPayment(event) {
             event.preventDefault();
             const payBtn = document.getElementById('payBtn');
@@ -669,143 +643,45 @@
             const fullName = document.getElementById('fullName').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const address = document.getElementById('address').value.trim();
-            const city = cityInputHidden.value; // Ambil dari input hidden custom dropdown
+            const city = cityInputHidden.value; 
 
-            if (fullName.length < 3 || phoneNumber.length < 10 || address.length < 10) {
-                return showError("Mohon lengkapi data pengiriman dengan benar.");
+            // 1. Validasi Input
+            if (fullName.length < 3) return showError("Nama lengkap minimal 3 karakter.");
+            if (phoneNumber.length < 10) return showError("Nomor WhatsApp minimal 10 digit.");
+            if (address.length < 10) return showError("Alamat terlalu pendek.");
+            if (!city) return showError("Mohon pilih kota tujuan.");
+
+            // 2. Validasi Auth
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+            if (authError || !user) {
+                return showError("Sesi habis. Silakan login kembali.");
             }
 
-            if (!city) {
-                return showError("Mohon pilih kota tujuan.");
-            }
-
+            // 3. Hitung Total Akhir
             const finalBill = currentTotal + shippingCost;
-            if (parseFloat(finalBill) <= 0) return showError("Total pembayaran tidak valid.");
+            if (parseFloat(finalBill) <= 0) return showError("Total tagihan tidak valid.");
 
-            const { data: { user }, error } = await supabaseClient.auth.getUser();
-            if (error || !user) {
-                localStorage.removeItem('aurora_checkout');
-                return showError("Sesi berubah. Silakan refresh halaman.");
-            }
-
-            if (typeof Pi === 'undefined') {
-                return showError("Pembayaran memerlukan Pi Browser.");
-            }
-
-            payBtn.disabled = true;
-            payBtn.innerText = "Menghubungkan ke Pi Wallet...";
-
-            try {
-                const auth = await Pi.authenticate(
-                    ["payments", "username"], 
-                    onIncompletePaymentFound
-                );
-
-                if (!auth || !auth.accessToken) {
-                    throw new Error("Gagal otentikasi ulang dengan Pi Network.");
+            // 4. Siapkan Data Payload untuk Payment.html
+            const paymentPayload = {
+                orderId: orderId,
+                items: cartItems,
+                total: finalBill,
+                currency: 'IDR',
+                shippingCost: shippingCost,
+                customer: {
+                    uid: user.id,
+                    name: fullName,
+                    phone: phoneNumber,
+                    address: address,
+                    city: city
                 }
-                
-                const piUser = auth.user;
+            };
 
-                const paymentData = {
-                    amount: parseFloat(finalBill),
-                    memo: `Order Aurora: ${orderId}`,
-                    metadata: { orderId: orderId, itemsCount: cartItems.length }
-                };
+            // 5. Simpan ke LocalStorage agar payment.html bisa membaca
+            localStorage.setItem('pending_payment_data', JSON.stringify(paymentPayload));
 
-                await Pi.createPayment(paymentData, {
-                    onReadyForServerApproval: async (paymentId) => {
-                        console.log("Payment ID dibuat, meminta approval server:", paymentId);
-                        try {
-                            const response = await fetch(PI_SUPABASE_URL, {
-                                method: 'POST',
-                                headers: { 
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${SUPABASE_KEY}` 
-                                },
-                                body: JSON.stringify({ 
-                                    paymentId, 
-                                    action: 'approve', 
-                                    orderId,
-                                    uid: piUser.uid
-                                })
-                            });
-                            if(!response.ok) throw new Error("Server Approval Failed");
-                        } catch (err) {
-                            console.error("Approval Error:", err);
-                            throw new Error("Gagal menghubungi server pembayaran.");
-                        }
-                    },
-                    
-                    onReadyForServerCompletion: async (paymentId, txid) => {
-                        console.log("Pembayaran sukses dari user. TXID:", txid);
-                        try {
-                            const response = await fetch(PI_SUPABASE_URL, {
-                                method: 'POST',
-                                headers: { 
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${SUPABASE_KEY}` 
-                                },
-                                body: JSON.stringify({ 
-                                    paymentId, 
-                                    action: 'complete', 
-                                    txid, 
-                                    orderId,
-                                    uid: piUser.uid,
-                                    username: piUser.username,
-                                    amount: finalBill,
-                                    items: cartItems,
-                                    customer: { 
-                                        name: fullName, 
-                                        phone: phoneNumber, 
-                                        address: address,
-                                        city: city, 
-                                        shippingCost: shippingCost 
-                                    }
-                                })
-                            });
-
-                            if(!response.ok) {
-                                const errData = await response.json();
-                                throw new Error(errData.message || "Gagal menyimpan pesanan.");
-                            }
-
-                            alert("Pembayaran Berhasil! Pesanan Anda sedang diproses.");
-                            localStorage.removeItem('aurora_checkout'); 
-                            localStorage.removeItem("aurora_cart");
-                            window.location.href = "payment-success.html";
-
-                        } catch (err) {
-                            console.error("Completion Error:", err);
-                            alert("Pembayaran tercatat di Blockchain, namun gagal menyimpan ke database kami. Hubungi admin dengan TXID: " + txid);
-                        }
-                    },
-                    
-                    onCancel: () => {
-                        console.log("User membatalkan pembayaran.");
-                        payBtn.disabled = false;
-                        payBtn.innerText = "Bayar Sekarang";
-                    },
-                    
-                    onError: (error) => {
-                        console.error("Payment Error:", error);
-                        showError("Terjadi kesalahan: " + error.message);
-                        payBtn.disabled = false;
-                        payBtn.innerText = "Coba Lagi";
-                    }
-                });
-
-            } catch (err) {
-                console.error("System Error:", err);
-                showError(err.message);
-                payBtn.disabled = false;
-                payBtn.innerText = "Bayar Sekarang";
-            }
-        }
-
-        function onIncompletePaymentFound(payment) {
-            console.log("Ditemukan pembayaran tidak lengkap:", payment);
-            return; 
+            // 6. Redirect ke payment.html
+            window.location.href = 'payment.html';
         }
 
         function showError(msg) {
