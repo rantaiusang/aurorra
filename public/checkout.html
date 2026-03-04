@@ -7,7 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Supabase JS (Ditambahkan untuk cek Auth) -->
+    <!-- Supabase JS (Ditambahkan untuk cek Auth & Load Ongkir) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Pi SDK -->
@@ -102,7 +102,7 @@
         
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
-        .input-box, textarea.input-box { 
+        .input-box, textarea.input-box, select.input-box { 
             width: 100%; 
             padding: 12px 14px; 
             background: rgba(255,255,255, 0.05); 
@@ -113,7 +113,7 @@
             font-family: 'Poppins', sans-serif;
             resize: vertical;
         }
-        .input-box:focus, textarea.input-box:focus { 
+        .input-box:focus, textarea.input-box:focus, select.input-box:focus { 
             outline: none; 
             border-color: var(--luxury-gold); 
         }
@@ -216,9 +216,24 @@
                     <label for="phoneNumber">Nomor WhatsApp</label>
                     <input type="tel" id="phoneNumber" class="input-box" placeholder="0812..." required>
                 </div>
+                
+                <!-- DROPDOWN KOTA (LANGKAH 1) -->
+                <div class="form-group">
+                    <label for="city">Kota Tujuan</label>
+                    <select id="city" class="input-box" required>
+                        <option value="">Pilih Kota</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label for="address">Alamat Pengiriman</label>
                     <textarea id="address" class="input-box" rows="2" placeholder="Jalan, No Rumah, Kecamatan, Kota..." required></textarea>
+                </div>
+
+                <!-- DISPLAY ONGKIR (LANGKAH 1) -->
+                <div class="form-group">
+                    <label>Ongkir (JNE)</label>
+                    <input type="text" id="shippingCostDisplay" class="input-box" readonly value="Rp 0">
                 </div>
 
                 <div class="item-summary">
@@ -240,7 +255,7 @@
 
         <script>
         // ==========================================
-        // 1. KONFIGURASI SUPABASE (AGAR BISA CEK AUTH)
+        // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
@@ -272,11 +287,69 @@
         const PI_SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/verify-pi-payment";
 
         let currentTotal = 0;
+        let shippingCost = 0; // VARIABLE ONGKIR (LANGKAH 2)
         let cartItems = [];
         let currentUser = null;
         let orderId = "ORD-" + Date.now();
 
-        // --- 4. INISIALISASI (FIX LOGOUT MULTI-TAB) ---
+        // --- 4. FUNGSI LOAD KOTA (LANGKAH 3) ---
+        async function loadCities() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from("ongkir")
+                    .select("tujuan")
+                    .eq("ekspedisi", "jne");
+
+                if (error || !data) return;
+
+                const citySelect = document.getElementById("city");
+                
+                // Ambil kota unik saja
+                const uniqueCities = [...new Set(data.map(item => item.tujuan))];
+
+                uniqueCities.forEach(city => {
+                    citySelect.innerHTML += `<option value="${city}">${city.toUpperCase()}</option>`;
+                });
+            } catch (e) {
+                console.error("Gagal load kota:", e);
+            }
+        }
+
+        // --- 5. FUNGSI AMBIL ONGKIR (LANGKAH 4) ---
+        async function loadShippingCost() {
+            const city = document.getElementById("city").value;
+            if (!city) {
+                shippingCost = 0;
+                document.getElementById("shippingCostDisplay").value = formatPrice(0);
+                updateFinalTotal();
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from("ongkir")
+                    .select("tarif")
+                    .eq("tujuan", city)
+                    .eq("ekspedisi", "jne")
+                    .single();
+
+                if (data) {
+                    shippingCost = parseInt(data.tarif) || 0;
+                    document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost);
+                    updateFinalTotal();
+                }
+            } catch (e) {
+                console.error("Gagal ambil ongkir:", e);
+            }
+        }
+
+        // --- 6. FUNGSI UPDATE TOTAL (LANGKAH 5) ---
+        function updateFinalTotal() {
+            const finalTotal = currentTotal + shippingCost;
+            document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
+        }
+
+        // --- 7. INISIALISASI UTAMA ---
         async function initPayment() {
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
@@ -288,29 +361,27 @@
                 }
                 await Pi.init({ version: "2.0", sandbox: true });
 
-                // B. CEK AUTH SUPABASE YANG SEBENARNYA (PENTING UNTUK MULTI-TAB)
-                // Ini mengecek session aktif, bukan cuma localStorage string
+                // B. CEK AUTH SUPABASE
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
                 if (authError || !user) {
-                    // SECURITY: Jika session Supabase invalid/hilang (misal logout di tab lain),
-                    // WAJIB hapus data checkout lokal agar nominal tidak muncul lagi.
                     console.warn("Session Invalid/Logout Terdeteksi. Menghapus data checkout...");
-                    
                     localStorage.removeItem('aurora_checkout');
                     localStorage.removeItem('aurora_cart');
-                    localStorage.removeItem('aurora_user'); // Bersihkan sisa data lama
-                    
+                    localStorage.removeItem('aurora_user');
                     throw new Error("Sesi habis atau Anda telah logout. Silakan login ulang.");
                 }
 
-                // Update user object dari session asli
                 currentUser = user;
 
                 // C. Load Data Keranjang
                 const successLoad = loadCartAndCalculateTotal();
 
-                // D. Update UI
+                // D. Load Kota & Event Listener (LANGKAH 6)
+                await loadCities();
+                document.getElementById("city").addEventListener("change", loadShippingCost);
+
+                // E. Update UI
                 if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false;
                     payBtn.innerText = "Bayar Sekarang";
@@ -368,7 +439,8 @@
 
                 summaryList.innerHTML = html;
                 currentTotal = total;
-                document.getElementById('displayTotal').innerText = formatPrice(total);
+                // Panggil updateFinalTotal agar total awal ter-render (walaupun ongkir masih 0)
+                updateFinalTotal();
                 return true;
 
             } catch (e) {
@@ -377,7 +449,7 @@
             }
         }
 
-        // --- 5. PROSES PEMBAYARAN UTAMA ---
+        // --- 8. PROSES PEMBAYARAN UTAMA ---
         async function handleAutoPayment(event) {
             event.preventDefault();
             const payBtn = document.getElementById('payBtn');
@@ -387,12 +459,19 @@
             const fullName = document.getElementById('fullName').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const address = document.getElementById('address').value.trim();
+            const city = document.getElementById('city').value;
 
             if (fullName.length < 3 || phoneNumber.length < 10 || address.length < 10) {
                 return showError("Mohon lengkapi data pengiriman dengan benar.");
             }
 
-            if (parseFloat(currentTotal) <= 0) return showError("Total pembayaran tidak valid (0).");
+            if (!city) {
+                return showError("Mohon pilih kota tujuan.");
+            }
+
+            // Validasi Total (Barang + Ongkir)
+            const finalBill = currentTotal + shippingCost;
+            if (parseFloat(finalBill) <= 0) return showError("Total pembayaran tidak valid.");
 
             // Cek ulang auth sebelum bayar
             const { data: { user }, error } = await supabaseClient.auth.getUser();
@@ -416,8 +495,9 @@
                 
                 const piUser = auth.user;
 
+                // (LANGKAH 7) Ubah amount menjadi Total + Ongkir
                 const paymentData = {
-                    amount: parseFloat(currentTotal),
+                    amount: parseFloat(finalBill),
                     memo: `Order Aurora: ${orderId}`,
                     metadata: { orderId: orderId, itemsCount: cartItems.length }
                 };
@@ -462,12 +542,14 @@
                                     orderId,
                                     uid: piUser.uid,
                                     username: piUser.username,
-                                    amount: currentTotal,
+                                    amount: finalBill, // Kirim final amount
                                     items: cartItems,
                                     customer: { 
                                         name: fullName, 
                                         phone: phoneNumber, 
-                                        address: address 
+                                        address: address,
+                                        city: city, // Tambahkan kota ke data customer
+                                        shippingCost: shippingCost // Info tambahan ongkir
                                     }
                                 })
                             });
