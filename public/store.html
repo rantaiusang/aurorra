@@ -122,7 +122,7 @@
         .search-input {
             width: 100%;
             padding: 12px 20px;
-            padding-left: 45px; /* Space for icon */
+            padding-left: 45px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(212, 175, 55, 0.3);
             border-radius: 30px;
@@ -224,7 +224,6 @@
         
         <!-- Konten Header Akan Di-Render oleh JS -->
         <div class="store-nav" id="navContainer">
-            <!-- Placeholder loading -->
             <span style="color:#666;">Loading...</span>
         </div> 
     </header>
@@ -241,7 +240,7 @@
             <!-- SEARCH BAR -->
             <div class="search-container page-entry delay-2">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" class="search-input" placeholder="baccarat" oninput="handleSearch(this.value)">
+                <input type="text" id="searchInput" class="search-input" placeholder="Cari parfum..." oninput="handleSearch(this.value)">
             </div>
 
             <div class="filter-bar page-entry delay-2">
@@ -291,8 +290,9 @@
     </div>
 
     <!-- TOMBOl KERANJANG MELAYANG (FLOATING CART) -->
+    <!-- Menghapus π di sini -->
     <div id="floating-cart" onclick="proceedToCheckout()" style="position: fixed; bottom: 30px; right: 30px; background: var(--luxury-gold); color: #000; padding: 15px 25px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; z-index: 999; font-weight: bold; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.2s;">
-        🛒 <span id="cart-count-float">0</span> Item - Check Out π
+        🛒 <span id="cart-count-float">0</span> Item - Check Out
     </div>
 
     <script>
@@ -305,7 +305,7 @@
 
         // Variabel Global
         let productsData = []; 
-        let currentUser = null; // null = Guest, Object = User dari localStorage
+        let currentUser = null; // Data dari localStorage
         let dbUser = null;      // Data user lengkap dari DB 'ngebelusers'
         
         // State Filter & Search
@@ -329,38 +329,32 @@
             return isNaN(val) || val < 0 ? 0 : val;
         }
 
+        // ==========================================
+        // 🔧 FUNGSI FORMAT RUPIAH (IDR)
+        // ==========================================
         function formatPrice(price) {
             let numPrice = cleanPrice(price);
             
-            // Cek jika harga 0, tampilkan tanpa desimal
-            if (numPrice === 0) return "0";
-            
-            // Jika angka sangat kecil (Pi network), pakai 7 desimal
-            if (numPrice < 0.01) return numPrice.toFixed(7);
-            
-            // LOGIKA PERBAIKAN:
-            // Jika angka bulat (contoh: 450), tampilkan "450" (tanpa .00)
-            // Jika angka pecahan (contoh: 450.5), tampilkan "450.50"
-            return Number.isInteger(numPrice) ? numPrice.toString() : numPrice.toFixed(2);
+            // Menggunakan Intl.NumberFormat untuk format Rupiah Indonesia yang benar
+            // Contoh output: Rp 150.000
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(numPrice);
         }
 
         // ==========================================
-        // 2. RENDER HEADER DINAMIS (GUEST / USER)
+        // 2. RENDER HEADER DINAMIS
         // ==========================================
         function renderHeader() {
             let displayName = "Guest";
             let avatarLetter = "G";
             let menuItems = '';
 
-            // LOGIKA UTAMA: Deteksi Login
-            // Kita anggap user sudah "Benar-Benar Login" jika dbUser terisi (berarti data sudah sinkron dari DB)
-            // ATAU jika currentUser ada dan sedang dalam proses sinkronisasi
             const isUserLoggedIn = (dbUser !== null) || (currentUser !== null);
 
             if (isUserLoggedIn) {
-                // --- JIKA SUDAH LOGIN ---
-                // Prioritas 1: Ambil nama dari dbUser (ngebelusers)
-                // Prioritas 2: Ambil nama dari currentUser (localStorage) jika dbUser belum siap
                 if (dbUser && dbUser.full_name) {
                     displayName = dbUser.full_name;
                 } else if (currentUser && currentUser.full_name) {
@@ -373,21 +367,17 @@
                 
                 avatarLetter = displayName.charAt(0).toUpperCase();
                 
-                // Menu untuk User (TIDAK ADA tombol Login)
                 menuItems = `
                     <div class="dropdown-item" onclick="openProfileModal()">Profil Saya</div>
                     <div class="dropdown-item" onclick="openHistoryModal()">Riwayat Pesanan</div>
                     <div class="dropdown-item logout" onclick="handleLogout()">Logout</div>
                 `;
             } else {
-                // --- JIKA BELUM LOGIN (GUEST) ---
-                // Menu hanya berisi tombol Login
                 menuItems = `
                     <div class="dropdown-item login-action" onclick="window.location.href='login.html'">Login Sekarang</div>
                 `;
             }
 
-            // Render HTML Container
             navContainer.innerHTML = `
                 <div class="user-menu-container">
                     <div class="user-btn" onclick="toggleDropdown()">
@@ -403,31 +393,29 @@
         }
 
         // ==========================================
-        // 3. SYNC USER KE SUPABASE (TABEL: ngebelusers)
+        // 3. SYNC USER KE TABEL ngebelusers
         // ==========================================
         async function syncUserToSupabase(piUser) {
             try {
-                // PERBAIKAN: Mengganti tabel 'users' menjadi 'ngebelusers'
+                console.log("Mencari user di ngebelusers dengan pi_uid:", piUser.uid);
+                
                 const { data: existingUser, error } = await supabaseClient
                     .from('ngebelusers')
                     .select('*')
                     .eq('pi_uid', piUser.uid)
-                    .maybeSingle(); // maybeSingle agar tidak error jika not found
+                    .maybeSingle();
 
                 if (error) {
-                    console.warn("Error checking ngebelusers:", error.message);
-                    // Lanjutkan saja, mungkin user belum ada di DB
+                    console.error("Error DB sync:", error.message);
+                    return false;
                 }
 
                 if (existingUser) {
-                    // User ditemukan di DB ngebelusers
                     dbUser = existingUser;
-                    console.log("User synced from ngebelusers:", dbUser.full_name);
-                    // Update header agar nama langsung berubah
-                    renderHeader(); 
+                    console.log("✅ User ditemukan di DB:", dbUser.full_name);
+                    return true;
                 } else {
-                    console.log("User not found in ngebelusers, creating new entry...");
-                    // Jika belum ada, buat entry baru
+                    console.log("User belum ada, membuat entry baru...");
                     const { data: newUser, error: insertError } = await supabaseClient
                         .from('ngebelusers')
                         .insert([{
@@ -442,36 +430,44 @@
                         }])
                         .select()
                         .single();
-                        
+
                     if (!insertError && newUser) {
                         dbUser = newUser;
-                        renderHeader(); // Render ulang header untuk menampilkan nama baru
+                        console.log("✅ User baru dibuat:", dbUser.full_name);
+                        return true;
+                    } else {
+                        console.error("Gagal membuat user baru:", insertError);
+                        return false;
                     }
                 }
             } catch (e) {
-                console.error("Sync user error:", e);
+                console.error("Sync exception:", e);
+                return false;
             }
         }
 
         // ==========================================
-        // 4. INISIALISASI (PUBLIC ACCESS)
+        // 4. INISIALISASI APLIKASI
         // ==========================================
         async function initApp() {
-            // Membaca dari 'ngebelusers' key di localStorage
             const localUserStr = localStorage.getItem('ngebelusers');
             
             if (localUserStr) {
                 try {
                     currentUser = JSON.parse(localUserStr);
-                    // Jika ada user login, lakukan sync ke tabel DB
-                    await syncUserToSupabase(currentUser);
+                    const syncSuccess = await syncUserToSupabase(currentUser);
+                    
+                    if (syncSuccess) {
+                        console.log("Sinkronisasi berhasil. Render header dengan data DB.");
+                    } else {
+                        console.warn("Sinkronisasi gagal/RLS Error. Tampilkan data localStorage saja.");
+                    }
                 } catch (e) {
                     console.error("Gagal parse user localStorage", e);
                     localStorage.removeItem('ngebelusers'); 
                 }
             }
             
-            // Render Header (Akan otomatis deteksi Guest atau User berdasarkan status dbUser)
             renderHeader();
         }
 
@@ -483,26 +479,23 @@
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-                
-                console.log("Data Produk Diterima:", data);
                 productsData = data || []; 
                 
                 if (productsData.length === 0) {
                      productGrid.innerHTML = `<div class="empty-msg" style="grid-column: 1/-1;">Tidak ada produk di database.</div>`;
                 }
-                
                 return productsData;
             } catch (e) {
-                console.error("Error Fetch:", e);
-                alert("Gagal memuat produk: " + e.message + "\n\nCek: 1. Nama Tabel 'products' 2. RLS (Matikan RLS di Supabase) 3. Koneksi Internet");
+                console.error("Error Fetch Products:", e);
+                alert("Gagal memuat produk: " + e.message);
                 productGrid.innerHTML = `<div class="error-message"><p>Error: ${e.message}</p></div>`;
                 return [];
             }
         }
 
         window.addEventListener('load', async () => {
-            await initApp(); 
-            await fetchProducts(); 
+            await Promise.all([initApp(), fetchProducts()]);
+            
             if(productsData && productsData.length > 0) {
                 renderProducts(); 
             }
@@ -516,15 +509,13 @@
             return fallback || '';
         }
 
-        // --- MODALS & UI LOGIC ---
+        // --- MODALS ---
         function openProfileModal() {
             if (!currentUser) return; 
             const contentDiv = document.getElementById('profileContent');
             const modal = document.getElementById('profileModal');
             modal.classList.add('show');
 
-            // Gunakan dbUser (dari tabel ngebelusers) jika ada, karena itu sumber kebenaran full_name
-            // Fallback ke currentUser jika sync belum selesai
             const displayUser = dbUser || currentUser;
 
             const uuid = displayUser.uid || displayUser.uuid || "-";
@@ -541,9 +532,9 @@
                 ${dbUser ? `
                 <div style="margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px;">
                     <h4 style="color:var(--luxury-gold); margin-bottom:10px;">Data Statistik</h4>
-                    <div class="profile-detail-row"><span class="profile-label">Total Belanja</span><span class="profile-value">${formatPrice(dbUser.total_spent || 0)} π</span></div>
+                    <div class="profile-detail-row"><span class="profile-label">Total Belanja</span><span class="profile-value">${formatPrice(dbUser.total_spent || 0)}</span></div>
                     <div class="profile-detail-row"><span class="profile-label">Poin Loyalitas</span><span class="profile-value points">${dbUser.points || 0} Pts</span></div>
-                </div>` : '<p style="text-align:center; color:#666; margin-top:10px;">Memuat statistik...</p>'}
+                </div>` : '<p style="text-align:center; color:#666; margin-top:10px;">Data DB belum dimuat (Cek Koneksi/RLS).</p>'}
             `;
         }
 
@@ -562,7 +553,6 @@
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-
                 if (!orders || orders.length === 0) {
                     contentDiv.innerHTML = '<p class="empty-msg">Belum ada riwayat pesanan.</p>';
                     return;
@@ -580,7 +570,7 @@
                             </div>
                             <div class="order-info-row">
                                 <span class="order-info-label">Total:</span>
-                                <span>${formatPrice(order.total_amount)} π</span>
+                                <span>${formatPrice(order.total_amount)}</span>
                             </div>
                             <div class="order-info-row">
                                 <span class="order-info-label">Status:</span>
@@ -590,7 +580,7 @@
                 });
                 contentDiv.innerHTML = html;
             } catch (e) {
-                contentDiv.innerHTML = `<p class="error-message">Gagal memuat riwayat.</p>`;
+                contentDiv.innerHTML = `<p class="error-message">Gagal memuat riwayat: ${e.message}</p>`;
             }
         }
 
@@ -605,7 +595,7 @@
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('show'); }
 
         // ==========================================
-        // SEARCH & FILTER LOGIC
+        // SEARCH & FILTER
         // ==========================================
         function handleSearch(keyword) {
             currentSearch = keyword.toLowerCase();
@@ -614,17 +604,14 @@
 
         function filterCategory(category, btnElement) {
             currentCategory = category;
-            
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
-            
             renderProducts();
         }
 
         // --- PRODUCT RENDERING ---
         function renderProducts() {
             productGrid.innerHTML = ''; 
-            
             let categoryKey = 'category';
             if (productsData.length > 0) {
                 const sample = productsData[0];
@@ -633,21 +620,17 @@
             }
 
             const filteredData = productsData.filter(p => {
-                let isCategoryMatch = false;
-                if (currentCategory === 'all') {
-                    isCategoryMatch = true;
-                } else {
+                let isCategoryMatch = (currentCategory === 'all');
+                if (!isCategoryMatch) {
                     const pCat = p[categoryKey] ? p[categoryKey].toLowerCase() : '';
-                    if (pCat === currentCategory.toLowerCase()) isCategoryMatch = true;
+                    isCategoryMatch = (pCat === currentCategory.toLowerCase());
                 }
 
                 let isSearchMatch = true;
                 if (currentSearch && currentSearch.length > 0) {
                     const name = getSafeValue(p, 'name', 'product_name', '').toLowerCase();
                     const desc = getSafeValue(p, 'description', 'desc', '').toLowerCase();
-                    if (!name.includes(currentSearch) && !desc.includes(currentSearch)) {
-                        isSearchMatch = false;
-                    }
+                    isSearchMatch = (name.includes(currentSearch) || desc.includes(currentSearch));
                 }
 
                 return isCategoryMatch && isSearchMatch;
@@ -687,7 +670,7 @@
                         <div>
                             <h3 class="product-name">${displayName}</h3>
                             <p class="product-desc" title="${descText}">${descText}</p>
-                            <span class="product-price">${displayPrice} π</span>
+                            <span class="product-price">${displayPrice}</span>
                             <div class="${isOutOfStock ? 'product-stock out-of-stock' : 'product-stock'}">
                                 ${isOutOfStock ? 'Stok Habis' : 'Stok: ' + stockVal}
                             </div>
@@ -715,7 +698,6 @@
             }
         }
 
-        // --- CART LOGIC (Guest bisa masukin keranjang) ---
         function addToCart(clickedId) {
             const product = productsData.find(p => String(p.id) === String(clickedId));
             if (!product) return alert("Produk tidak ditemukan.");
@@ -733,17 +715,12 @@
                 }
                 existingItem.qty++;
             } else {
-                cart.push({ 
-                    ...product, 
-                    qty: 1,
-                    price: cleanPrice(product.price) 
-                });
+                cart.push({ ...product, qty: 1, price: cleanPrice(product.price) });
             }
             
             localStorage.setItem('aurora_cart', JSON.stringify(cart));
             renderSidebarCart();
 
-            // Efek visual
             const btn = event.target;
             const originalText = btn.innerHTML;
             btn.innerHTML = "✓ Masuk";
@@ -768,7 +745,6 @@
 
         function renderSidebarCart() {
             const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
-            
             if (cart.length === 0) {
                 sidebarCartList.innerHTML = '<p class="empty-msg">Keranjang masih kosong.</p>';
                 updateFloatingCart(0);
@@ -776,24 +752,13 @@
             }
 
             let html = '';
-            let isCartValid = true; 
             let totalItems = 0;
 
             cart.forEach(item => {
                 totalItems += item.qty;
-
                 const latestProduct = productsData.find(p => String(p.id) === String(item.id));
-                let currentStock = 0;
-                let isOutOfStock = false;
-
-                if (latestProduct) {
-                    currentStock = parseInt(latestProduct.stock) || 0;
-                    isOutOfStock = currentStock <= 0;
-                } else {
-                    isOutOfStock = true;
-                }
-
-                if (isOutOfStock) isCartValid = false;
+                let isOutOfStock = true;
+                if (latestProduct) isOutOfStock = (parseInt(latestProduct.stock) || 0) <= 0;
 
                 let itemName = getSafeValue(item, 'name', 'product_name', 'Produk');
                 const imgSrc = getSafeValue(item, 'image_url', 'img', ''); 
@@ -807,7 +772,7 @@
                             <div class="sidebar-item-name">${itemName} ${stockWarning}</div>
                             <div class="sidebar-item-meta">
                                 <span>${item.qty} x ${formattedPrice}</span>
-                                <span style="color:var(--luxury-gold)">${formatPrice(item.price * item.qty)} π</span>
+                                <span style="color:var(--luxury-gold)">${formatPrice(item.price * item.qty)}</span>
                             </div>
                         </div>
                         <button class="sidebar-remove-btn" onclick="removeFromSidebar('${item.id}')">&times;</button>
@@ -818,22 +783,14 @@
             updateFloatingCart(totalItems);
         }
 
-        // ==========================================
-        // CHECKOUT LOGIC (WAJIB LOGIN DISINI)
-        // ==========================================
         function proceedToCheckout() {
-            // PERBAIKAN: Cek session 'ngebelusers' juga di sini
             if (!localStorage.getItem('ngebelusers')) {
-                // Jika Guest, tampilkan popup konfirmasi
                 const confirmLogin = confirm("Anda harus login terlebih dahulu untuk melanjutkan pembayaran. Ingin login sekarang?");
-                if (confirmLogin) {
-                    window.location.href = 'login.html';
-                }
+                if (confirmLogin) window.location.href = 'login.html';
                 return;
             }
 
             const cartItems = JSON.parse(localStorage.getItem('aurora_cart')) || [];
-            
             for (let item of cartItems) {
                 const dbProduct = productsData.find(p => String(p.id) === String(item.id));
                 if (!dbProduct || parseInt(dbProduct.stock) <= 0) {
@@ -857,7 +814,7 @@
             localStorage.setItem('aurora_checkout', JSON.stringify({
                 items: cartItems,
                 total: total,
-                currency: 'PI'
+                currency: 'IDR' // DIUBAH KE IDR
             }));
 
             window.location.href = 'payment.html';
@@ -870,10 +827,8 @@
 
         function handleLogout() {
             if(confirm("Yakin ingin keluar?")) {
-                // Hapus kunci yang benar
                 localStorage.removeItem('ngebelusers');
                 localStorage.removeItem('aurora_token');
-                // Reload halaman agar UI kembali ke Guest
                 window.location.reload(); 
             }
         }
