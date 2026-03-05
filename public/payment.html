@@ -296,7 +296,7 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER
+                // 4. EVENT LISTENER (FIXED VARIABLE NAME)
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
@@ -317,11 +317,12 @@
                             userToUse = refreshedSession.user;
                         }
 
-                        // 3. Siapkan Body Request (PASTIKAN FORMAT BENAR)
+                        // 3. Siapkan Body Request
+                        // PERBAIKAN: Pastikan key 'customer_name' dikirim sesuai yang diminta Backend
                         const requestBody = {
                             amount: parseInt(data.total),
                             order_id: data.orderId,
-                            customer_name: data.customer.name,
+                            customer_name: data.customer.name, // <--- Key ini harus sama dengan di Backend
                             customer_email: userToUse.email, 
                             customer_phone: data.customer.phone || "08123456789"
                         };
