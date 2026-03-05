@@ -296,7 +296,7 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER (FIXED VARIABLE NAME)
+                // 4. EVENT LISTENER (PERBAIKAN HEADER)
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
@@ -318,11 +318,10 @@
                         }
 
                         // 3. Siapkan Body Request
-                        // PERBAIKAN: Pastikan key 'customer_name' dikirim sesuai yang diminta Backend
                         const requestBody = {
                             amount: parseInt(data.total),
                             order_id: data.orderId,
-                            customer_name: data.customer.name, // <--- Key ini harus sama dengan di Backend
+                            customer_name: data.customer.name,
                             customer_email: userToUse.email, 
                             customer_phone: data.customer.phone || "08123456789"
                         };
@@ -331,12 +330,15 @@
 
                         // 4. Panggil Edge Function
                         const response = await fetch(
-                            "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/create-doku-payment",
+                            `https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/create-doku-payment`,
                             {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
-                                    "Authorization": "Bearer " + tokenToUse
+                                    // PERBAIKAN 1: Template Literal untuk Authorization
+                                    "Authorization": `Bearer ${tokenToUse}`,
+                                    // PERBAIKAN 2: Tambahkan apikey header (Anon Key)
+                                    "apikey": SUPABASE_KEY
                                 },
                                 body: JSON.stringify(requestBody)
                             }
