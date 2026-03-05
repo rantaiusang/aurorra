@@ -211,12 +211,11 @@
         </div>
     </div>    
 
-    <script>
+        <script>
         // ==========================================
         // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
-        // Ini adalah Public/Anon Key (Hanya untuk inisialisasi client JS di browser)
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         
         const { createClient } = supabase;
@@ -248,14 +247,15 @@
                 if (!paymentDataRaw) {
                     throw new Error("Data pembayaran tidak ditemukan. Silakan ulangi dari keranjang.");
                 }
-
                 const data = JSON.parse(paymentDataRaw);
 
-                // B. Cek Auth User & Ambil Session (PENTING)
-                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-                
-                if (sessionError || !session) {
-                    throw new Error("Sesi login tidak valid. Silakan login ulang.");
+                // B. PERBAIKAN: Ambil Session secara Synchronous
+                // Menggunakan supabaseClient.auth.session() (tanpa await) lebih cepat untuk mencegah race condition di UI awal
+                // Namun untuk keamanan JWT valid, kita tetap perlu memastikan session exist.
+                const { data: { session } } = await supabaseClient.auth.getSession();
+
+                if (!session || !session.access_token) {
+                    throw new Error("Sesi login habis atau tidak valid. Silakan <a href='login.html' style='color:var(--luxury-gold)'>Login Ulang</a>.");
                 }
 
                 // C. Tampilkan Ringkasan
@@ -283,7 +283,7 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER (PERBAIKAN AUTH HEADER)
+                // 4. EVENT LISTENER
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
@@ -294,21 +294,36 @@
                         // 1. Simpan Order ID ke LocalStorage untuk halaman sukses
                         localStorage.setItem('temp_order_id', data.orderId);
 
-                        // 2. Panggil Edge Function
+                        // 2. Refresh Session SEBELUM Kirim Request (PENTING)
+                        // Ini memastikan token yang dikirim benar-benar fresh dan valid
+                        const { data: refreshedSession, error: refreshError } = await supabaseClient.auth.refreshSession();
+                        
+                        let tokenToUse = session.access_token;
+                        let userToUse = session.user;
+
+                        if (!refreshError && refreshedSession && refreshedSession.access_token) {
+                            tokenToUse = refreshedSession.access_token;
+                            userToUse = refreshedSession.user;
+                            console.log("Session Refreshed");
+                        } else {
+                            console.log("Using existing session (Refresh might have failed or not needed)");
+                        }
+
+                        // 3. Panggil Edge Function
                         const response = await fetch(
                             "https://dikapquhusbwjccbqcsb.supabase.co/functions/v1/create-doku-payment",
                             {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
-                                    // ✅ PERBAIKAN: Gunakan Access Token dari Session User (Dinamis)
-                                    "Authorization": "Bearer " + session.access_token
+                                    // Gunakan Token yang sudah dipastikan valid (baru di-refresh atau existing)
+                                    "Authorization": "Bearer " + tokenToUse
                                 },
                                 body: JSON.stringify({
                                     amount: parseInt(data.total),
                                     order_id: data.orderId,
                                     customer_name: data.customer.name,
-                                    customer_email: session.user.email, 
+                                    customer_email: userToUse.email, 
                                     customer_phone: data.customer.phone
                                 })
                             }
@@ -319,10 +334,8 @@
                         console.log("FULL RESULT:", result);
 
                         if (result.response?.payment_url) {
-                            // Redirect ke Payment Page DOKU
                             window.location.href = result.response.payment_url;
                         } else {
-                            // Jika gagal, cek apakah ada pesan error dari DOKU
                             const errorMsg = (result.message && Array.isArray(result.message)) 
                                             ? result.message.join(", ") 
                                             : JSON.stringify(result);
@@ -342,7 +355,8 @@
             } catch (err) {
                 console.error("Init Error:", err);
                 errorBox.style.display = 'block';
-                errorBox.innerText = err.message;
+                // Izinkan HTML di error message untuk link login
+                errorBox.innerHTML = err.message; 
                 document.getElementById('btnPay').innerText = "Gagal Memuat";
             }
         }
