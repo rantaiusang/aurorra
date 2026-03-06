@@ -342,6 +342,65 @@
         let currentCategory = 'all';
         let currentSearch = '';
 
+        // ==========================================
+        // 🔐 AUTO LOGOUT CONFIGURATION (12 JAM)
+        // ==========================================
+        const IDLE_LIMIT = 12 * 60 * 60 * 1000; // 12 Jam dalam milidetik
+        const ACTIVITY_KEY = 'aurora_last_activity';
+        let activityTimer = null;
+
+        // Fungsi untuk reset timer aktivitas
+        function resetActivityTimer() {
+            const now = Date.now();
+            localStorage.setItem(ACTIVITY_KEY, now);
+        }
+
+        // Fungsi Cek Idle
+        function checkIdleTime() {
+            const lastActivity = localStorage.getItem(ACTIVITY_KEY);
+            const now = Date.now();
+
+            if (lastActivity && (now - lastActivity > IDLE_LIMIT)) {
+                console.log("⚠️ Sesi kedaluwarsa (12 Jam). Melakukan logout otomatis...");
+                forceLogout();
+            }
+        }
+
+        // Fungsi Logout Paksa (Untuk Auto-Logout)
+        async function forceLogout() {
+            try {
+                await supabaseClient.auth.signOut();
+            } catch (e) { console.error(e); }
+            
+            // Hapus semua jejak sesi
+            localStorage.removeItem('ngebelusers');
+            localStorage.removeItem('aurora_token');
+            localStorage.removeItem(ACTIVITY_KEY); // Reset timer aktivitas
+            
+            // Reload halaman untuk reset state total
+            window.location.reload();
+        }
+
+        // Setup Event Listeners untuk mendeteksi aktivitas user
+        function setupActivityListeners() {
+            const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+            events.forEach(evt => {
+                window.addEventListener(evt, resetActivityTimer);
+            });
+        }
+
+        // Jalankan pengecekan setiap 1 detik
+        function startActivityMonitor() {
+            setupActivityListeners();
+            resetActivityTimer(); // Set saat pertama load
+            activityTimer = setInterval(checkIdleTime, 1000);
+        }
+
+        // ==========================================
+        // END AUTO LOGOUT LOGIC
+        // ==========================================
+
+
         const productGrid = document.getElementById('productGrid');
         const navContainer = document.getElementById('navContainer'); 
         const sidebarCartList = document.getElementById('sidebarCartList');
@@ -562,6 +621,12 @@
         // 4. INISIALISASI APLIKASI
         // ==========================================
         async function initApp() {
+            // Cek Idle saat load pertama kali (jika user tinggalkan browser terbuka)
+            checkIdleTime();
+
+            // Mulai monitoring aktivitas
+            startActivityMonitor();
+
             try {
                 // 1️⃣ Cek Supabase Auth dulu
                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -980,15 +1045,8 @@
 
         function handleLogout() {
             if(confirm("Yakin ingin keluar?")) {
-                // Hapus session auth Supabase
-                supabaseClient.auth.signOut();
-                
-                // Hapus local storage
-                localStorage.removeItem('ngebelusers');
-                localStorage.removeItem('aurora_token');
-                
-                // Reload halaman
-                window.location.reload(); 
+                // Panggil fungsi forceLogout yang sudah ada agar bersih dan konsisten
+                forceLogout(); 
             }
         }
 
