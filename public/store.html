@@ -366,7 +366,7 @@
             }
         }
 
-        // Fungsi Logout Paksa (Untuk Auto-Logout)
+        // Fungsi Logout Paksa (Untuk Auto-Logout & Manual Logout)
         async function forceLogout() {
             try {
                 await supabaseClient.auth.signOut();
@@ -376,6 +376,9 @@
             localStorage.removeItem('ngebelusers');
             localStorage.removeItem('aurora_token');
             localStorage.removeItem(ACTIVITY_KEY); // Reset timer aktivitas
+            
+            // 🆕 HAPUS KERANJANG SAAT LOGOUT
+            localStorage.removeItem('aurora_cart'); 
             
             // Reload halaman untuk reset state total
             window.location.reload();
@@ -1045,7 +1048,7 @@
 
         function handleLogout() {
             if(confirm("Yakin ingin keluar?")) {
-                // Panggil fungsi forceLogout yang sudah ada agar bersih dan konsisten
+                // Panggil fungsi forceLogout yang sudah ada (termasuk hapus cart)
                 forceLogout(); 
             }
         }
