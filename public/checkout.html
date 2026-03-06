@@ -370,13 +370,13 @@
         </div>
     </div>    
 
-    <script>
+        <script>
         // ==========================================
         // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
-        // PASTIKAN INI ADALAH 'ANON' KEY, JANGAN SERVICE ROLE
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
+        // Gunakan Anon Key
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -406,7 +406,7 @@
         let shippingCost = 0;
         let cartItems = [];
         let currentUser = null;
-        let allCities = []; 
+        let selectedShippingData = null; // Menyimpan data lengkap ongkir (Ekspedisi, Estimasi, dll)
 
         // --- 3. CUSTOM DROPDOWN LOGIC ---
         const cityDropdown = document.getElementById('cityDropdown');
@@ -471,7 +471,7 @@
             cityTrigger.textContent = cityName.toUpperCase();
             cityTrigger.style.color = 'var(--luxury-gold)';
             cityOptions.classList.remove('open');
-            loadShippingCost();
+            loadShippingCost(); // Panggil fungsi ongkir lengkap
         }
 
         // --- 4. LOAD DATA KOTA ---
@@ -486,7 +486,6 @@
                 if (error) throw error;
 
                 if (data && data.length > 0) {
-                    // Ambil kota unik saja
                     allCities = [...new Set(data.map(item => item.tujuan))];
                     renderCities(allCities);
                 } else {
@@ -498,20 +497,22 @@
             }
         }
 
-        // --- 5. FUNGSI AMBIL ONGKIR ---
+        // --- 5. FUNGSI AMBIL ONGKIR ( LENGKAP ) ---
         async function loadShippingCost() {
             const city = cityInputHidden.value;
             if (!city) {
                 shippingCost = 0;
+                selectedShippingData = null;
                 document.getElementById("shippingCostDisplay").value = formatPrice(0);
                 updateFinalTotal();
                 return;
             }
 
             try {
+                // Ambil SEMUA data yang dibutuhkan dari tabel ongkir: tarif, ekspedisi, estimasi
                 const { data, error } = await supabaseClient
                     .from("ongkir")
-                    .select("tarif")
+                    .select("tarif, ekspedisi, estimasi")
                     .eq("tujuan", city)
                     .eq("ekspedisi", "jne")
                     .single();
@@ -520,12 +521,23 @@
 
                 if (data) {
                     shippingCost = parseInt(data.tarif) || 0;
+                    
+                    // SIMPAN DATA LENGKAP KE VARIABEL GLOBAL
+                    // Ini nanti akan dikirim ke payment.html dan disimpan ke DB
+                    selectedShippingData = {
+                        ekspedisi: data.ekspedisi,      // 'jne'
+                        estimasi: data.estimasi,      // '2-3 Hari'
+                        tarif: shippingCost
+                    };
+
                     document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost);
+                    console.log("✅ Data Ongkir Dimuat:", selectedShippingData);
                     updateFinalTotal();
                 }
             } catch (e) {
                 console.error("Gagal ambil ongkir:", e);
                 shippingCost = 0;
+                selectedShippingData = null;
                 document.getElementById("shippingCostDisplay").value = "Tarif tidak tersedia";
             }
             updateFinalTotal();
@@ -542,13 +554,14 @@
             const payBtn = document.getElementById('payBtn');
             const errorBox = document.getElementById('error-message');
 
+            // Load kota dulu (biar muncul meski auth error)
             await loadCities();
 
             try {
-                // Cek Auth
-                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-
-                if (authError || !user) {
+                // PERBAIKAN: Gunakan getSession untuk memastikan session siap
+                const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+                
+                if (sessionError || !sessionData.session) {
                     console.warn("Sesi tidak valid.");
                     localStorage.removeItem('aurora_checkout');
                     errorBox.style.display = "block";
@@ -557,10 +570,10 @@
                     return; 
                 }
 
-                currentUser = user;
+                currentUser = sessionData.session.user;
                 const successLoad = loadCartAndCalculateTotal();
 
-                if (successLoad && currentTotal > 0) {
+                if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false;
                     payBtn.innerText = "Lanjut ke Pembayaran";
                 } else {
@@ -632,41 +645,50 @@
             if (address.length < 10) return showError("Alamat terlalu pendek.");
             if (!city) return showError("Mohon pilih kota tujuan.");
 
-            // 2. Validasi Auth (Double check)
+            // 2. Validasi Auth
             const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
             if (authError || !user) {
                 return showError("Sesi habis. Silakan login kembali.");
             }
 
-            // 3. Generate Order ID (Unik)
-            // Format: INV-YYYYMMDD-Random (Jangan pakai timestamp saja agar aman)
+            // 3. Validasi Ongkir (Wajib ada karena ini acuan database)
+            if (!selectedShippingData) {
+                return showError("Data ongkir belum terload. Silakan pilih ulang kota.");
+            }
+
+            // 4. Generate Order ID Unik
             const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, "");
             const randomStr = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-            const orderId = `INV-${dateStr}-${randomStr}`;
+            const invoiceNumber = `INV-${dateStr}-${randomStr}`;
 
             const finalBill = currentTotal + shippingCost;
 
-            // 4. Siapkan Data Payload
-            // ⚠️ PENTING: Pastikan Key Object sama persis dengan yang diminta Edge Function
+            // 5. Siapkan Payload Data (DISESUAIKAN DENGAN STRUKTUR TABEL ANDA)
             const paymentPayload = {
-                invoiceNumber: orderId,      // Key ini WAJIB ada di Edge Function
-                amount: finalBill,            // Key ini WAJIB ada di Edge Function
-                customerName: fullName,       // Key ini WAJIB ada di Edge Function
-                customerEmail: user.email,    // Key ini WAJIB ada di Edge Function
+                invoiceNumber: invoiceNumber,       // Untuk DOKU & ID Order
+                amount: finalBill,
+                customerName: fullName,
+                customerEmail: user.email,
                 customerPhone: phoneNumber,
                 customerAddress: `${address}, ${city}`,
                 
-                // Data Tambahan untuk Database
+                // --- DATA PENGIRIMAN (WAJIB SESUAI DATABASE) ---
+                shippingCost: shippingCost,
+                ekspedisi: selectedShippingData.ekspedisi,      // Ambil dari variabel global
+                estimasi: selectedShippingData.estimasi,      // Ambil dari variabel global
+                kota: city,                                    // Nama kota terpilih
+                kota_tujuan: city,                             // Kolom 'kota_tujuan' di tabel orders
+                
+                // Data Tambahan
                 items: cartItems,
-                userId: user.id,
-                shippingCost: shippingCost
+                userId: user.id
             };
 
-            // 5. Simpan ke LocalStorage (Temporary sebelum dikirim ke payment.html)
+            // 6. Simpan ke LocalStorage
             localStorage.setItem('pending_payment_data', JSON.stringify(paymentPayload));
 
-            // 6. Redirect
-            console.log("Redirecting to payment.html with:", paymentPayload);
+            // 7. Redirect
+            console.log("Redirecting to payment.html with payload:", paymentPayload);
             window.location.href = 'payment.html';
         }
 
