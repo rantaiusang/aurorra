@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <!-- WAJIB: Viewport agar Modal DOKU tampil benar di HP -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pembayaran - Aurorra Store</title>
     
@@ -9,6 +10,10 @@
     
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- DOKU CHECKOUT JS (Integrasi Modal/Overlay) -->
+    <!-- Gunakan link Sandbox untuk testing, ganti ke Production jika live -->
+    <script src="https://sandbox.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js"></script>
 
     <style>
         :root { 
@@ -216,10 +221,8 @@
         // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
-        // ⚠️ HATI-HATI: Gunakan ANON KEY untuk Frontend
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         
-        // Inisialisasi Client
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -247,7 +250,6 @@
                 console.log("🔍 Mencoba mengambil data dari LocalStorage...");
                 const paymentDataRaw = localStorage.getItem('pending_payment_data');
                 
-                // Tampilkan log debug
                 console.log("Isi Raw LocalStorage:", paymentDataRaw);
 
                 if (!paymentDataRaw || paymentDataRaw === "null" || paymentDataRaw === "") {
@@ -262,7 +264,6 @@
                 }
 
                 // B. Validasi Data Minimal
-                // Kita cek key 'invoiceNumber' atau 'orderId' (fallback)
                 const invoiceNumber = data.invoiceNumber || data.orderId;
                 const totalAmount = data.amount || data.total;
 
@@ -284,7 +285,6 @@
                 }
 
                 // D. Tampilkan Ringkasan (UI Only)
-                // Kita gabungkan data alamat jika terpisah
                 const displayAddress = data.customerAddress || (data.customer ? `${data.customer.address}, ${data.customer.city}` : '-');
 
                 let html = `
@@ -313,42 +313,37 @@
                 btnPay.disabled = false;
 
                 // ==========================================
-                // 4. EVENT LISTENER PROSES PEMBAYARAN
+                // 4. EVENT LISTENER (MENGGUNAKAN MODAL DOKU)
                 // ==========================================
                 btnPay.addEventListener("click", async () => {
                     
-                    // 1. Lock Button & Show Loading
                     btnPay.disabled = true;
                     const originalBtnText = btnPay.innerText;
                     btnPay.innerText = "Memproses...";
                     errorBox.style.display = 'none';
 
                     try {
-                        // 2. Refresh Session (Untuk memastikan token valid sebelum request)
+                        // 1. Refresh Session
                         const { data: refreshedSession, error: refreshError } = await supabaseClient.auth.refreshSession();
                         
                         let tokenToUse = session.access_token;
                         let userToUse = session.user;
 
-                        // Jika refresh berhasil, gunakan token baru
                         if (!refreshError && refreshedSession && refreshedSession.access_token) {
                             tokenToUse = refreshedSession.access_token;
                             userToUse = refreshedSession.user;
                         }
 
-                        // 3. Siapkan Body Request untuk Edge Function
-                        // Pastikan nama key sesuai dengan parameter yang dibaca Edge Function
+                        // 2. Siapkan Body Request
                         const requestBody = {
                             amount: parseInt(totalAmount),
                             invoiceNumber: invoiceNumber,
                             customerName: data.customerName,
                             customerEmail: userToUse.email || data.customerEmail || "customer@example.com",
                             customerPhone: data.customerPhone || "08123456789",
-                            
-                            // Data Tambahan agar database terisi lengkap
                             customerAddress: displayAddress,
-                            items: data.items,       // Array produk
-                            user_id: userToUse.id,    // ID User yang sedang login
+                            items: data.items,
+                            user_id: userToUse.id,
                             shipping_cost: data.shippingCost || 0,
                             ekspedisi: data.ekspedisi,
                             estimasi: data.estimasi,
@@ -357,8 +352,7 @@
 
                         console.log("📤 Mengirim Request ke Edge Function:", requestBody);
 
-                        // 4. Panggil Edge Function 'create-payment'
-                        // Pastikan nama fungsi sama dengan di Dashboard Supabase
+                        // 3. Panggil Edge Function
                         const functionName = 'create-payment'; 
                         const response = await fetch(
                             `${SUPABASE_URL}/functions/v1/${functionName}`,
@@ -373,7 +367,6 @@
                             }
                         );
 
-                        // 5. Handle Response
                         const responseText = await response.text();
                         console.log("📥 Raw Response dari Supabase:", responseText);
 
@@ -388,10 +381,9 @@
                             throw new Error("Response server bukan format JSON yang valid: " + responseText);
                         }
 
-                        // 6. Cari URL Pembayaran dari Response
+                        // 4. Cari URL Pembayaran
                         let paymentUrl = null;
 
-                        // Cek berbagai kemungkinan struktur response
                         if (result.paymentUrl) {
                             paymentUrl = result.paymentUrl;
                         } else if (result.response && result.response.payment_url) {
@@ -401,13 +393,24 @@
                         }
 
                         if (paymentUrl) {
-                            // 🆕 PENTING: Hapus data localstorage sebelum redirect
-                            // Ini mencegah user menekan tombol "Back" dan membayar lagi untuk order yang sama.
+                            // 🆕 PERUBAHAN UTAMA: GUNAKAN MODAL DOKU
+                            // Kita tidak redirect window.location, tapi memanggil fungsi loadJokulCheckout
+                            
+                            console.log("✅ Membuka Modal DOKU:", paymentUrl);
+                            
+                            // Hapus local storage agar tidak bayar 2x jika refresh
                             localStorage.removeItem('aurora_checkout');
                             localStorage.removeItem('pending_payment_data');
 
-                            console.log("✅ Redirecting to:", paymentUrl);
-                            window.location.href = paymentUrl;
+                            // Panggil fungsi dari DOKU JS
+                            if (typeof loadJokulCheckout === 'function') {
+                                loadJokulCheckout(paymentUrl);
+                            } else {
+                                // Fallback jika script DOKU gagal load
+                                console.warn("DOKU JS belum termuat, menggunakan redirect standar.");
+                                window.location.href = paymentUrl;
+                            }
+
                         } else {
                             const errorMsg = result.message || result.error || "URL Pembayaran tidak ditemukan dalam response.";
                             throw new Error("Gagal mendapatkan Payment URL. Detail: " + JSON.stringify(result));
@@ -418,7 +421,7 @@
                         errorBox.style.display = "block";
                         errorBox.innerText = err.message;
                         
-                        // Kembalikan tombol ke keadaan semula agar user bisa coba lagi
+                        // Kembalikan tombol agar bisa coba lagi
                         btnPay.disabled = false;
                         btnPay.innerText = originalBtnText;
                     }
