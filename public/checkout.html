@@ -516,7 +516,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- 9. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX) ---
+        // --- 9. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX LENGKAP) ---
         document.getElementById('btnPay').addEventListener("click", async () => {
             const btnPay = document.getElementById('btnPay');
             const errorBox = document.getElementById('error-message-payment');
@@ -572,7 +572,12 @@
                 // 5. Fetch Request
                 const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tokenToUse}`, "apikey": SUPABASE_KEY },
+                    headers: { 
+                        "Content-Type": "application/json", 
+                        "Authorization": `Bearer ${tokenToUse}`, 
+                        "apikey": SUPABASE_KEY,
+                        "x-client-info": "aurorra-web" // Header tambahan untuk kestabilan
+                    },
                     body: JSON.stringify(requestBody)
                 });
 
@@ -603,23 +608,27 @@
                     paymentUrl = result.paymentUrl;
                 }
 
-                if (paymentUrl) {
-                    console.log("✅ Membuka Modal DOKU:", paymentUrl);
-                    setTimeout(() => {
-                        if (typeof loadJokulCheckout === 'function') {
-                            loadJokulCheckout(paymentUrl);
-                        } else {
-                            console.warn("DOKU JS belum termuat, redirect standar...");
-                            window.location.href = paymentUrl;
-                        }
-                    }, 300);
-                } else {
-                    throw new Error("URL Pembayaran tidak ditemukan dalam response.");
+                // 8. Handle Sukses & Buka Modal
+                if (!paymentUrl) {
+                    throw new Error("URL pembayaran tidak ditemukan dalam response.");
                 }
+
+                console.log("✅ Membuka Modal DOKU:", paymentUrl);
+                
+                setTimeout(() => {
+                    if (typeof loadJokulCheckout === 'function') {
+                        loadJokulCheckout(paymentUrl);
+                    } else {
+                        console.warn("DOKU JS belum termuat, redirect standar...");
+                        window.location.href = paymentUrl;
+                    }
+                }, 300);
 
             } catch (err) {
                 console.error("❌ Error:", err);
-                errorBox.style.display = "block"; errorBox.innerText = err.message;
+                errorBox.style.display = "block"; 
+                errorBox.innerText = err.message;
+                
                 btnPay.disabled = false; 
                 if (btnSpan) btnSpan.innerText = originalBtnText;
             }
