@@ -210,200 +210,211 @@
             </button>
         </div>
     </div> 
+    <script>
+    // ==========================================
+    // 1. KONFIGURASI SUPABASE
+    // ==========================================
+    const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+    // ⚠️ HATI-HATI: Jangan pernah mengexpose Key 'service_role' di Frontend!
+    // Gunakan 'anon' key saja. Jika Anda memasukkan service_role key di sini,
+    // siapapun bisa menghapus database Anda.
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // (Pastikan ini key ANON)
     
-     <script>
-        // ==========================================
-        // 1. KONFIGURASI SUPABASE
-        // ==========================================
-        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
-        
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Perbaikan inisialisasi untuk versi CDN
+    const { createClient } = supabase; 
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ==========================================
-        // 2. HELPER FUNCTIONS
-        // ==========================================
-        function formatPrice(price) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(price);
-        }
+    // ==========================================
+    // 2. HELPER FUNCTIONS
+    // ==========================================
+    function formatPrice(price) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(price);
+    }
 
-        // ==========================================
-        // 3. INISIALISASI HALAMAN
-        // ==========================================
-        async function initPaymentPage() {
-            const errorBox = document.getElementById('error-message');
-            const summaryDiv = document.getElementById('orderSummary');
-            const btnPay = document.getElementById('btnPay');
+    // ==========================================
+    // 3. INISIALISASI HALAMAN
+    // ==========================================
+    async function initPaymentPage() {
+        const errorBox = document.getElementById('error-message');
+        const summaryDiv = document.getElementById('orderSummary');
+        const btnPay = document.getElementById('btnPay');
 
-            try {
-                // A. Ambil Data dari LocalStorage
-                const paymentDataRaw = localStorage.getItem('pending_payment_data');
-                
-                if (!paymentDataRaw || paymentDataRaw === "null" || paymentDataRaw === "") {
-                    errorBox.style.display = 'block';
-                    errorBox.innerText = "Data pesanan hilang (Session Expired). Silakan ulangi pemesanan dari keranjang.";
-                    btnPay.innerText = "Data Kosong";
-                    btnPay.disabled = true;
-                    return; 
-                }
-
-                let data;
-                try {
-                    data = JSON.parse(paymentDataRaw);
-                } catch (e) {
-                    throw new Error("Format data pesanan rusak.");
-                }
-
-                if (!data.orderId || !data.total || !data.customer) {
-                    throw new Error("Data pesanan tidak lengkap (Missing Order ID, Total, atau Customer).");
-                }
-
-                // B. Ambil Session
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (!session || !session.access_token) {
-                    throw new Error("Sesi login habis. Silakan <a href='login.html' style='color:var(--luxury-gold)'>Login Ulang</a>.");
-                }
-
-                // C. Tampilkan Ringkasan (UI Only)
-                let html = `
-                    <div class="summary-row">
-                        <span>Order ID</span>
-                        <span>#${data.orderId}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Nama Penerima</span>
-                        <span>${data.customer.name}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Kota</span>
-                        <span>${data.customer.city ? data.customer.city.toUpperCase() : '-'}</span>
-                    </div>
-                    <div class="summary-total">
-                        <span>Total Tagihan</span>
-                        <span>${formatPrice(data.total)}</span>
-                    </div>
-                `;
-                summaryDiv.innerHTML = html;
-                btnPay.disabled = false;
-
-                // ==========================================
-                // 4. EVENT LISTENER PROSES PEMBAYARAN
-                // ==========================================
-                btnPay.addEventListener("click", async () => {
-                    
-                    btnPay.disabled = true;
-                    const originalBtnText = btnPay.innerText;
-                    btnPay.innerText = "Memproses...";
-
-                    try {
-                        // 1. Refresh Session
-                        const { data: refreshedSession, error: refreshError } = await supabaseClient.auth.refreshSession();
-                        let tokenToUse = session.access_token;
-                        let userToUse = session.user;
-
-                        if (!refreshError && refreshedSession && refreshedSession.access_token) {
-                            tokenToUse = refreshedSession.access_token;
-                            userToUse = refreshedSession.user;
-                        }
-
-                        // 2. Siapkan Body Request (SELESAIKAN DATA YANG DIBUTUHKAN EDGE FUNCTION)
-                        // Kita menggabungkan alamat jadi satu string
-                        const fullAddress = `${data.customer.address}, ${data.customer.city}`;
-
-                        const requestBody = {
-                            amount: parseInt(data.total),
-                            order_id: data.orderId,
-                            customer_name: data.customer.name,
-                            customer_email: userToUse.email || "customer@example.com",
-                            customer_phone: data.customer.phone || "08123456789",
-                            
-                            // 🆕 TAMBAHKAN 3 FIELD INI AGAR DATABASE TERISI LENGKAP
-                            customer_address: fullAddress,
-                            items_data: data.items,       // Array produk
-                            user_id: userToUse.id,          // ID User yang sedang login
-                            shipping_cost: data.shippingCost || 0
-                        };
-
-                        console.log("📤 Mengirim Request ke Edge Function:", requestBody);
-
-                        // 3. Panggil Edge Function
-                        // Pastikan nama fungsi sama dengan di Dashboard Supabase
-                        const functionName = 'create-doku-payment'; 
-                        const response = await fetch(
-                            `${SUPABASE_URL}/functions/v1/${functionName}`,
-                            {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${tokenToUse}`,
-                                    "apikey": SUPABASE_KEY 
-                                },
-                                body: JSON.stringify(requestBody)
-                            }
-                        );
-
-                        // 4. Handle Response
-                        const responseText = await response.text();
-                        console.log("📥 Raw Response dari Supabase:", responseText);
-
-                        if (!response.ok) {
-                            throw new Error(`Server Error (${response.status}): ${responseText}`);
-                        }
-
-                        let result;
-                        try {
-                            result = JSON.parse(responseText);
-                        } catch (e) {
-                            throw new Error("Response server bukan format JSON yang valid: " + responseText);
-                        }
-
-                        // 5. Cek URL Pembayaran
-                        let paymentUrl = null;
-
-                        if (result.payment_url) {
-                            paymentUrl = result.payment_url;
-                        } else if (result.response && result.response.payment_url) {
-                            paymentUrl = result.response.payment_url;
-                        } else if (result.data && result.data.payment_url) {
-                            paymentUrl = result.data.payment_url;
-                        }
-
-                        if (paymentUrl) {
-                            // 🆕 Bersihkan Local Storage agar tidak double charge jika refresh
-                            localStorage.removeItem('aurora_checkout');
-                            localStorage.removeItem('pending_payment_data');
-
-                            console.log("✅ Redirecting to:", paymentUrl);
-                            window.location.href = paymentUrl;
-                        } else {
-                            const errorMsg = result.message || result.error || "URL Pembayaran tidak ditemukan dalam response.";
-                            throw new Error("Gagal mendapatkan Payment URL. Detail: " + JSON.stringify(result));
-                        }
-
-                    } catch (err) {
-                        console.error("❌ Payment Process Error:", err);
-                        errorBox.style.display = "block";
-                        errorBox.innerText = err.message;
-                        btnPay.disabled = false;
-                        btnPay.innerText = originalBtnText;
-                    }
-                });
-
-            } catch (err) {
-                console.error("Init Error:", err);
-                errorBox.style.display = 'block';
-                errorBox.innerHTML = err.message;
-                document.getElementById('btnPay').innerText = "Gagal Memuat";
+        try {
+            // A. Ambil Data dari LocalStorage
+            // Pastikan Anda menyet 'pending_payment_data' di halaman checkout sebelumnya
+            const paymentDataRaw = localStorage.getItem('pending_payment_data');
+            
+            if (!paymentDataRaw || paymentDataRaw === "null" || paymentDataRaw === "") {
+                throw new Error("Data pesanan hilang (Session Expired). Silakan ulangi pemesanan dari keranjang.");
             }
-        }
 
-        window.onload = initPaymentPage;
-    </script>
+            let data;
+            try {
+                data = JSON.parse(paymentDataRaw);
+            } catch (e) {
+                throw new Error("Format data pesanan rusak.");
+            }
+
+            // Validasi Data Minimal
+            if (!data.orderId || !data.total || !data.customer) {
+                throw new Error("Data pesanan tidak lengkap (Missing Order ID, Total, atau Customer).");
+            }
+
+            // B. Cek Auth Session
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session || !session.access_token) {
+                throw new Error("Sesi login habis. Silakan <a href='login.html' style='color:var(--luxury-gold)'>Login Ulang</a>.");
+            }
+
+            // C. Tampilkan Ringkasan di UI
+            let html = `
+                <div class="summary-row">
+                    <span>Order ID</span>
+                    <span>#${data.orderId}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Nama Penerima</span>
+                    <span>${data.customer.name}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Kota</span>
+                    <span>${data.customer.city ? data.customer.city.toUpperCase() : '-'}</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total Tagihan</span>
+                    <span>${formatPrice(data.total)}</span>
+                </div>
+            `;
+            summaryDiv.innerHTML = html;
+            btnPay.disabled = false;
+
+            // ==========================================
+            // 4. EVENT LISTENER PROSES PEMBAYARAN
+            // ==========================================
+            btnPay.addEventListener("click", async () => {
+                
+                // 1. Lock Button & Show Loading
+                btnPay.disabled = true;
+                const originalBtnText = btnPay.innerText;
+                btnPay.innerText = "Memproses...";
+                errorBox.style.display = 'none';
+
+                try {
+                    // 2. Refresh Session (Untuk memastikan token valid sebelum request)
+                    const { data: refreshedSession, error: refreshError } = await supabaseClient.auth.refreshSession();
+                    
+                    let tokenToUse = session.access_token;
+                    let userToUse = session.user;
+
+                    // Jika refresh berhasil, gunakan token baru
+                    if (!refreshError && refreshedSession && refreshedSession.access_token) {
+                        tokenToUse = refreshedSession.access_token;
+                        userToUse = refreshedSession.user;
+                    }
+
+                    // 3. Siapkan Body Request untuk Edge Function
+                    // Kita menggabungkan alamat untuk memudahkan backend
+                    const fullAddress = `${data.customer.address}, ${data.customer.city}`;
+
+                    const requestBody = {
+                        amount: parseInt(data.total),
+                        order_id: data.orderId,
+                        customer_name: data.customer.name,
+                        customer_email: userToUse.email || "customer@example.com",
+                        customer_phone: data.customer.phone || "08123456789",
+                        
+                        // Data tambahan agar backend bisa menyimpan ke database
+                        customer_address: fullAddress,
+                        items_data: data.items,       // Array produk
+                        user_id: userToUse.id,        // ID User yang login
+                        shipping_cost: data.shippingCost || 0
+                    };
+
+                    console.log("📤 Mengirim Request ke Edge Function:", requestBody);
+
+                    // 4. Panggil Edge Function 'create-doku-payment'
+                    const functionName = 'create-doku-payment'; // Pastikan nama ini sama di dashboard Supabase
+                    const response = await fetch(
+                        `${SUPABASE_URL}/functions/v1/${functionName}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${tokenToUse}`,
+                                "apikey": SUPABASE_KEY 
+                            },
+                            body: JSON.stringify(requestBody)
+                        }
+                    );
+
+                    // 5. Handle Response
+                    const responseText = await response.text();
+                    console.log("📥 Raw Response dari Supabase:", responseText);
+
+                    if (!response.ok) {
+                        throw new Error(`Server Error (${response.status}): ${responseText}`);
+                    }
+
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        throw new Error("Response server bukan format JSON yang valid: " + responseText);
+                    }
+
+                    // 6. Cari URL Pembayaran dari Response
+                    let paymentUrl = null;
+
+                    // Cek berbagai kemungkinan struktur response
+                    if (result.payment_url) {
+                        paymentUrl = result.payment_url;
+                    } else if (result.response && result.response.payment_url) {
+                        paymentUrl = result.response.payment_url;
+                    } else if (result.data && result.data.payment_url) {
+                        paymentUrl = result.data.payment_url;
+                    }
+
+                    if (paymentUrl) {
+                        // 🆕 PENTING: Hapus data localstorage sebelum redirect
+                        // Ini mencegah user menekan tombol "Back" dan membayar lagi untuk order yang sama.
+                        localStorage.removeItem('aurora_checkout');
+                        localStorage.removeItem('pending_payment_data');
+
+                        console.log("✅ Redirecting to:", paymentUrl);
+                        window.location.href = paymentUrl;
+                    } else {
+                        const errorMsg = result.message || result.error || "URL Pembayaran tidak ditemukan dalam response.";
+                        throw new Error("Gagal mendapatkan Payment URL. Detail: " + JSON.stringify(result));
+                    }
+
+                } catch (err) {
+                    console.error("❌ Payment Process Error:", err);
+                    errorBox.style.display = "block";
+                    errorBox.innerText = err.message;
+                    
+                    // Kembalikan tombol ke keadaan semula agar user bisa coba lagi
+                    btnPay.disabled = false;
+                    btnPay.innerText = originalBtnText;
+                }
+            });
+
+        } catch (err) {
+            console.error("Init Error:", err);
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = err.message;
+            btnPay.disabled = true;
+            btnPay.innerText = "Gagal Memuat";
+        }
+    }
+
+    // Jalankan saat halaman dimuat
+    window.onload = initPaymentPage;
+</script>
+     
     
 </body>
 </html>
