@@ -516,7 +516,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- 9. HANDLE PEMBAYARAN SEBENARNYA ---
+        // --- 9. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX) ---
         document.getElementById('btnPay').addEventListener("click", async () => {
             const btnPay = document.getElementById('btnPay');
             const errorBox = document.getElementById('error-message-payment');
@@ -528,8 +528,18 @@
             errorBox.style.display = 'none';
 
             try {
-                // Refresh Session
-                const { data: { session } } = await supabaseClient.auth.getSession();
+                // 1. VALIDASI PAYLOAD (Mencegah Body Kosong jika refresh)
+                if (!finalPayload) {
+                    throw new Error("Data pesanan tidak ditemukan (Session Expired). Silakan ulangi checkout dari keranjang.");
+                }
+
+                // 2. AMBIL SESSION (Safe Check)
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                
+                if (sessionError || !session) {
+                    throw new Error("Sesi login tidak ditemukan.");
+                }
+
                 const { data: refreshedSession, error: refreshError } = await supabaseClient.auth.refreshSession();
                 
                 let tokenToUse = session.access_token;
@@ -540,6 +550,7 @@
                     userToUse = refreshedSession.session.user;
                 }
 
+                // 3. Siapkan Request Body
                 const requestBody = {
                     amount: finalPayload.amount,
                     invoiceNumber: finalPayload.invoiceNumber,
@@ -555,8 +566,10 @@
                     kota: finalPayload.kota
                 };
 
-                console.log("📤 Mengirim Request ke Edge Function:", requestBody);
+                // 4. DEBUGGING: Log Body Sebelum Kirim
+                console.log("📤 Request Body ke Edge Function:", JSON.stringify(requestBody, null, 2));
 
+                // 5. Fetch Request
                 const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tokenToUse}`, "apikey": SUPABASE_KEY },
@@ -564,16 +577,31 @@
                 });
 
                 const responseText = await response.text();
-                console.log("📥 Raw Response:", responseText);
+                console.log("📥 Raw Response dari Supabase:", responseText);
 
-                if (!response.ok) throw new Error(`Server Error (${response.status}): ${responseText}`);
+                // 6. Cek Response Kosong
+                if (!responseText || responseText.trim() === "") {
+                    throw new Error("Server tidak mengembalikan response (Body kosong).");
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Server Error (${response.status}): ${responseText}`);
+                }
 
                 let result;
-                try { result = JSON.parse(responseText); } catch (e) { throw new Error("Invalid JSON: " + responseText); }
+                try { 
+                    result = JSON.parse(responseText); 
+                } catch (e) { 
+                    throw new Error("Response server bukan format JSON valid: " + responseText); 
+                }
 
+                // 7. Cari URL Pembayaran
                 let paymentUrl = null;
-                if (result.payment && result.payment.url) paymentUrl = result.payment.url;
-                else if (result.paymentUrl) paymentUrl = result.paymentUrl;
+                if (result.payment && result.payment.url) {
+                    paymentUrl = result.payment.url;
+                } else if (result.paymentUrl) {
+                    paymentUrl = result.paymentUrl;
+                }
 
                 if (paymentUrl) {
                     console.log("✅ Membuka Modal DOKU:", paymentUrl);
@@ -581,17 +609,19 @@
                         if (typeof loadJokulCheckout === 'function') {
                             loadJokulCheckout(paymentUrl);
                         } else {
+                            console.warn("DOKU JS belum termuat, redirect standar...");
                             window.location.href = paymentUrl;
                         }
                     }, 300);
                 } else {
-                    throw new Error("Payment URL tidak ditemukan.");
+                    throw new Error("URL Pembayaran tidak ditemukan dalam response.");
                 }
 
             } catch (err) {
                 console.error("❌ Error:", err);
                 errorBox.style.display = "block"; errorBox.innerText = err.message;
-                btnPay.disabled = false; if (btnSpan) btnSpan.innerText = originalBtnText;
+                btnPay.disabled = false; 
+                if (btnSpan) btnSpan.innerText = originalBtnText;
             }
         });
 
