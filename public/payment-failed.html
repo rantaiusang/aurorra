@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pembayaran Gagal - Aurorra Store</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root { 
+            --luxury-gold: #d4af37; 
+            --dark-bg: #0f0c15; 
+            --card-bg: #1a1620; 
+            --danger-color: #ff4d4d; 
+            --danger-bg: rgba(255, 77, 77, 0.1); 
+        }
+        body { 
+            background-color: var(--dark-bg); 
+            color: #ffffff; 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: var(--danger-bg);
+            border: 2px solid var(--danger-color);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--danger-color);
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1rem;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .error-code {
+            font-family: monospace;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 5px;
+            color: var(--danger-color);
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--luxury-gold);
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: #ffed4a;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #ccc;
+            border: 1px solid #555;
+        }
+        .btn-secondary:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .footer-text {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        .footer-text a {
+            color: var(--luxury-gold);
+            text-decoration: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="icon-wrapper">
+            <i class="fas fa-times"></i>
+        </div>
+
+        <h1>Pembayaran Gagal</h1>
+        <p class="subtitle" id="errorMessage">
+            Maaf, transaksi Anda tidak dapat diproses. Silakan coba lagi atau hubungi tim kami.
+        </p>
+
+        <!-- Tampilkan Error Code jika ada (misal dari URL parameter) -->
+        <div id="errorCode" class="error-code" style="display: none;"></div>
+
+        <div class="btn-group">
+            <a href="store.html" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i> Kembali ke Toko
+            </a>
+            <a href="checkout.html" class="btn btn-secondary">
+                <i class="fas fa-redo"></i> Coba Lagi
+            </a>
+        </div>
+
+        <div class="footer-text">
+            &copy; 2024 <a href="#">Aurorra Parfumerie</a>. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        // 1. Ambil parameter alasan dari URL (jika ada)
+        // Contoh URL: payment-failed.html?reason=Session%20Expired
+        const urlParams = new URLSearchParams(window.location.search);
+        const reason = urlParams.get('reason');
+        const errorDiv = document.getElementById('errorMessage');
+        const codeDiv = document.getElementById('errorCode');
+
+        if (reason) {
+            // Mapping error code yang mungkin terjadi
+            let message = "Terjadi kesalahan pada pembayaran.";
+            
+            if (reason === 'Session Expired') {
+                message = "Sesi login Anda telah habis silakan login ulang.";
+            } else if (reason === 'Insufficient Funds') {
+                message = "Saldo atau limit kartu Anda tidak mencukupi.";
+            } else if (reason === 'Cancelled') {
+                message = "Anda membatalkan pembayaran ini.";
+            } else {
+                // Tampilkan raw reason jika tidak dikenali (ganti %20 dengan spasi)
+                message = reason.replace(/%20/g, " ");
+            }
+
+            errorDiv.innerText = message;
+            codeDiv.style.display = 'inline-block';
+            codeDiv.innerText = `CODE: ${reason}`;
+        }
+
+        // 2. Auto Redirect setelah 10 detik (Optional UX)
+        let secondsLeft = 10;
+        const countdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+                clearInterval(countdownInterval);
+                console.log("Auto redirecting to store...");
+                window.location.href = 'store.html';
+            }
+        }, 1000);
+
+    </script>
+</body>
+</html>
