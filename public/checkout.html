@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pembayaran - Aurorra Store</title>
+    <title>Checkout - Aurorra Store</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Perbaikan: Hapus referensi pi-config.js yang menyebabkan 404 -->
 
     <style>
         :root { 
@@ -16,9 +18,8 @@
             --dark-bg: #0f0c15; 
             --card-bg: #1a1620; 
             --danger-color: #ff4d4d; 
-            --success-color: #2ecc71;
+            --info-color: #3498db; 
         }
-        
         body { 
             background-color: var(--dark-bg); 
             color: #ffffff; 
@@ -27,121 +28,349 @@
             min-height: 100vh; 
             display: flex; 
             flex-direction: column; 
+        }
+        header { 
+            background: rgba(15, 12, 21, 0.95); 
+            border-bottom:1px solid rgba(212, 175, 55, 0.2); 
+            padding: 20px 8%; 
+            display: flex; 
+            justify-content: space-between; 
             align-items: center; 
-            justify-content: center;
-            padding: 20px;
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+        }
+        .back-link { 
+            color: #fff; 
+            text-decoration: none; 
+            font-weight: 500; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: color 0.3s; 
+            cursor: pointer; 
+        }
+        .back-link:hover { color: var(--luxury-gold); }
+        .brand-name { 
+            font-family: 'Playfair Display', serif; 
+            color: var(--luxury-gold); 
+            font-size: 1.2rem; 
+            font-weight: 700; 
+        }
+        
+        .payment-wrapper { 
+            flex:1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 40px 8%; 
+            position: relative; 
+        }
+        .payment-card { 
+            background: var(--card-bg); 
+            width: 100%; 
+            max-width: 600px; 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); 
+            position: relative; 
+        }
+        .coin-visual { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            margin: 0 auto 30px; 
+            background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 2rem; 
+            color: white; 
+            font-weight: bold; 
+        }
+        h2 { 
+            font-family: 'Playfair Display', serif; 
+            text-align: center; 
+            color: var(--luxury-gold); 
+            margin-bottom: 10px; 
+        }
+        .sub-text { text-align: center; color: #aaa; margin-bottom: 25px; font-size: 0.9rem; }
+        
+        .form-group { margin-bottom: 20px; position: relative; }
+        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
+        .input-box, textarea.input-box { 
+            width: 100%; 
+            padding: 12px 14px; 
+            background: rgba(255,255,255, 0.05); 
+            border: 1px solid rgba(255,255,255, 0.1); 
+            border-radius: 8px; 
+            color: white; 
+            box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif;
+            resize: vertical;
+        }
+        .input-box:focus, textarea.input-box:focus { 
+            outline: none; 
+            border-color: var(--luxury-gold); 
         }
 
-        .payment-container {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            padding: 40px 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            text-align: center;
+        /* --- CUSTOM SELECT WITH SEARCH --- */
+        .custom-select-wrapper {
             position: relative;
-            overflow: hidden;
+            width: 100%;
+            user-select: none;
         }
-
-        /* Animasi Loading */
-        .loader-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(212, 175, 55, 0.1);
-            border-left-color: var(--luxury-gold);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .status-text {
-            font-size: 1.1rem;
-            color: #ccc;
-            margin-bottom: 5px;
-        }
-
-        .detail-text {
-            font-size: 0.9rem;
-            color: #888;
-            max-width: 80%;
-        }
-
-        /* Tampilan Error */
-        .error-view {
-            display: none;
-            color: var(--danger-color);
-        }
-        .error-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
-
-        /* Tombol Kembali */
-        .btn-back {
-            margin-top: 30px;
-            padding: 12px 25px;
-            background: transparent;
-            border: 1px solid #555;
-            color: #ccc;
+        
+        .custom-select-trigger {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255,255,255, 0.05);
+            border: 1px solid rgba(255,255,255, 0.1);
             border-radius: 8px;
+            color: white;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: 0.3s;
-            text-decoration: none;
-            display: inline-block;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
         }
-        .btn-back:hover {
+
+        .custom-select-trigger::after {
+            content: '';
+            width: 0.8em;
+            height: 0.8em;
+            border-color: var(--luxury-gold) transparent transparent transparent;
+            border-style: solid;
+            border-width: 0.4em 0.4em 0 0;
+            transform: rotate(45deg);
+            margin-top: -0.2em;
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1e1e1e;
+            border: 1px solid var(--luxury-gold);
+            border-radius: 8px;
+            margin-top: 5px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .custom-select-options.open {
+            display: block;
+        }
+
+        .search-box {
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            background: #1e1e1e;
+            z-index: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(255,255,255, 0.1);
+            border: 1px solid rgba(255,255,255, 0.2);
+            border-radius: 4px;
+            color: white;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        .search-box input:focus {
+            outline: none;
             border-color: var(--luxury-gold);
+        }
+
+        .option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #ddd;
+        }
+
+        .option:hover {
+            background: rgba(212, 175, 55, 0.2);
             color: var(--luxury-gold);
         }
 
-        /* Log Supabase (Optional, for debug) */
-        #log-area {
-            margin-top: 20px;
-            font-size: 0.75rem;
-            color: #555;
-            text-align: left;
-            max-height: 100px;
-            overflow-y: auto;
-            background: #000;
+        .option.selected {
+            color: var(--luxury-gold);
+            font-weight: 600;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .no-result {
             padding: 10px;
-            border-radius: 5px;
-            display: none; /* Set 'block' untuk debug */
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        /* Scrollbar options */
+        .custom-select-options::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-select-options::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
+        }
+
+        .item-summary { 
+            background: rgba(0,0,0, 0.2); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 25px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .item-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 8px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            padding-bottom: 8px; 
+            font-size: 0.9rem; 
+            color: #ddd; 
+        }
+        .total-display { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 30px; 
+            padding: 20px; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 10px; 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+        }
+        .total-amount { 
+            font-size: 1.5rem; 
+            color: var(--luxury-gold); 
+            font-weight: 700; 
+        }
+        
+        .btn-pay { 
+            width: 100%; 
+            padding: 18px; 
+            background: var(--luxury-gold); 
+            color: #000; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background 0.3s;
+        }
+        .btn-pay:hover:not(:disabled) { 
+            background: #ffed4a; 
+            transform: translateY(-2px);
+        }
+        .btn-pay:disabled { 
+            background: #444; 
+            cursor: not-allowed; 
+            color: #888; 
+            transform: none;
+        }
+        
+        .error-box { 
+            display:none; 
+            background:rgba(255, 77, 77, 0.1); 
+            border: 1px solid var(--danger-color); 
+            color:#ffcccc; 
+            padding:15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            text-align: center; 
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-    <div class="payment-container">
-        <!-- TAMPILAN LOADING -->
-        <div id="loadingView" class="loader-container">
-            <div class="spinner"></div>
-            <h3 class="status-text" id="statusTitle">Menyiapkan Pembayaran...</h3>
-            <p class="detail-text" id="statusDetail">Mohon tunggu sebentar, jangan tutup halaman ini.</p>
-        </div>
+    <header>
+        <a href="store.html" class="back-link">
+            <span>&larr;</span> Kembali
+        </a>
+        <div class="brand-name">Aurorra Parfumerie</div>
+    </header>
 
-        <!-- TAMPILAN ERROR -->
-        <div id="errorView" class="error-view">
-            <span class="error-icon">⚠️</span>
-            <h3>Terjadi Kesalahan</h3>
-            <p id="errorMsg">Gagal memproses pembayaran.</p>
-            <a href="store.html" class="btn-back">Kembali ke Toko</a>
-        </div>
-        
-        <!-- Area Log Debug -->
-        <div id="log-area"></div>
-    </div>
+    <div class="payment-wrapper">
+        <div class="payment-card">
+            <div class="coin-visual">π</div>
 
-    <script>
+            <h2>Checkout Pesanan</h2>
+            <p class="sub-text">Lengkapi data alamat pengiriman untuk melanjutkan pembayaran.</p>
+
+            <div id="error-message" class="error-box"></div>
+
+            <form id="paymentForm" onsubmit="handleAutoPayment(event)">
+                <div class="form-group">
+                    <label for="fullName">Nama Lengkap</label>
+                    <input type="text" id="fullName" class="input-box" placeholder="Nama Penerima" required>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Nomor WhatsApp</label>
+                    <input type="tel" id="phoneNumber" class="input-box" placeholder="0812..." required>
+                </div>
+                
+                <!-- CUSTOM DROPDOWN KOTA DENGAN SEARCH -->
+                <div class="form-group">
+                    <label for="city">Kota Tujuan</label>
+                    <div class="custom-select-wrapper" id="cityDropdown">
+                        <div class="custom-select-trigger" id="cityTrigger">Pilih Kota</div>
+                        <div class="custom-select-options">
+                            <div class="search-box">
+                                <input type="text" id="citySearch" placeholder="Cari kota...">
+                            </div>
+                            <div class="options-list" id="cityOptionsList">
+                                <div class="option disabled" style="cursor:default; color:#666;">Memuat daftar kota...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Input tersembunyi untuk validasi form -->
+                    <input type="hidden" id="city" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Alamat Pengiriman</label>
+                    <textarea id="address" class="input-box" rows="2" placeholder="Jalan, No Rumah, Kecamatan, Kota..." required></textarea>
+                </div>
+
+                <!-- DISPLAY ONGKIR -->
+                <div class="form-group">
+                    <label>Ongkir</label>
+                    <input type="text" id="shippingCostDisplay" class="input-box" readonly value="Rp 0">
+                </div>
+
+                <div class="item-summary">
+                    <div id="summaryList">
+                        <div style="text-align:center; color:#888;">Memuat ringkasan...</div>
+                    </div>
+                </div>
+
+                <div class="total-display">
+                    <span>Total Tagihan</span>
+                    <span class="total-amount" id="displayTotal">Rp 0</span>
+                </div>
+
+                <button type="submit" class="btn-pay" id="payBtn" disabled>Lanjut ke Pembayaran</button>
+            </form>
+        </div>
+    </div>    
+
+        <script>
         // ==========================================
         // 1. KONFIGURASI SUPABASE
         // ==========================================
@@ -151,122 +380,316 @@
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Helper Log
-        function log(msg) {
-            const logArea = document.getElementById('log-area');
-            if(logArea) {
-                logArea.innerHTML += `> ${msg}<br>`;
-                logArea.scrollTop = logArea.scrollHeight;
+        // ==========================================
+        // 2. HELPER FUNCTIONS
+        // ==========================================
+        function cleanPrice(priceInput) {
+            if (priceInput === null || priceInput === undefined) return 0;
+            let p = String(priceInput).replace(/[^0-9.-]+/g, "");
+            if (p.length === 0) return 0;
+            let val = parseFloat(p);
+            return isNaN(val) || val < 0 ? 0 : val;
+        }
+
+        function formatPrice(price) {
+            let numPrice = cleanPrice(price);
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(numPrice);
+        }
+
+        let currentTotal = 0;
+        let shippingCost = 0;
+        let cartItems = [];
+        let currentUser = null;
+        let orderId = "ORD-" + Date.now();
+        let allCities = []; // Menyimpan semua kota untuk filter
+
+        // --- 3. CUSTOM DROPDOWN LOGIC ---
+        const cityDropdown = document.getElementById('cityDropdown');
+        const cityTrigger = document.getElementById('cityTrigger');
+        const cityOptions = document.querySelector('.custom-select-options');
+        const cityList = document.getElementById('cityOptionsList');
+        const citySearchInput = document.getElementById('citySearch');
+        const cityInputHidden = document.getElementById('city');
+
+        // Toggle Dropdown
+        cityTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cityOptions.classList.toggle('open');
+            if(cityOptions.classList.contains('open')) {
+                citySearchInput.value = '';
+                citySearchInput.focus();
+                renderCities(allCities); // Reset tampilan saat buka
             }
-            console.log(msg);
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!cityDropdown.contains(e.target)) {
+                cityOptions.classList.remove('open');
+            }
+        });
+
+        cityOptions.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Logika Search
+        citySearchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allCities.filter(city => city.toLowerCase().includes(keyword));
+            renderCities(filtered);
+        });
+
+        function renderCities(citiesArray) {
+            cityList.innerHTML = '';
+            if (citiesArray.length === 0) {
+                cityList.innerHTML = '<div class="no-result">Kota tidak ditemukan</div>';
+                return;
+            }
+
+            citiesArray.forEach(city => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = city.toUpperCase();
+                div.dataset.value = city;
+                if (city === cityInputHidden.value) {
+                    div.classList.add('selected');
+                }
+                div.addEventListener('click', () => {
+                    selectCity(city);
+                });
+                cityList.appendChild(div);
+            });
         }
 
-        function updateStatus(title, detail) {
-            document.getElementById('statusTitle').innerText = title;
-            if(detail) document.getElementById('statusDetail').innerText = detail;
+        function selectCity(cityName) {
+            cityInputHidden.value = cityName;
+            cityTrigger.textContent = cityName.toUpperCase();
+            cityTrigger.style.color = 'var(--luxury-gold)';
+            cityOptions.classList.remove('open');
+            loadShippingCost();
         }
 
-        function showError(msg) {
-            document.getElementById('loadingView').style.display = 'none';
-            document.getElementById('errorView').style.display = 'block';
-            document.getElementById('errorMsg').innerText = msg;
-        }
-
-        // ==========================================
-        // 2. LOGIKA UTAMA PEMBAYARAN
-        // ==========================================
-        async function initPaymentProcess() {
+        // --- 4. LOAD DATA KOTA ---
+        async function loadCities() {
             try {
-                // STEP 1: Ambil Data dari LocalStorage (dikirim dari checkout.html)
-                const paymentDataStr = localStorage.getItem('pending_payment_data');
-                if (!paymentDataStr) throw new Error("Data pembayaran tidak ditemukan. Silakan ulangi pesanan.");
+                const { data, error } = await supabaseClient
+                    .from("ongkir")
+                    .select("tujuan")
+                    .eq("ekspedisi", "jne")
+                    .order("tujuan", { ascending: true });
+
+                if (error) {
+                    console.error("Supabase Error Load Cities:", error);
+                    cityList.innerHTML = '<div class="no-result" style="color:var(--danger-color)">Gagal memuat kota.</div>';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    cityList.innerHTML = '<div class="no-result">Data kota kosong.</div>';
+                    return;
+                }
                 
-                const paymentData = JSON.parse(paymentDataStr);
-                log("Data payload loaded: " + JSON.stringify(paymentData));
+                allCities = [...new Set(data.map(item => item.tujuan))];
+                renderCities(allCities);
+            } catch (e) {
+                console.error("Gagal load kota (Catch):", e);
+            }
+        }
 
-                // Pastikan user masih login (Security Check)
-                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-                if (authError || !user) throw new Error("Sesi login habis. Silakan login ulang.");
+        // --- 5. FUNGSI AMBIL ONGKIR ---
+        async function loadShippingCost() {
+            const city = cityInputHidden.value;
+            if (!city) {
+                shippingCost = 0;
+                document.getElementById("shippingCostDisplay").value = formatPrice(0);
+                updateFinalTotal();
+                return;
+            }
 
-                updateStatus("Membuat Pesanan...", "Menyimpan data pesanan ke database.");
-
-                // STEP 2: Simpan Order ke Database Supabase (Status: PENDING)
-                // Kita simpan dulu sebelum bayar, agar ada catatan di admin panel
-                const { data: orderData, error: insertError } = await supabaseClient
-                    .from('orders')
-                    .insert([{
-                        order_id: paymentData.orderId,
-                        user_id: user.id,
-                        customer_name: paymentData.customer.name,
-                        customer_phone: paymentData.customer.phone,
-                        customer_address: `${paymentData.customer.address}, ${paymentData.customer.city}`,
-                        total_amount: paymentData.total,
-                        items: paymentData.items, // Simpan JSON item
-                        payment_method: 'DOKU',
-                        status: 'pending', // Status awal
-                        shipping_cost: paymentData.shippingCost
-                    }])
-                    .select()
+            try {
+                const { data, error } = await supabaseClient
+                    .from("ongkir")
+                    .select("tarif")
+                    .eq("tujuan", city)
+                    .eq("ekspedisi", "jne")
                     .single();
 
-                if (insertError) {
-                    log("Insert DB Error: " + JSON.stringify(insertError));
-                    throw new Error("Gagal menyimpan pesanan: " + insertError.message);
-                }
-
-                log("Order Created ID: " + orderData.id);
-
-                // STEP 3: Panggil Supabase Edge Function untuk DOKU
-                updateStatus("Menghubungi Payment Gateway...", "Meng生成 instruksi pembayaran aman.");
-
-                const { data: dokuResponse, error: functionError } = await supabaseClient.functions.invoke('doku-payment', {
-                    body: {
-                        amount: paymentData.total,
-                        orderId: paymentData.orderId,
-                        customerName: paymentData.customer.name,
-                        customerEmail: user.email || "customer@aurorra.com",
-                        customerPhone: paymentData.customer.phone
-                    }
-                });
-
-                if (functionError) {
-                    log("Edge Function Error: " + JSON.stringify(functionError));
-                    throw new Error("Gagal memproses pembayaran gateway: " + functionError.message);
-                }
-
-                log("DOKU Response Received");
-
-                // STEP 4: Cek apakah mendapatkan Payment URL
-                if (dokuResponse && dokuResponse.payment_url) {
-                    // Update status order menjadi 'processing' (sedang dalam proses pembayaran di halaman eksternal)
-                    await supabaseClient
-                        .from('orders')
-                        .update({ status: 'processing' })
-                        .eq('id', orderData.id);
-
-                    log("Redirecting to: " + dokuResponse.payment_url);
-                    
-                    // Bersihkan local storage agar data tidak tersisa
-                    localStorage.removeItem('aurora_checkout');
-                    localStorage.removeItem('pending_payment_data');
-
-                    // STEP 5: Redirect User ke Halaman Pembayaran DOKU
-                    window.location.href = dokuResponse.payment_url;
-
+                if (data) {
+                    shippingCost = parseInt(data.tarif) || 0;
+                    document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost);
+                    updateFinalTotal();
                 } else {
-                    throw new Error("URL Pembayaran tidak diterima dari sistem.");
+                    shippingCost = 0;
+                    document.getElementById("shippingCostDisplay").value = "Tarif tidak tersedia";
+                    updateFinalTotal();
+                }
+            } catch (e) {
+                console.error("Gagal ambil ongkir:", e);
+                shippingCost = 0;
+                document.getElementById("shippingCostDisplay").value = formatPrice(0);
+                updateFinalTotal();
+            }
+        }
+
+        // --- 6. FUNGSI UPDATE TOTAL ---
+        function updateFinalTotal() {
+            const finalTotal = currentTotal + shippingCost;
+            document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
+        }
+
+        // --- 7. INISIALISASI UTAMA ---
+        async function initPayment() {
+            const payBtn = document.getElementById('payBtn');
+            const errorBox = document.getElementById('error-message');
+
+            await loadCities();
+
+            try {
+                // Cek Auth
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+                if (authError || !user) {
+                    console.warn("Session Invalid/Logout Terdeteksi. Menghapus data checkout...");
+                    localStorage.removeItem('aurora_checkout');
+                    localStorage.removeItem('aurora_cart');
+                    localStorage.removeItem('aurora_user');
+                    
+                    errorBox.style.display = "block";
+                    errorBox.innerText = "Sesi habis atau Anda telah logout. Silakan login ulang.";
+                    payBtn.innerText = "Gagal Memuat";
+                    payBtn.disabled = true;
+                    return; 
+                }
+
+                currentUser = user;
+                const successLoad = loadCartAndCalculateTotal();
+
+                if (successLoad && parseFloat(currentTotal) > 0) {
+                    payBtn.disabled = false;
+                    payBtn.innerText = "Lanjut ke Pembayaran";
+                } else {
+                    payBtn.innerText = "Data Tidak Valid";
+                    payBtn.disabled = true;
+                    errorBox.style.display = "block";
+                    errorBox.innerHTML = "Data checkout tidak ditemukan atau total 0.<br><a href='store.html' style='color:var(--luxury-gold); font-weight:bold; text-decoration:underline;'>Kembali ke Toko</a>";
                 }
 
             } catch (err) {
-                console.error(err);
-                log("CRITICAL ERROR: " + err.message);
-                showError(err.message);
+                console.error("Init Error:", err);
+                errorBox.style.display = "block";
+                errorBox.innerText = err.message;
+                payBtn.innerText = "Gagal Memuat";
             }
         }
 
-        // Jalankan saat halaman dimuat
-        window.addEventListener('DOMContentLoaded', initPaymentProcess);
+        function loadCartAndCalculateTotal() {
+            const checkoutRaw = localStorage.getItem('aurora_checkout');
+            
+            if (!checkoutRaw) {
+                document.getElementById('summaryList').innerHTML = "<div style='color:#ff4d4d; text-align:center; padding:10px;'>Data pesanan hilang.<br>Silakan pilih produk ulang.</div>";
+                return false;
+            }
 
+            try {
+                const checkout = JSON.parse(checkoutRaw);
+                cartItems = checkout.items || []; 
+                
+                const summaryList = document.getElementById('summaryList');
+                let html = '';
+                let total = 0;
+
+                if (cartItems.length === 0) {
+                     summaryList.innerHTML = "<div style='text-align:center; color:#888;'>Keranjang kosong.</div>";
+                     return false;
+                }
+
+                cartItems.forEach(item => {
+                    const name = item.name || item.product_name || "Produk Tanpa Nama";
+                    const price = parseFloat(item.price) || 0;
+                    const qty = parseInt(item.qty) || 1;
+                    const subtotal = price * qty;
+                    total += subtotal;
+                    
+                    html += `
+                        <div class="item-row">
+                            <span>${name} <small style="color:#888;">(x${qty})</small></span>
+                            <span>${formatPrice(subtotal)}</span>
+                        </div>`;
+                });
+
+                summaryList.innerHTML = html;
+                currentTotal = total;
+                updateFinalTotal(); 
+                return true;
+
+            } catch (e) {
+                console.error("Gagal parse cart data:", e);
+                return false;
+            }
+        }
+
+        // --- 8. HANDLE PAYMENT (REDIRECT KE PAYMENT.HTML) ---
+        async function handleAutoPayment(event) {
+            event.preventDefault();
+            const payBtn = document.getElementById('payBtn');
+            const errorBox = document.getElementById('error-message');
+            
+            const fullName = document.getElementById('fullName').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const city = cityInputHidden.value; 
+
+            // 1. Validasi Input
+            if (fullName.length < 3) return showError("Nama lengkap minimal 3 karakter.");
+            if (phoneNumber.length < 10) return showError("Nomor WhatsApp minimal 10 digit.");
+            if (address.length < 10) return showError("Alamat terlalu pendek.");
+            if (!city) return showError("Mohon pilih kota tujuan.");
+
+            // 2. Validasi Auth
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+            if (authError || !user) {
+                return showError("Sesi habis. Silakan login kembali.");
+            }
+
+            // 3. Hitung Total Akhir
+            const finalBill = currentTotal + shippingCost;
+            if (parseFloat(finalBill) <= 0) return showError("Total tagihan tidak valid.");
+
+            // 4. Siapkan Data Payload untuk Payment.html
+            const paymentPayload = {
+                orderId: orderId,
+                items: cartItems,
+                total: finalBill,
+                currency: 'IDR',
+                shippingCost: shippingCost,
+                customer: {
+                    uid: user.id,
+                    name: fullName,
+                    phone: phoneNumber,
+                    address: address,
+                    city: city
+                }
+            };
+
+            // 5. Simpan ke LocalStorage agar payment.html bisa membaca
+            localStorage.setItem('pending_payment_data', JSON.stringify(paymentPayload));
+
+            // 6. Redirect ke payment.html
+            window.location.href = 'payment.html';
+        }
+
+        function showError(msg) {
+            const errBox = document.getElementById('error-message');
+            errBox.style.display = 'block';
+            errBox.innerText = msg;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.onload = initPayment;
     </script>
 </body>
 </html>
