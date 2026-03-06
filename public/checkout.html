@@ -370,12 +370,13 @@
         </div>
     </div>    
 
-        <script>
+    <script>
         // ==========================================
         // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        // PASTIKAN INI ADALAH 'ANON' KEY, JANGAN SERVICE ROLE
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
         
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -400,12 +401,12 @@
             }).format(numPrice);
         }
 
+        // Variabel Global
         let currentTotal = 0;
         let shippingCost = 0;
         let cartItems = [];
         let currentUser = null;
-        let orderId = "ORD-" + Date.now();
-        let allCities = []; // Menyimpan semua kota untuk filter
+        let allCities = []; 
 
         // --- 3. CUSTOM DROPDOWN LOGIC ---
         const cityDropdown = document.getElementById('cityDropdown');
@@ -422,7 +423,7 @@
             if(cityOptions.classList.contains('open')) {
                 citySearchInput.value = '';
                 citySearchInput.focus();
-                renderCities(allCities); // Reset tampilan saat buka
+                renderCities(allCities); 
             }
         });
 
@@ -482,21 +483,18 @@
                     .eq("ekspedisi", "jne")
                     .order("tujuan", { ascending: true });
 
-                if (error) {
-                    console.error("Supabase Error Load Cities:", error);
-                    cityList.innerHTML = '<div class="no-result" style="color:var(--danger-color)">Gagal memuat kota.</div>';
-                    return;
-                }
+                if (error) throw error;
 
-                if (!data || data.length === 0) {
+                if (data && data.length > 0) {
+                    // Ambil kota unik saja
+                    allCities = [...new Set(data.map(item => item.tujuan))];
+                    renderCities(allCities);
+                } else {
                     cityList.innerHTML = '<div class="no-result">Data kota kosong.</div>';
-                    return;
                 }
-                
-                allCities = [...new Set(data.map(item => item.tujuan))];
-                renderCities(allCities);
             } catch (e) {
-                console.error("Gagal load kota (Catch):", e);
+                console.error("Gagal load kota:", e);
+                cityList.innerHTML = '<div class="no-result" style="color:var(--danger-color)">Gagal memuat kota.</div>';
             }
         }
 
@@ -518,21 +516,19 @@
                     .eq("ekspedisi", "jne")
                     .single();
 
+                if (error) throw error;
+
                 if (data) {
                     shippingCost = parseInt(data.tarif) || 0;
                     document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost);
-                    updateFinalTotal();
-                } else {
-                    shippingCost = 0;
-                    document.getElementById("shippingCostDisplay").value = "Tarif tidak tersedia";
                     updateFinalTotal();
                 }
             } catch (e) {
                 console.error("Gagal ambil ongkir:", e);
                 shippingCost = 0;
-                document.getElementById("shippingCostDisplay").value = formatPrice(0);
-                updateFinalTotal();
+                document.getElementById("shippingCostDisplay").value = "Tarif tidak tersedia";
             }
+            updateFinalTotal();
         }
 
         // --- 6. FUNGSI UPDATE TOTAL ---
@@ -553,14 +549,10 @@
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
                 if (authError || !user) {
-                    console.warn("Session Invalid/Logout Terdeteksi. Menghapus data checkout...");
+                    console.warn("Sesi tidak valid.");
                     localStorage.removeItem('aurora_checkout');
-                    localStorage.removeItem('aurora_cart');
-                    localStorage.removeItem('aurora_user');
-                    
                     errorBox.style.display = "block";
-                    errorBox.innerText = "Sesi habis atau Anda telah logout. Silakan login ulang.";
-                    payBtn.innerText = "Gagal Memuat";
+                    errorBox.innerHTML = "Sesi habis. Silakan <a href='login.html' style='color:var(--luxury-gold)'>Login</a>.";
                     payBtn.disabled = true;
                     return; 
                 }
@@ -568,31 +560,25 @@
                 currentUser = user;
                 const successLoad = loadCartAndCalculateTotal();
 
-                if (successLoad && parseFloat(currentTotal) > 0) {
+                if (successLoad && currentTotal > 0) {
                     payBtn.disabled = false;
                     payBtn.innerText = "Lanjut ke Pembayaran";
                 } else {
-                    payBtn.innerText = "Data Tidak Valid";
+                    payBtn.innerText = "Keranjang Kosong";
                     payBtn.disabled = true;
                     errorBox.style.display = "block";
-                    errorBox.innerHTML = "Data checkout tidak ditemukan atau total 0.<br><a href='store.html' style='color:var(--luxury-gold); font-weight:bold; text-decoration:underline;'>Kembali ke Toko</a>";
+                    errorBox.innerHTML = "Keranjang belanja kosong.<br><a href='store.html' style='color:var(--luxury-gold)'>Belanja Sekarang</a>";
                 }
 
             } catch (err) {
                 console.error("Init Error:", err);
-                errorBox.style.display = "block";
-                errorBox.innerText = err.message;
-                payBtn.innerText = "Gagal Memuat";
             }
         }
 
         function loadCartAndCalculateTotal() {
             const checkoutRaw = localStorage.getItem('aurora_checkout');
             
-            if (!checkoutRaw) {
-                document.getElementById('summaryList').innerHTML = "<div style='color:#ff4d4d; text-align:center; padding:10px;'>Data pesanan hilang.<br>Silakan pilih produk ulang.</div>";
-                return false;
-            }
+            if (!checkoutRaw) return false;
 
             try {
                 const checkout = JSON.parse(checkoutRaw);
@@ -602,13 +588,10 @@
                 let html = '';
                 let total = 0;
 
-                if (cartItems.length === 0) {
-                     summaryList.innerHTML = "<div style='text-align:center; color:#888;'>Keranjang kosong.</div>";
-                     return false;
-                }
+                if (cartItems.length === 0) return false;
 
                 cartItems.forEach(item => {
-                    const name = item.name || item.product_name || "Produk Tanpa Nama";
+                    const name = item.name || item.product_name || "Produk";
                     const price = parseFloat(item.price) || 0;
                     const qty = parseInt(item.qty) || 1;
                     const subtotal = price * qty;
@@ -627,12 +610,12 @@
                 return true;
 
             } catch (e) {
-                console.error("Gagal parse cart data:", e);
+                console.error("Gagal parse cart:", e);
                 return false;
             }
         }
 
-        // --- 8. HANDLE PAYMENT (REDIRECT KE PAYMENT.HTML) ---
+        // --- 8. HANDLE PAYMENT (REDIRECT) ---
         async function handleAutoPayment(event) {
             event.preventDefault();
             const payBtn = document.getElementById('payBtn');
@@ -649,36 +632,41 @@
             if (address.length < 10) return showError("Alamat terlalu pendek.");
             if (!city) return showError("Mohon pilih kota tujuan.");
 
-            // 2. Validasi Auth
+            // 2. Validasi Auth (Double check)
             const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
             if (authError || !user) {
                 return showError("Sesi habis. Silakan login kembali.");
             }
 
-            // 3. Hitung Total Akhir
-            const finalBill = currentTotal + shippingCost;
-            if (parseFloat(finalBill) <= 0) return showError("Total tagihan tidak valid.");
+            // 3. Generate Order ID (Unik)
+            // Format: INV-YYYYMMDD-Random (Jangan pakai timestamp saja agar aman)
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, "");
+            const randomStr = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            const orderId = `INV-${dateStr}-${randomStr}`;
 
-            // 4. Siapkan Data Payload untuk Payment.html
+            const finalBill = currentTotal + shippingCost;
+
+            // 4. Siapkan Data Payload
+            // ⚠️ PENTING: Pastikan Key Object sama persis dengan yang diminta Edge Function
             const paymentPayload = {
-                orderId: orderId,
+                invoiceNumber: orderId,      // Key ini WAJIB ada di Edge Function
+                amount: finalBill,            // Key ini WAJIB ada di Edge Function
+                customerName: fullName,       // Key ini WAJIB ada di Edge Function
+                customerEmail: user.email,    // Key ini WAJIB ada di Edge Function
+                customerPhone: phoneNumber,
+                customerAddress: `${address}, ${city}`,
+                
+                // Data Tambahan untuk Database
                 items: cartItems,
-                total: finalBill,
-                currency: 'IDR',
-                shippingCost: shippingCost,
-                customer: {
-                    uid: user.id,
-                    name: fullName,
-                    phone: phoneNumber,
-                    address: address,
-                    city: city
-                }
+                userId: user.id,
+                shippingCost: shippingCost
             };
 
-            // 5. Simpan ke LocalStorage agar payment.html bisa membaca
+            // 5. Simpan ke LocalStorage (Temporary sebelum dikirim ke payment.html)
             localStorage.setItem('pending_payment_data', JSON.stringify(paymentPayload));
 
-            // 6. Redirect ke payment.html
+            // 6. Redirect
+            console.log("Redirecting to payment.html with:", paymentPayload);
             window.location.href = 'payment.html';
         }
 
@@ -691,5 +679,6 @@
 
         window.onload = initPayment;
     </script>
+    
 </body>
 </html>
