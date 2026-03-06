@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- DOKU CHECKOUT JS (Integrasi Modal/Overlay) -->
-    <!-- Gunakan link Sandbox untuk testing, ganti ke Production jika live -->
     <script src="https://sandbox.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js"></script>
 
     <style>
@@ -318,20 +317,23 @@
                 btnPay.addEventListener("click", async () => {
                     
                     btnPay.disabled = true;
-                    const originalBtnText = btnPay.innerText;
-                    btnPay.innerText = "Memproses...";
+                    const btnSpan = btnPay.querySelector('span');
+                    const originalBtnText = btnSpan ? btnSpan.innerText : "Bayar Sekarang";
+                    
+                    if (btnSpan) btnSpan.innerText = "Memproses...";
                     errorBox.style.display = 'none';
 
                     try {
-                        // 1. Refresh Session
+                        // 1. Refresh Session (Perbaikan Akses Token)
                         const { data: refreshedSession, error: refreshError } = await supabaseClient.auth.refreshSession();
                         
                         let tokenToUse = session.access_token;
                         let userToUse = session.user;
 
-                        if (!refreshError && refreshedSession && refreshedSession.access_token) {
-                            tokenToUse = refreshedSession.access_token;
-                            userToUse = refreshedSession.user;
+                        // Perbaikan: Akses token melalui .session
+                        if (!refreshError && refreshedSession && refreshedSession.session) {
+                            tokenToUse = refreshedSession.session.access_token;
+                            userToUse = refreshedSession.session.user;
                         }
 
                         // 2. Siapkan Body Request
@@ -343,8 +345,8 @@
                             customerPhone: data.customerPhone || "08123456789",
                             customerAddress: displayAddress,
                             items: data.items,
-                            user_id: userToUse.id,
-                            shipping_cost: data.shippingCost || 0,
+                            userId: userToUse.id, 
+                            shippingCost: data.shippingCost || 0, 
                             ekspedisi: data.ekspedisi,
                             estimasi: data.estimasi,
                             kota: data.kota
@@ -381,35 +383,38 @@
                             throw new Error("Response server bukan format JSON yang valid: " + responseText);
                         }
 
-                        // 4. Cari URL Pembayaran
+                        // 4. Cari URL Pembayaran (Perbaikan Urutan Pengecekan)
                         let paymentUrl = null;
 
-                        if (result.paymentUrl) {
+                        // Cek path umum DOKU terlebih dahulu
+                        if (result.payment && result.payment.url) {
+                            paymentUrl = result.payment.url;
+                        } 
+                        else if (result.paymentUrl) {
                             paymentUrl = result.paymentUrl;
-                        } else if (result.response && result.response.payment_url) {
+                        } 
+                        else if (result.response && result.response.payment_url) {
                             paymentUrl = result.response.payment_url;
-                        } else if (result.data && result.data.payment_url) {
+                        } 
+                        else if (result.data && result.data.payment_url) {
                             paymentUrl = result.data.payment_url;
                         }
 
                         if (paymentUrl) {
-                            // 🆕 PERUBAHAN UTAMA: GUNAKAN MODAL DOKU
-                            // Kita tidak redirect window.location, tapi memanggil fungsi loadJokulCheckout
-                            
                             console.log("✅ Membuka Modal DOKU:", paymentUrl);
                             
-                            // Hapus local storage agar tidak bayar 2x jika refresh
-                            localStorage.removeItem('aurora_checkout');
+                            // Hapus local storage agar tidak bayar 2x
                             localStorage.removeItem('pending_payment_data');
 
-                            // Panggil fungsi dari DOKU JS
-                            if (typeof loadJokulCheckout === 'function') {
-                                loadJokulCheckout(paymentUrl);
-                            } else {
-                                // Fallback jika script DOKU gagal load
-                                console.warn("DOKU JS belum termuat, menggunakan redirect standar.");
-                                window.location.href = paymentUrl;
-                            }
+                            // Panggil Modal DOKU dengan delay kecil
+                            setTimeout(() => {
+                                if (typeof loadJokulCheckout === 'function') {
+                                    loadJokulCheckout(paymentUrl);
+                                } else {
+                                    console.warn("DOKU JS belum termuat, menggunakan redirect standar.");
+                                    window.location.href = paymentUrl;
+                                }
+                            }, 300); // Delay 300ms agar script siap
 
                         } else {
                             const errorMsg = result.message || result.error || "URL Pembayaran tidak ditemukan dalam response.";
@@ -421,9 +426,8 @@
                         errorBox.style.display = "block";
                         errorBox.innerText = err.message;
                         
-                        // Kembalikan tombol agar bisa coba lagi
                         btnPay.disabled = false;
-                        btnPay.innerText = originalBtnText;
+                        if (btnSpan) btnSpan.innerText = originalBtnText;
                     }
                 });
 
@@ -431,7 +435,8 @@
                 console.error("Init Error:", err);
                 errorBox.style.display = 'block';
                 errorBox.innerHTML = err.message;
-                document.getElementById('btnPay').innerText = "Gagal Memuat";
+                const btnSpan = document.getElementById('btnPay').querySelector('span');
+                if(btnSpan) btnSpan.innerText = "Gagal Memuat";
             }
         }
 
