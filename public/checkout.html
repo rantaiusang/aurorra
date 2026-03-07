@@ -422,17 +422,91 @@
             document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
         }
 
-        // --- 7. INISIALISASI UTAMA ---
+        // --- 7. LOAD PENDING ORDER (FITUR BARU: RESTORE DATA) ---
+        async function loadPendingOrder() {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+
+                console.log("Mengecek pending order untuk user:", user.id);
+                
+                // Cek LocalStorage dulu (cepat)
+                const localOrder = localStorage.getItem('aurora_pending_order');
+                if (localOrder) {
+                    restoreOrderUI(JSON.parse(localOrder));
+                    return;
+                }
+
+                // Jika tidak ada, cek Database
+                const { data, error } = await supabaseClient
+                    .from("orders")
+                    .select("*")
+                    .eq("user_id", user.id)
+                    .eq("status", "pending")
+                    .order("created_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle(); // maybeSingle agar tidak error jika kosong
+
+                if (data) {
+                    console.log("Ditemukan pending order di DB:", data);
+                    restoreOrderUI(data);
+                    localStorage.setItem('aurora_pending_order', JSON.stringify(data));
+                }
+            } catch (e) {
+                console.error("Gagal cek pending order:", e);
+            }
+        }
+
+        function restoreOrderUI(order) {
+            // Sembunyikan form checkout
+            document.getElementById('checkoutView').classList.add('hidden');
+            document.getElementById('paymentView').classList.remove('hidden');
+
+            // Isi finalPayload agar tombol bayar berfungsi
+            finalPayload = {
+                invoiceNumber: order.order_id,
+                amount: order.total_amount,
+                customerName: order.customer_name,
+                customerEmail: order.customer_email || currentUser?.email, // Fallback jika email tidak ada di DB
+                customerPhone: order.customer_phone,
+                customerAddress: order.customer_address,
+                shippingCost: order.shipping_cost,
+                ekspedisi: order.ekspedisi,
+                estimasi: order.estimasi,
+                kota: order.kota,
+                items: order.items, // Pastikan items terambil
+                userId: order.user_id
+            };
+
+            // Render Summary
+            const summaryDiv = document.getElementById('orderSummary');
+            const html = `
+                <div class="summary-row"><span>Order ID</span><span>#${order.order_id}</span></div>
+                <div class="summary-row"><span>Nama Penerima</span><span>${order.customer_name}</span></div>
+                <div class="summary-row"><span>Kota</span><span>${order.kota}</span></div>
+                <div class="summary-row"><span>Ekspedisi</span><span>${order.ekspedisi}</span></div>
+                <div class="summary-total"><span>Total Tagihan</span><span>${formatPrice(order.total_amount)}</span></div>
+            `;
+            summaryDiv.innerHTML = html;
+            document.getElementById('btnPay').disabled = false;
+        }
+
+        // --- 8. INISIALISASI UTAMA ---
         async function initCheckout() {
             const payBtn = document.getElementById('btnProceed');
             const errorBox = document.getElementById('error-message');
             await loadCities();
+            
             try {
                 const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
                 if (sessionError || !sessionData.session) {
                     errorBox.style.display = "block"; errorBox.innerHTML = "Sesi habis. <a href='login.html' style='color:var(--luxury-gold)'>Login</a>."; payBtn.disabled = true; return; 
                 }
                 currentUser = sessionData.session.user;
+                
+                // Cek Pending Order SEBELUM memuat cart biasa
+                await loadPendingOrder();
+
                 const successLoad = loadCartAndCalculateTotal();
                 if (successLoad && parseFloat(currentTotal) > 0) {
                     payBtn.disabled = false; payBtn.innerText = "Lanjut ke Pembayaran";
@@ -460,7 +534,7 @@
             } catch (e) { console.error("Gagal parse cart:", e); return false; }
         }
 
-        // --- 8. HANDLE PROSES KE KONFIRMASI ---
+        // --- 9. HANDLE PROSES KE KONFIRMASI ---
         async function handleProceedToConfirm(event) {
             event.preventDefault();
             const payBtn = document.getElementById('btnProceed');
@@ -493,6 +567,23 @@
                 items: cartItems, userId: user.id
             };
 
+            // SIMPAN KE LOCAL STORAGE UNTUK RESTORE
+            localStorage.setItem('aurora_pending_order', JSON.stringify({
+                order_id: invoiceNumber,
+                total_amount: finalBill,
+                customer_name: fullName,
+                customer_email: user.email,
+                customer_phone: phoneNumber,
+                customer_address: `${address}, ${city}`,
+                shipping_cost: shippingCost,
+                ekspedisi: selectedShippingData.ekspedisi,
+                estimasi: selectedShippingData.estimasi,
+                kota: city,
+                items: cartItems,
+                user_id: user.id,
+                status: 'pending' // manual flag
+            }));
+
             // GANTI TAMPILAN
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
@@ -516,7 +607,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- 9. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX LENGKAP) ---
+        // --- 10. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX LENGKAP) ---
         document.getElementById('btnPay').addEventListener("click", async () => {
             const btnPay = document.getElementById('btnPay');
             const errorBox = document.getElementById('error-message-payment');
@@ -528,12 +619,12 @@
             errorBox.style.display = 'none';
 
             try {
-                // 1. VALIDASI PAYLOAD (Mencegah Body Kosong jika refresh)
+                // 1. VALIDASI PAYLOAD
                 if (!finalPayload) {
                     throw new Error("Data pesanan tidak ditemukan (Session Expired). Silakan ulangi checkout dari keranjang.");
                 }
 
-                // 2. AMBIL SESSION (Safe Check)
+                // 2. AMBIL SESSION
                 const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
                 
                 if (sessionError || !session) {
@@ -566,28 +657,19 @@
                     kota: finalPayload.kota
                 };
 
-                // 4. DEBUGGING: Log Body Sebelum Kirim
-                console.log("📤 Request Body ke Edge Function:", JSON.stringify(requestBody, null, 2));
-
-                // 5. Fetch Request
+                // 4. Fetch Request
                 const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json", 
                         "Authorization": `Bearer ${tokenToUse}`, 
                         "apikey": SUPABASE_KEY,
-                        "x-client-info": "aurorra-web" // Header tambahan untuk kestabilan
+                        "x-client-info": "aurorra-web"
                     },
                     body: JSON.stringify(requestBody)
                 });
 
                 const responseText = await response.text();
-                console.log("📥 Raw Response dari Supabase:", responseText);
-
-                // 6. Cek Response Kosong
-                if (!responseText || responseText.trim() === "") {
-                    throw new Error("Server tidak mengembalikan response (Body kosong).");
-                }
 
                 if (!response.ok) {
                     throw new Error(`Server Error (${response.status}): ${responseText}`);
@@ -600,7 +682,6 @@
                     throw new Error("Response server bukan format JSON valid: " + responseText); 
                 }
 
-                // 7. Cari URL Pembayaran
                 let paymentUrl = null;
                 if (result.payment && result.payment.url) {
                     paymentUrl = result.payment.url;
@@ -608,13 +689,15 @@
                     paymentUrl = result.paymentUrl;
                 }
 
-                // 8. Handle Sukses & Buka Modal
                 if (!paymentUrl) {
                     throw new Error("URL pembayaran tidak ditemukan dalam response.");
                 }
 
                 console.log("✅ Membuka Modal DOKU:", paymentUrl);
                 
+                // --- BERSIHKAN DATA PENDING ---
+                localStorage.removeItem('aurora_pending_order');
+
                 setTimeout(() => {
                     if (typeof loadJokulCheckout === 'function') {
                         loadJokulCheckout(paymentUrl);
