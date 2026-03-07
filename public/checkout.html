@@ -20,6 +20,10 @@
             --card-bg: #1a1620; 
             --danger-color: #ff4d4d; 
             --info-color: #3498db; 
+            
+            /* WhatsApp Brand Colors */
+            --wa-green: #25D366;
+            --wa-dark: #128C7E;
         }
         body { 
             background-color: var(--dark-bg); 
@@ -204,6 +208,145 @@
 
         /* Utility Classes */
         .hidden { display: none !important; }
+
+        /* --- STYLE BARU: LIVE CHAT WHATSAPP (CHECKOUT) --- */
+        .wa-widget-container {
+            position: fixed;
+            bottom: 30px;
+            left: 30px; /* Posisi di kiri bawah */
+            z-index: 2000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .wa-chat-box {
+            background: #fff;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+            transform-origin: bottom left;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wa-chat-box.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .wa-header {
+            background: var(--wa-dark);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .wa-header img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%; /* Logo tetap bulat agar rapi */
+            object-fit: contain; /* Agar logo tidak terpotong */
+            background: #fff; /* Background putih di balik logo transparan */
+            border: 2px solid #fff;
+        }
+
+        .wa-header-info h4 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .wa-header-info p { margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
+        .wa-status-dot { width: 8px; height: 8px; background: #25D366; border-radius: 50%; display: inline-block; }
+
+        .wa-body {
+            padding: 15px;
+            background: #e5ddd5;
+            color: #333;
+            font-size: 0.9rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        .wa-bubble {
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 8px 8px 8px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+            line-height: 1.4;
+        }
+        .wa-bubble::after {
+            content: ''; position: absolute; bottom: 0; left: -8px;
+            width: 0; height: 0; border: 8px solid transparent; border-right-color: #fff; border-bottom: 0;
+        }
+
+        .wa-footer {
+            padding: 10px;
+            background: #f0f0f0;
+            text-align: center;
+        }
+
+        .wa-btn-start {
+            display: block;
+            width: 100%;
+            background: var(--wa-green);
+            color: #fff;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .wa-btn-start:hover { background: var(--wa-dark); }
+
+        .wa-toggle-btn {
+            width: 60px;
+            height: 60px;
+            background: var(--wa-green);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            transition: transform 0.3s, background 0.3s;
+            position: relative;
+        }
+
+        .wa-toggle-btn:hover { transform: scale(1.1); background: var(--wa-dark); }
+        .wa-toggle-btn svg { width: 35px; height: 35px; fill: #fff; }
+
+        .wa-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff3b30;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        /* Mobile adjustment for WA Widget */
+        @media (max-width: 480px) {
+            .wa-chat-box { width: 280px; left: -20px; }
+        }
     </style>
 </head>
 <body>
@@ -305,6 +448,40 @@
         </div>
     </div>    
 
+    <!-- WHATSAPP WIDGET (LOGO VERSION) -->
+    <div class="wa-widget-container">
+        <div class="wa-chat-box" id="waChatBox">
+            <div class="wa-header">
+                <!-- LOGO AURORRA (Bukan Foto CS) -->
+                <img src="https://dikapquhusbwjccbqcsb.supabase.co/storage/v1/object/public/images/logo.png" alt="Aurorra Logo">
+                <div class="wa-header-info">
+                    <h4>Customer Service</h4>
+                    <p><span class="wa-status-dot"></span> Online</p>
+                </div>
+                <!-- Close icon inside header -->
+                <div style="margin-left:auto; cursor:pointer;" onclick="toggleWhatsApp()">✕</div>
+            </div>
+            <div class="wa-body">
+                <div class="wa-bubble">
+                    Halo! Ada yang bisa kami bantu?
+                </div>
+            </div>
+            <div class="wa-footer">
+                <a href="https://wa.me/628163039866?text=Halo%20Admin,%20saya%20butuh%20bantuan%20di%20halaman%20checkout." target="_blank" class="wa-btn-start">
+                    Mulai Chat
+                </a>
+            </div>
+        </div>
+
+        <div class="wa-toggle-btn" onclick="toggleWhatsApp()" title="Chat WhatsApp">
+            <div class="wa-badge"></div>
+            <!-- WhatsApp SVG Icon -->
+            <svg viewBox="0 0 32 32">
+                <path d="M16,2A13,13,0,0,0,5.32,22.8L2,30l7.35-2.14A12.94,12.94,0,1,0,16,2M16,25.67a10.59,10.59,0,0,1-5.07-1.3l-.36-.21-3.76,1.1,1-3.67-.23-.38A10.6,10.6,0,1,1,16,25.67Z"/>
+            </svg>
+        </div>
+    </div>
+
     <script>
         // ==========================================
         // 1. KONFIGURASI SUPABASE
@@ -335,6 +512,20 @@
             }).format(numPrice);
         }
 
+        // ==========================================
+        // 3. WHATSAPP WIDGET FUNCTION
+        // ==========================================
+        function toggleWhatsApp() {
+            const chatBox = document.getElementById('waChatBox');
+            chatBox.classList.toggle('open');
+            
+            // Optional: Hapus badge saat dibuka pertama kali
+            const badge = document.querySelector('.wa-badge');
+            if (badge && chatBox.classList.contains('open')) {
+                badge.style.display = 'none';
+            }
+        }
+
         // Variabel Global
         let currentTotal = 0;
         let shippingCost = 0;
@@ -343,7 +534,7 @@
         let selectedShippingData = null;
         let finalPayload = null; // Menyimpan payload final
 
-        // --- 3. CUSTOM DROPDOWN LOGIC ---
+        // --- 4. CUSTOM DROPDOWN LOGIC ---
         const cityDropdown = document.getElementById('cityDropdown');
         const cityTrigger = document.getElementById('cityTrigger');
         const cityOptions = document.querySelector('.custom-select-options');
@@ -384,7 +575,7 @@
             loadShippingCost();
         }
 
-        // --- 4. LOAD DATA KOTA ---
+        // --- 5. LOAD DATA KOTA ---
         let allCities = [];
         async function loadCities() {
             try {
@@ -399,7 +590,7 @@
             } catch (e) { console.error("Gagal load kota:", e); }
         }
 
-        // --- 5. FUNGSI AMBIL ONGKIR ---
+        // --- 6. FUNGSI AMBIL ONGKIR ---
         async function loadShippingCost() {
             const city = cityInputHidden.value;
             if (!city) { shippingCost = 0; selectedShippingData = null; document.getElementById("shippingCostDisplay").value = formatPrice(0); updateFinalTotal(); return; }
@@ -416,13 +607,13 @@
             updateFinalTotal();
         }
 
-        // --- 6. FUNGSI UPDATE TOTAL ---
+        // --- 7. FUNGSI UPDATE TOTAL ---
         function updateFinalTotal() {
             const finalTotal = currentTotal + shippingCost;
             document.getElementById('displayTotal').innerText = formatPrice(finalTotal);
         }
 
-        // --- 7. LOAD PENDING ORDER (FITUR BARU: RESTORE DATA) ---
+        // --- 8. LOAD PENDING ORDER (FITUR BARU: RESTORE DATA) ---
         async function loadPendingOrder() {
             try {
                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -491,7 +682,7 @@
             document.getElementById('btnPay').disabled = false;
         }
 
-        // --- 8. INISIALISASI UTAMA ---
+        // --- 9. INISIALISASI UTAMA ---
         async function initCheckout() {
             const payBtn = document.getElementById('btnProceed');
             const errorBox = document.getElementById('error-message');
@@ -534,7 +725,7 @@
             } catch (e) { console.error("Gagal parse cart:", e); return false; }
         }
 
-        // --- 9. HANDLE PROSES KE KONFIRMASI ---
+        // --- 10. HANDLE PROSES KE KONFIRMASI ---
         async function handleProceedToConfirm(event) {
             event.preventDefault();
             const payBtn = document.getElementById('btnProceed');
@@ -607,7 +798,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- 10. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX LENGKAP) ---
+        // --- 11. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX LENGKAP) ---
         document.getElementById('btnPay').addEventListener("click", async () => {
             const btnPay = document.getElementById('btnPay');
             const errorBox = document.getElementById('error-message-payment');
