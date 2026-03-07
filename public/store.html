@@ -130,6 +130,79 @@
         .error-message { text-align: center; color: var(--danger); padding: 20px; background: rgba(255, 77, 77, 0.1); border-radius: 8px; margin: 20px 0; }
         .empty-msg { text-align: center; color: #666; font-size: 0.9rem; margin-top: 20px; font-style: italic; }
 
+        /* --- HISTORY DETAIL STYLES (NEW) --- */
+        .order-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .order-section-box {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .section-title {
+            color: var(--luxury-gold);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .item-list-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .item-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+            padding: 6px;
+            border-radius: 6px;
+        }
+        .item-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+        .item-info { flex: 1; }
+        .item-name { font-size: 0.85rem; color: #fff; font-weight: 500; margin-bottom: 2px; line-height: 1.2; }
+        .item-meta { font-size: 0.75rem; color: #888; }
+        .item-total { font-size: 0.8rem; color: var(--luxury-gold); font-weight: 600; text-align: right; }
+        .price-breakdown {
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+        .price-row { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: #ccc; }
+        .price-row.final { color: #fff; font-weight: bold; font-size: 0.9rem; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
+        .btn-pay {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: var(--luxury-gold);
+            color: #000;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-pay:hover { background: #fff; }
+
         /* Main Layout */
         .main-layout { display: flex; gap: 40px; padding: 40px 8%; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         .catalog-section { flex: 3; padding-right: 20px; }
@@ -733,6 +806,9 @@
             `;
         }
 
+        // ==========================================
+        // ✨ HISTORY MODAL UPDATE (VERSI LENGKAP)
+        // ==========================================
         async function openHistoryModal() {
             if (!currentUser) return; 
             const contentDiv = document.getElementById('historyContent');
@@ -741,7 +817,6 @@
             modal.classList.add('show');
 
             try {
-                // Query riwayat berdasarkan ID user yang benar
                 const userId = dbUser ? dbUser.id : currentUser.uid;
 
                 const { data: orders, error } = await supabaseClient
@@ -757,22 +832,114 @@
                 }
 
                 let html = '';
+                
                 orders.forEach(order => {
+                    // 1. Format Data Dasar
                     const statusClass = getStatusClass(order.status || 'pending');
-                    const date = new Date(order.created_at).toLocaleDateString('id-ID');
+                    
+                    // Format Tanggal Lengkap
+                    const dateObj = new Date(order.created_at);
+                    const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                    const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                    // 2. Parse Items (JSON)
+                    let itemsHtml = '';
+                    let itemsData = [];
+                    try {
+                        itemsData = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                    } catch (e) { console.error("Error parsing items:", e); }
+
+                    if (itemsData && itemsData.length > 0) {
+                        itemsHtml = '<div class="item-list-compact">';
+                        itemsData.forEach(item => {
+                            const imgSrc = item.image_url || 'https://via.placeholder.com/40';
+                            const itemTotal = (parseFloat(item.price) || 0) * (parseInt(item.qty) || 1);
+                            
+                            itemsHtml += `
+                                <div class="item-row">
+                                    <img src="${imgSrc}" class="item-thumb" onerror="this.src='https://via.placeholder.com/40'">
+                                    <div class="item-info">
+                                        <div class="item-name">${item.name || 'Produk'}</div>
+                                        <div class="item-meta">${item.qty || 1} x ${formatPrice(item.price)}</div>
+                                    </div>
+                                    <div class="item-total">${formatPrice(itemTotal)}</div>
+                                </div>
+                            `;
+                        });
+                        itemsHtml += '</div>';
+                    } else {
+                        itemsHtml = '<div style="font-size:0.8rem; color:#888; font-style:italic;">Detail produk tidak tersedia.</div>';
+                    }
+
+                    // 3. Hitung Subtotal (Total - Ongkir)
+                    const totalAmount = cleanPrice(order.total_amount);
+                    const shippingCost = cleanPrice(order.shipping_cost);
+                    const subTotal = totalAmount - shippingCost;
+
+                    // 4. Tombol Bayar (Jika pending & ada URL)
+                    let payButtonHtml = '';
+                    if ((order.status === 'pending' || order.status === 'unpaid') && order.payment_url) {
+                        payButtonHtml = `<a href="${order.payment_url}" target="_blank" class="btn-pay">💳 Bayar Sekarang</a>`;
+                    }
+
+                    // 5. Info Transaksi (Jika ada)
+                    let transactionInfo = '';
+                    if (order.transaction_id) {
+                        transactionInfo = `<div style="font-size:0.75rem; color:#888; margin-top:5px;">ID Transaksi: ${order.transaction_id}</div>`;
+                    }
+                    let paymentMethodInfo = '';
+                    if (order.payment_method) {
+                        paymentMethodInfo = `<div style="font-size:0.8rem; color:#ccc; margin-bottom:5px;">Metode: <strong>${order.payment_method.toUpperCase()}</strong></div>`;
+                    }
+
                     html += `
                         <div class="order-card">
                             <div class="order-header">
-                                <div class="order-id">#${order.order_id || order.id}</div>
-                                <div class="order-date">${date}</div>
-                            </div>
-                            <div class="order-info-row">
-                                <span class="order-info-label">Total:</span>
-                                <span>${formatPrice(order.total_amount)}</span>
-                            </div>
-                            <div class="order-info-row">
-                                <span class="order-info-label">Status:</span>
+                                <div>
+                                    <div class="order-id">#${order.order_id || order.id}</div>
+                                    <div class="order-date">${dateStr} • ${timeStr}</div>
+                                </div>
                                 <span class="order-status-badge ${statusClass}">${order.status}</span>
+                            </div>
+                            
+                            <div class="order-detail-grid">
+                                <!-- Detail Produk -->
+                                <div class="order-section-box">
+                                    <div class="section-title">📦 Produk</div>
+                                    ${itemsHtml}
+                                </div>
+
+                                <!-- Info Pengiriman -->
+                                <div class="order-section-box">
+                                    <div class="section-title">📍 Pengiriman</div>
+                                    <div style="font-size:0.85rem; color:#eee; margin-bottom:4px;">${order.customer_name} (${order.customer_phone})</div>
+                                    <div style="font-size:0.8rem; color:#aaa; line-height:1.4;">${order.customer_address}, ${order.kota}</div>
+                                    <div style="font-size:0.8rem; color:var(--luxury-gold); margin-top:6px;">
+                                        Kurir: <strong>${order.ekspedisi}</strong> (${order.estimasi || '-'})
+                                    </div>
+                                </div>
+
+                                <!-- Rincian Biaya -->
+                                <div class="order-section-box">
+                                    <div class="section-title">💰 Rincian Pembayaran</div>
+                                    ${paymentMethodInfo}
+                                    <div class="price-breakdown">
+                                        <div class="price-row">
+                                            <span>Subtotal Produk</span>
+                                            <span>${formatPrice(subTotal)}</span>
+                                        </div>
+                                        <div class="price-row">
+                                            <span>Ongkos Kirim (${order.ekspedisi})</span>
+                                            <span>${formatPrice(shippingCost)}</span>
+                                        </div>
+                                        <div class="price-row final">
+                                            <span>Total Bayar</span>
+                                            <span style="color:var(--luxury-gold)">${formatPrice(totalAmount)}</span>
+                                        </div>
+                                    </div>
+                                    ${transactionInfo}
+                                    ${payButtonHtml}
+                                </div>
                             </div>
                         </div>`;
                 });
