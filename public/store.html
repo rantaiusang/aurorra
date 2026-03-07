@@ -807,7 +807,7 @@
         }
 
         // ==========================================
-        // ✨ HISTORY MODAL UPDATE (VERSI LENGKAP)
+        // ✨ HISTORY MODAL UPDATE (FINAL FIX)
         // ==========================================
         async function openHistoryModal() {
             if (!currentUser) return; 
@@ -876,10 +876,28 @@
                     const shippingCost = cleanPrice(order.shipping_cost);
                     const subTotal = totalAmount - shippingCost;
 
-                    // 4. Tombol Bayar (Jika pending & ada URL)
+                    // 4. LOGIKA TOMBOL BAYAR (FIX: Gunakan payment_url & Cek Expired)
                     let payButtonHtml = '';
-                    if ((order.status === 'pending' || order.status === 'unpaid') && order.payment_url) {
-                        payButtonHtml = `<a href="${order.payment_url}" target="_blank" class="btn-pay">💳 Bayar Sekarang</a>`;
+                    const now = new Date();
+                    const expiredAt = order.expired_at ? new Date(order.expired_at) : null;
+
+                    if (order.status === 'pending' || order.status === 'unpaid') {
+                        if (order.payment_url && expiredAt && expiredAt > now) {
+                            // Order Valid: Tampilkan tombol bayar ke URL spesifik
+                            payButtonHtml = `
+                                <a href="${order.payment_url}" target="_blank" class="btn-pay">
+                                    💳 Lanjutkan Pembayaran
+                                </a>`;
+                        } else if (expiredAt && expiredAt <= now) {
+                            // Order Expired: Tampilkan pesan expired
+                            payButtonHtml = `
+                                <div style="color:#ff6b6b; font-size:0.8rem; margin-top:10px; text-align:center; padding:8px; background:rgba(255,107,107,0.1); border-radius:4px; border:1px solid rgba(255,107,107,0.2);">
+                                    ⏰ Waktu pembayaran habis (Expired)
+                                </div>`;
+                        } else {
+                            // Fallback (misal data URL belum sempat ter-save)
+                            payButtonHtml = `<div style="color:#888; font-size:0.8rem; margin-top:10px;">Link pembayaran sedang disiapkan...</div>`;
+                        }
                     }
 
                     // 5. Info Transaksi (Jika ada)
