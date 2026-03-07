@@ -21,6 +21,9 @@
             --panel-bg: #1a1620;
             --danger: #ff4d4d;
             --success: #4CAF50;
+            /* WhatsApp Brand Colors */
+            --wa-green: #25D366;
+            --wa-dark: #128C7E;
         }
         
         body {
@@ -32,6 +35,139 @@
             flex-direction: column;
             min-height: 100vh;
             overflow-x: hidden; 
+        }
+
+        /* --- STYLE BARU: LIVE CHAT WHATSAPP --- */
+        .wa-widget-container {
+            position: fixed;
+            bottom: 30px;
+            left: 30px; /* Posisi di kiri bawah */
+            z-index: 2000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align ke kiri */
+        }
+
+        .wa-chat-box {
+            background: #fff;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+            transform-origin: bottom left;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wa-chat-box.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .wa-header {
+            background: var(--wa-dark);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .wa-header img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .wa-header-info h4 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .wa-header-info p { margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
+        .wa-status-dot { width: 8px; height: 8px; background: #25D366; border-radius: 50%; display: inline-block; }
+
+        .wa-body {
+            padding: 15px;
+            background: #e5ddd5; /* Warna background chat WA */
+            color: #333;
+            font-size: 0.9rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        .wa-bubble {
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 8px 8px 8px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+            line-height: 1.4;
+        }
+        .wa-bubble::after {
+            content: ''; position: absolute; bottom: 0; left: -8px;
+            width: 0; height: 0; border: 8px solid transparent; border-right-color: #fff; border-bottom: 0;
+        }
+
+        .wa-footer {
+            padding: 10px;
+            background: #f0f0f0;
+            text-align: center;
+        }
+
+        .wa-btn-start {
+            display: block;
+            width: 100%;
+            background: var(--wa-green);
+            color: #fff;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .wa-btn-start:hover { background: var(--wa-dark); }
+
+        .wa-toggle-btn {
+            width: 60px;
+            height: 60px;
+            background: var(--wa-green);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            transition: transform 0.3s, background 0.3s;
+            position: relative;
+        }
+
+        .wa-toggle-btn:hover { transform: scale(1.1); background: var(--wa-dark); }
+        .wa-toggle-btn svg { width: 35px; height: 35px; fill: #fff; }
+
+        .wa-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff3b30;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
         }
 
         /* --- STYLE BARU: HARGA BURAM SAAT BELUM LOGIN --- */
@@ -217,8 +353,16 @@
             border: 1px solid rgba(212, 175, 55, 0.3);
         }
 
-        /* Main Layout */
-        .main-layout { display: flex; gap: 40px; padding: 40px 8%; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        /* Main Layout - UPDATED TO LEFT ALIGN */
+        .main-layout { 
+            display: flex; 
+            gap: 40px; 
+            padding: 40px 8%; 
+            /* Hapus margin: 0 auto; agar posisi ke kiri */
+            max-width: 1600px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
         .catalog-section { flex: 3; padding-right: 20px; }
 
         .page-entry { opacity: 0; animation: slideUpFade 0.8s ease-out forwards; }
@@ -226,14 +370,14 @@
         .delay-2 { animation-delay: 0.4s; }
         .delay-3 { animation-delay: 0.6s; }
 
-        .store-header { text-align: center; margin-bottom: 30px; }
+        .store-header { text-align: left; margin-bottom: 30px; } /* Ubah jadi text-align: left */
         .store-header h1 { font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--luxury-gold); margin-bottom: 10px; font-weight: 700; letter-spacing: -1px; }
         .store-header p { color: #888; font-style: italic; line-height: 1.5rem; }
 
         /* --- SEARCH BAR STYLE --- */
         .search-container {
             max-width: 500px;
-            margin: 0 auto 40px auto;
+            margin: 0 0 40px 0; /* Ubah margin menjadi kiri bawah (tidak center) */
             position: relative;
         }
         .search-input {
@@ -264,7 +408,7 @@
             pointer-events: none;
         }
 
-        .filter-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; }
+        .filter-bar { display: flex; justify-content: flex-start; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; } /* Ubah justify-content ke flex-start */
         .filter-btn { padding: 8px 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255, 0.05); color: #aaa; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; }
         .filter-btn.active, .filter-btn:hover { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); font-weight: 600; }
 
@@ -275,7 +419,7 @@
         .product-img-wrapper { width: 100%; height: 250px; overflow: hidden; position: relative; background: #000; }
         .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; display: block; }
         .product-card:hover .product-img { transform: scale(1.05); }
-        .product-info { padding: 20px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-info { padding: 20px; text-align: left; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; } /* Ubah text-align ke left */
         .product-name { font-family: 'Playfair Display', serif; font-size:1.1rem; color: #fff; margin-bottom:5px; }
         .product-desc { font-size: 0.8rem; color: #888; margin-bottom:5px; height: 35px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .product-stock { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
@@ -453,6 +597,11 @@
             .cart-sidebar { position: static; margin-bottom: 30px; max-height: 500px; }
             .catalog-section { padding-right: 0; }
         }
+        
+        /* Mobile adjustment for WA Widget */
+        @media (max-width: 480px) {
+            .wa-chat-box { width: 280px; left: -20px; }
+        }
     </style>
 </head>
 <body>
@@ -502,6 +651,40 @@
                     <p class="sidebar-info-text">Gunakan tombol melayang di pojok kanan bawah untuk Checkout.</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- WHATSAPP WIDGET -->
+    <div class="wa-widget-container">
+        <div class="wa-chat-box" id="waChatBox">
+            <div class="wa-header">
+                <!-- Placeholder avatar (random elegant person) -->
+                <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="CS Avatar">
+                <div class="wa-header-info">
+                    <h4>Customer Service</h4>
+                    <p><span class="wa-status-dot"></span> Online</p>
+                </div>
+                <!-- Close icon inside header -->
+                <div style="margin-left:auto; cursor:pointer;" onclick="toggleWhatsApp()">✕</div>
+            </div>
+            <div class="wa-body">
+                <div class="wa-bubble">
+                    Halo! Ada yang bisa kami bantu seputar produk Koleksi Aurorra?
+                </div>
+            </div>
+            <div class="wa-footer">
+                <a href="https://wa.me/628163039866?text=Halo%20Admin,%20saya%20mau%20tanya%20tentang%20produk%20Aurorra." target="_blank" class="wa-btn-start">
+                    Mulai Chat
+                </a>
+            </div>
+        </div>
+
+        <div class="wa-toggle-btn" onclick="toggleWhatsApp()" title="Chat WhatsApp">
+            <div class="wa-badge"></div>
+            <!-- WhatsApp SVG Icon -->
+            <svg viewBox="0 0 32 32">
+                <path d="M16,2A13,13,0,0,0,5.32,22.8L2,30l7.35-2.14A12.94,12.94,0,1,0,16,2M16,25.67a10.59,10.59,0,0,1-5.07-1.3l-.36-.21-3.76,1.1,1-3.67-.23-.38A10.6,10.6,0,1,1,16,25.67Z"/>
+            </svg>
         </div>
     </div>
 
@@ -565,6 +748,20 @@
         let searchTimer = null;
         let ordersChannel = null;
         let resumePaymentUrl = null;
+
+        // ==========================================
+        // 💬 WHATSAPP WIDGET FUNCTION
+        // ==========================================
+        function toggleWhatsApp() {
+            const chatBox = document.getElementById('waChatBox');
+            chatBox.classList.toggle('open');
+            
+            // Optional: Hapus badge saat dibuka pertama kali
+            const badge = document.querySelector('.wa-badge');
+            if (badge && chatBox.classList.contains('open')) {
+                badge.style.display = 'none';
+            }
+        }
 
         // ==========================================
         // ✨ RESUME PAYMENT FUNCTIONS (FIXED POINT 1)
@@ -1191,7 +1388,7 @@
             let cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
             const existingItem = cart.find(item => String(item.id) === String(clickedId));
             if (existingItem) {
-                if ((existingItem.qty + 1) > currentStock) { alert("Stok tidak mencukupan."); return; }
+                if ((existingItem.qty + 1) > currentStock) { alert("Stok tidak mencukupi."); return; }
                 existingItem.qty = (existingItem.qty || 1) + 1;
             } else {
                 cart.push({ ...product, qty: 1, price: cleanPrice(product.price) });
@@ -1208,7 +1405,7 @@
                 setTimeout(() => { 
                     btn.innerHTML = originalText; 
                     btn.style.background = "transparent";
-                    btn.style.color = "var(--luxury-gold)"; 
+                    btn.style.color = "var(--luxury-gold);"; 
                 }, 1000);
             }
         }
