@@ -365,7 +365,7 @@
     <!-- TOAST -->
     <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:3000;"></div>
 
-          <script>
+              <script>
         // ==========================================
         // KONFIGURASI
         // ==========================================
@@ -486,30 +486,52 @@
 
         // --- LOADERS ---
         async function loadDashboardStats() {
-            const [orders, profit, lowStock] = await Promise.all([
-                sb.from('orders').select('id, customer_name, status, total_amount, created_at'),
-                sb.from('laporan_profit').select('profit'),
-                sb.from('stok_menipis').select('*')
-            ]);
+            try {
+                // Memisahkan query agar yang satu error tidak menghentikan yang lain
+                const [ordersRes, profitRes, lowStockRes] = await Promise.allSettled([
+                    sb.from('orders').select('id, customer_name, status, total_amount, created_at'),
+                    sb.from('laporan_profit').select('profit'),
+                    sb.from('stok_menipis').select('*')
+                ]);
 
-            if(orders.data) {
-                const rev = orders.data.reduce((a,c)=>a+(parseFloat(c.total_amount)||0),0);
-                const revEl = document.getElementById('totalRevenue');
-                if(revEl) revEl.innerText = formatPrice(rev);
-                
-                const ordEl = document.getElementById('totalOrders');
-                if(ordEl) ordEl.innerText = orders.data.length;
-                
-                renderRecentOrders(orders.data.slice(0,5));
-            }
-            if(profit.data) {
-                const prof = profit.data.reduce((a,c)=>a+(parseFloat(c.profit)||0),0);
-                const profEl = document.getElementById('totalProfit');
-                if(profEl) profEl.innerText = formatPrice(prof);
-            }
-            if(lowStock.data) {
-                const lsEl = document.getElementById('lowStockCount');
-                if(lsEl) lsEl.innerText = lowStock.data.length;
+                // Handle Orders
+                if(ordersRes.status === 'fulfilled' && ordersRes.value.data) {
+                    const orders = ordersRes.value.data;
+                    const rev = orders.reduce((a,c)=>a+(parseFloat(c.total_amount)||0),0);
+                    const revEl = document.getElementById('totalRevenue');
+                    if(revEl) revEl.innerText = formatPrice(rev);
+                    
+                    const ordEl = document.getElementById('totalOrders');
+                    if(ordEl) ordEl.innerText = orders.length;
+                    
+                    renderRecentOrders(orders.slice(0,5));
+                } else {
+                    console.warn("Gagal load orders:", ordersRes.reason);
+                }
+
+                // Handle Profit
+                if(profitRes.status === 'fulfilled' && profitRes.value.data) {
+                    const profit = profitRes.value.data;
+                    const prof = profit.reduce((a,c)=>a+(parseFloat(c.profit)||0),0);
+                    const profEl = document.getElementById('totalProfit');
+                    if(profEl) profEl.innerText = formatPrice(prof);
+                } else {
+                    console.warn("Tabel laporan_profit belum ada atau error.");
+                    document.getElementById('totalProfit').innerText = "Rp 0";
+                }
+
+                // Handle Low Stock
+                if(lowStockRes.status === 'fulfilled' && lowStockRes.value.data) {
+                    const lowStock = lowStockRes.value.data;
+                    const lsEl = document.getElementById('lowStockCount');
+                    if(lsEl) lsEl.innerText = lowStock.length;
+                } else {
+                    console.warn("Tabel stok_menipis belum ada atau error.");
+                    document.getElementById('lowStockCount').innerText = "0";
+                }
+
+            } catch (err) {
+                console.error("Dashboard Error:", err);
             }
         }
 
@@ -567,30 +589,40 @@
             const tbody = document.querySelector('#profitTable tbody');
             if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
-            const { data } = await sb.from('laporan_profit').select('*');
-            if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="5">Belum ada data profit.</td></tr>';
-            tbody.innerHTML = data.map(p => `
-                <tr>
-                    <td><div style="font-weight:600;">${p.produk_name || '-'}</div></td>
-                    <td>${p.terjual}</td>
-                    <td>${formatPrice(p.total_modal)}</td>
-                    <td>${formatPrice(p.total_jual)}</td>
-                    <td style="color:var(--success); font-weight:bold;">${formatPrice(p.profit)}</td>
-                </tr>`).join('');
+            
+            try {
+                const { data } = await sb.from('laporan_profit').select('*');
+                if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="5">Belum ada data profit.</td></tr>';
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td><div style="font-weight:600;">${p.produk_name || '-'}</div></td>
+                        <td>${p.terjual}</td>
+                        <td>${formatPrice(p.total_modal)}</td>
+                        <td>${formatPrice(p.total_jual)}</td>
+                        <td style="color:var(--success); font-weight:bold;">${formatPrice(p.profit)}</td>
+                    </tr>`).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="5" style="color:var(--danger); text-align:center;">Tabel laporan_profit belum tersedia.</td></tr>';
+            }
         }
 
         async function loadLowStock() {
             const tbody = document.querySelector('#lowStockTable tbody');
             if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="3" class="loading-spinner"></td></tr>';
-            const { data } = await sb.from('stok_menipis').select('*');
-            if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="3">Stok aman.</td></tr>';
-            tbody.innerHTML = data.map(s => `
-                <tr>
-                    <td style="font-weight:600; color:var(--danger);">${s.produk_name || s.nama_produk || 'Produk ID: '+s.product_id}</td>
-                    <td style="font-size:1.2rem; color:var(--danger); font-weight:bold;">${s.stok_saat_ini}</td>
-                    <td><span class="badge badge-danger">Segera Restock!</span></td>
-                </tr>`).join('');
+            
+            try {
+                const { data } = await sb.from('stok_menipis').select('*');
+                if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="3">Stok aman.</td></tr>';
+                tbody.innerHTML = data.map(s => `
+                    <tr>
+                        <td style="font-weight:600; color:var(--danger);">${s.produk_name || s.nama_produk || 'Produk ID: '+s.product_id}</td>
+                        <td style="font-size:1.2rem; color:var(--danger); font-weight:bold;">${s.stok_saat_ini}</td>
+                        <td><span class="badge badge-danger">Segera Restock!</span></td>
+                    </tr>`).join('');
+            } catch (e) {
+                 tbody.innerHTML = '<tr><td colspan="3">Tabel stok_menipis belum tersedia.</td></tr>';
+            }
         }
 
         // --- MODAL HANDLERS ---
@@ -640,7 +672,6 @@
             return `<span class="badge ${c}">${s}</span>`;
         }
 
-        // PERBAIKAN UTAMA: loadOrders & openOrderDetail
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
             if(!tbody) return;
@@ -663,8 +694,6 @@
                     itemNames = 'Error data';
                 }
 
-                // PERBAIKAN: Jangan konversi ID ke string jika belum perlu, biarkan JavaScript menangani
-                // Namun untuk parameter onclick HTML, kita butuh string
                 const orderIdStr = String(o.id); 
                 const displayId = o.order_id || orderIdStr.slice(0,8);
 
@@ -757,10 +786,7 @@
              showToast("Fitur Edit ID: " + id + " belum diimplementasikan penuh.", "info");
         }
 
-        // PERBAIKAN: Fungsi Detail Order
-        // Kita menggunakan window.openOrderDetail agar bisa dipanggil dari onclick HTML
         window.openOrderDetail = async function(id) {
-            // Jangan gunakan document.activeElement karena bisa error saat dipanggil langsung
             const btn = document.querySelector(`button[onclick="openOrderDetail('${id}')"]`);
             if(btn) btn.innerHTML = '...';
 
@@ -770,7 +796,7 @@
                 const { data, error } = await sb
                     .from('orders')
                     .select('*')
-                    .eq('id', id) // Supabase akan otomatis mencocokkan tipe data
+                    .eq('id', id)
                     .single();
 
                 if (error) {
@@ -784,7 +810,6 @@
 
                 console.log("Data fetched:", data);
 
-                // Isi Form
                 const detailId = document.getElementById('detailOrderId');
                 const detailCust = document.getElementById('detailCustomer');
                 const detailAddr = document.getElementById('detailAddress');
@@ -814,8 +839,6 @@
             if(m) m.classList.remove('show'); 
         }
 
-        // PERBAIKAN: Hapus onsubmit dari HTML jika sudah pakai addEventListener, atau pastikan tidak konflik.
-        // Di sini kita akan memastikan event listener bekerja dengan benar
         const orderDetailForm = document.getElementById('orderDetailForm');
         if(orderDetailForm) {
             orderDetailForm.onsubmit = async function(e) {
