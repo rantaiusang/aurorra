@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* --- CORE VARIABLES (Sama persis dengan Store) --- */
+        /* --- CORE VARIABLES --- */
         :root {
             --luxury-gold: #d4af37;
             --dark-bg: #0f0c15;
@@ -35,7 +35,7 @@
             overflow-x: hidden; 
         }
 
-        /* --- LAYOUT ADMIN (Sidebar + Main Content) --- */
+        /* --- LAYOUT ADMIN --- */
         .admin-sidebar {
             width: var(--sidebar-width);
             background: var(--panel-bg);
@@ -47,8 +47,9 @@
             display: flex;
             flex-direction: column;
             padding: 20px;
-            z-index: 100;
+            z-index: 1000; 
             transition: transform 0.3s ease;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
         }
 
         .admin-brand {
@@ -75,6 +76,7 @@
             gap: 10px;
             cursor: pointer;
             border: 1px solid transparent;
+            user-select: none; /* Mencegah teks terseleksi saat klik cepat */
         }
         
         .nav-item:hover, .nav-item.active {
@@ -89,6 +91,7 @@
             padding: 30px 40px;
             width: calc(100% - var(--sidebar-width));
             box-sizing: border-box;
+            position: relative;
         }
 
         /* --- HEADER & STATS --- */
@@ -141,7 +144,6 @@
         }
         .section-title { font-family: 'Playfair Display', serif; color: var(--luxury-gold); font-size: 1.3rem; margin: 0; }
 
-        /* Table Style */
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 15px; color: #888; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #333; }
@@ -186,11 +188,11 @@
             background: rgba(0,0,0,0.5);
         }
 
-        /* --- MODAL FORM (Product) --- */
+        /* --- MODAL FORM --- */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; 
-            z-index: 1000; backdrop-filter: blur(5px); 
+            z-index: 2000; backdrop-filter: blur(5px); 
         }
         .modal-overlay.show { display: flex; }
         .modal-content { 
@@ -208,38 +210,50 @@
         .form-control:focus { outline: none; border-color: var(--luxury-gold); }
         textarea.form-control { resize: vertical; min-height: 80px; }
 
-        /* Utility */
+        /* --- MOBILE OVERLAY --- */
+        .mobile-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-overlay.show { display: block; opacity: 1; }
+
         .text-right { text-align: right; }
+        
+        /* PENTING: Pastikan class hidden ada */
         .hidden { display: none !important; }
+        
         .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--luxury-gold); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* --- ANIMATIONS --- */
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Mobile Responsive */
         @media (max-width: 768px) {
             .admin-sidebar { transform: translateX(-100%); width: 240px; }
             .admin-sidebar.mobile-open { transform: translateX(0); }
             .admin-main { margin-left: 0; width: 100%; padding: 20px; }
             .mobile-toggle { display: block; font-size: 1.5rem; cursor: pointer; color: var(--luxury-gold); }
         }
-        @media (min-width: 769px) { .mobile-toggle { display: none; } }
+        @media (min-width: 769px) { .mobile-toggle { display: none; } .mobile-overlay { display: none !important; } }
     </style>
 </head>
 <body>
+
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR -->
     <aside class="admin-sidebar" id="sidebar">
         <div class="admin-brand">Aurorra Admin</div>
         <nav class="nav-links">
+            <!-- Pastikan onclick tidak mengandung spasi aneh atau typo -->
             <a class="nav-item active" onclick="switchTab('dashboard')">
                 <span>📊</span> Dashboard
             </a>
             <a class="nav-item" onclick="switchTab('products')">
                 <span>🛍️</span> Produk
             </a>
-            <!-- MENU BARU: UPDATE STOCK -->
             <a class="nav-item" onclick="switchTab('stock')">
                 <span>📦</span> Stok & Harga
             </a>
@@ -337,7 +351,7 @@
             </div>
         </div>
 
-        <!-- STOCK & PRICE UPDATE TAB (BARU) -->
+        <!-- STOCK & PRICE UPDATE TAB -->
         <div id="tab-stock" class="tab-content hidden">
             <div class="data-section">
                 <div class="section-header">
@@ -345,7 +359,7 @@
                     <button class="btn btn-outline btn-sm" onclick="loadStockTable()">🔄 Refresh Data</button>
                 </div>
                 <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">
-                    Edit angka pada kolom Harga atau Stok, lalu klik tombol <b>Simpan</b> di baris tersebut untuk mengupdate database.
+                    Edit angka pada kolom Harga atau Stok, lalu klik tombol <b>Simpan</b> di baris tersebut.
                 </p>
                 <div class="table-responsive">
                     <table id="stockTable">
@@ -450,6 +464,12 @@
         function formatPrice(price) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price || 0);
         }
+        
+        function formatDate(dateString) {
+            if(!dateString) return '-';
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -464,63 +484,94 @@
             setTimeout(() => { toast.remove(); }, 4000);
         }
 
-        // --- NAVIGATION LOGIC ---
+        // --- NAVIGATION LOGIC (FIXED) ---
         function switchTab(tabName) {
-            // Update Title
+            console.log("Switching to tab:", tabName); // Debugging
+
             const titles = { 
                 'dashboard': 'Dashboard Overview', 
                 'products': 'Manajemen Produk', 
                 'stock': 'Update Stok & Harga', 
                 'orders': 'Daftar Pesanan' 
             };
-            document.getElementById('pageTitle').innerText = titles[tabName];
 
-            // Hide all tabs
+            // 1. Ubah Judul
+            const titleEl = document.getElementById('pageTitle');
+            if(titleEl) titleEl.innerText = titles[tabName];
+
+            // 2. Hide semua tab
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-            // Show active tab
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
             
-            // Highlight nav
+            // 3. Show tab yang dipilih
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if(targetTab) {
+                targetTab.classList.remove('hidden');
+            } else {
+                console.error("Tab target not found:", `tab-${tabName}`);
+            }
+            
+            // 4. Update Nav Active State
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             const navIndex = ['dashboard', 'products', 'stock', 'orders'].indexOf(tabName);
-            if(navIndex >= 0) document.querySelectorAll('.nav-links .nav-item')[navIndex].classList.add('active');
+            // Hanya set active jika index valid dan bukan link 'Kembali ke Toko' (index terakhir)
+            if(navIndex >= 0) {
+                const navItems = document.querySelectorAll('.nav-links .nav-item');
+                if(navItems[navIndex]) navItems[navIndex].classList.add('active');
+            }
 
-            // Close sidebar on mobile
-            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
+            // 5. Mobile Sidebar Close
+            if(window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('mobile-open');
+                document.getElementById('mobileOverlay').classList.remove('show');
+            }
 
-            // Load specific data
-            if (tabName === 'dashboard') loadDashboardStats();
-            if (tabName === 'products') loadProducts();
-            if (tabName === 'stock') loadStockTable(); // Load tabel stok khusus
-            if (tabName === 'orders') loadOrders();
+            // 6. Load Data (Try-Catch agar error database tidak menghentikan UI)
+            try {
+                if (tabName === 'dashboard') loadDashboardStats();
+                if (tabName === 'products') loadProducts();
+                if (tabName === 'stock') loadStockTable(); 
+                if (tabName === 'orders') loadOrders();
+            } catch (err) {
+                console.error("Error loading data for " + tabName, err);
+                showToast("Gagal memuat data: " + err.message, 'error');
+            }
         }
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('mobile-open');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            if(sidebar && overlay) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('show', sidebar.classList.contains('mobile-open'));
+            }
         }
 
         // --- DATA LOADING FUNCTIONS ---
 
-        // 1. DASHBOARD STATS
         async function loadDashboardStats() {
-            const { data: orders, error: errOrders } = await supabase.from('orders').select('total_amount, status, created_at');
-            const { count: productCount, error: errProd } = await supabase.from('products').select('*', { count: 'exact', head: true });
+            try {
+                const { data: orders, error: errOrders } = await supabase
+                    .from('orders')
+                    .select(`*, ngebelusers (full_name, email)`)
+                    .order('created_at', { ascending: false });
 
-            if (!errOrders && orders) {
-                const totalRev = orders.reduce((acc, curr) => acc + (parseFloat(curr.total_amount) || 0), 0);
-                document.getElementById('totalRevenue').innerText = formatPrice(totalRev);
-                document.getElementById('totalOrders').innerText = orders.length;
-                const recentOrders = orders.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
-                renderRecentOrdersTable(recentOrders);
-            }
+                const { count: productCount, error: errProd } = await supabase.from('products').select('*', { count: 'exact', head: true });
 
-            if (!errProd) {
-                document.getElementById('totalProducts').innerText = productCount || 0;
+                if (!errOrders && orders) {
+                    const totalRev = orders.reduce((acc, curr) => acc + (parseFloat(curr.total_amount) || 0), 0);
+                    document.getElementById('totalRevenue').innerText = formatPrice(totalRev);
+                    document.getElementById('totalOrders').innerText = orders.length;
+                    renderRecentOrdersTable(orders.slice(0, 5));
+                }
+
+                if (!errProd) {
+                    document.getElementById('totalProducts').innerText = productCount || 0;
+                }
+            } catch (error) {
+                console.error("Dashboard Error:", error);
             }
         }
 
-        // 2. PRODUCTS CRUD (List Biasa)
         async function loadProducts() {
             const tbody = document.querySelector('#productsTable tbody');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;"><div class="loading-spinner"></div></td></tr>';
@@ -531,8 +582,7 @@
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--danger);">Gagal memuat data.</td></tr>';
                 return;
             }
-
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#888;">Belum ada produk.</td></tr>';
                 return;
             }
@@ -540,10 +590,7 @@
             tbody.innerHTML = data.map(p => `
                 <tr>
                     <td><img src="${p.image_url || 'https://via.placeholder.com/40'}" class="product-thumb-sm" onerror="this.src='https://via.placeholder.com/40'"></td>
-                    <td>
-                        <div style="font-weight:600; color:#fff;">${p.name}</div>
-                        <div style="font-size:0.75rem; color:#888;">${p.product_id || '-'}</div>
-                    </td>
+                    <td><div style="font-weight:600; color:#fff;">${p.name}</div></td>
                     <td><span class="badge" style="background:#333; color:#fff;">${p.category || '-'}</span></td>
                     <td>${formatPrice(p.price)}</td>
                     <td style="${p.stock <= 0 ? 'color:var(--danger);' : ''}">${p.stock}</td>
@@ -555,7 +602,6 @@
             `).join('');
         }
 
-        // 3. STOCK TABLE (Edit Langsung)
         async function loadStockTable() {
             const tbody = document.querySelector('#stockTable tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><div class="loading-spinner"></div></td></tr>';
@@ -566,8 +612,7 @@
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--danger);">Gagal memuat data stok.</td></tr>';
                 return;
             }
-
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">Belum ada produk.</td></tr>';
                 return;
             }
@@ -575,31 +620,25 @@
             tbody.innerHTML = data.map(p => `
                 <tr>
                     <td><img src="${p.image_url || 'https://via.placeholder.com/40'}" class="product-thumb-sm" onerror="this.src='https://via.placeholder.com/40'"></td>
-                    <td>
-                        <div style="font-weight:600; color:#fff;">${p.name}</div>
-                        <div style="font-size:0.75rem; color:#888;">${p.category || '-'}</div>
-                    </td>
-                    <td>
-                        <input type="number" id="price-${p.id}" value="${p.price}" class="table-input">
-                    </td>
-                    <td>
-                        <input type="number" id="stock-${p.id}" value="${p.stock}" class="table-input">
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-sm btn-block" onclick="updateStockPrice(${p.id})">Simpan</button>
-                    </td>
+                    <td><div style="font-weight:600; color:#fff;">${p.name}</div></td>
+                    <td><input type="number" id="price-${p.id}" value="${p.price}" class="table-input"></td>
+                    <td><input type="number" id="stock-${p.id}" value="${p.stock}" class="table-input"></td>
+                    <td><button class="btn btn-primary btn-sm btn-block" onclick="updateStockPrice(${p.id})">Simpan</button></td>
                 </tr>
             `).join('');
         }
 
-        // 4. ORDERS
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;"><div class="loading-spinner"></div></td></tr>';
 
-            const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+            const { data, error } = await supabase
+                .from('orders')
+                .select(`*, ngebelusers (full_name, email, phone)`)
+                .order('created_at', { ascending: false });
 
             if (error) {
+                console.error(error);
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--danger);">Gagal memuat pesanan.</td></tr>';
                 return;
             }
@@ -612,15 +651,17 @@
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888;">Belum ada pesanan.</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(o => `
+            tbody.innerHTML = data.map(o => {
+                const customerName = o.ngebelusers ? o.ngebelusers.full_name : o.customer_name;
+                return `
                 <tr>
                     <td>#${o.order_id || o.id.toString().slice(0,8)}</td>
-                    <td>${o.customer_name}</td>
+                    <td>${customerName}</td>
                     <td>${formatPrice(o.total_amount)}</td>
                     <td>${getStatusBadge(o.status)}</td>
-                    <td style="font-size:0.8rem; color:#888;">${new Date(o.created_at).toLocaleDateString()}</td>
+                    <td style="font-size:0.8rem; color:#888;">${formatDate(o.created_at)}</td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function renderOrdersTable(data, tbodyElement) {
@@ -635,19 +676,21 @@
                     if(Array.isArray(items)) itemsSummary = items.map(i => `${i.name} (${i.qty})`).join(', ');
                 } catch(e){}
 
+                const userData = o.ngebelusers || {};
+                const displayName = userData.full_name || o.customer_name || 'Unknown';
+                const displayPhone = userData.phone || o.customer_phone || '-';
+
                 return `
                 <tr>
                     <td>#${o.order_id || o.id.toString().slice(0,8)}</td>
                     <td>
-                        <div style="font-weight:600;">${o.customer_name}</div>
-                        <div style="font-size:0.75rem; color:#888;">${o.customer_phone}</div>
+                        <div style="font-weight:600;">${displayName}</div>
+                        <div style="font-size:0.75rem; color:#888;">${displayPhone}</div>
                     </td>
                     <td style="font-size:0.8rem; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${itemsSummary}">${itemsSummary}</td>
                     <td>${formatPrice(o.total_amount)}</td>
                     <td>${getStatusBadge(o.status)}</td>
-                    <td>
-                        <button class="btn btn-outline btn-sm" onclick="updateOrderStatus('${o.id}', '${o.status}')">📝 Status</button>
-                    </td>
+                    <td><button class="btn btn-outline btn-sm" onclick="updateOrderStatus('${o.id}', '${o.status}')">📝 Status</button></td>
                 </tr>
             `}).join('');
         }
@@ -658,7 +701,6 @@
             if(s.includes('paid') || s.includes('lunas')) cls = 'badge-success';
             if(s.includes('cancel')) cls = 'badge-danger';
             if(s.includes('ship')) cls = 'badge-success'; 
-            
             return `<span class="badge ${cls}">${status.toUpperCase()}</span>`;
         }
 
@@ -675,7 +717,6 @@
                 return;
             }
 
-            // Disable tombol sementara
             const btn = event.target;
             const originalText = btn.innerText;
             btn.innerText = '...';
@@ -755,10 +796,10 @@
 
             let error;
             if (id) {
-                const { err } = await supabase.from('products').update(payload).eq('id', id);
+                const { error: err } = await supabase.from('products').update(payload).eq('id', id);
                 error = err;
             } else {
-                const { err } = await supabase.from('products').insert([payload]);
+                const { error: err } = await supabase.from('products').insert([payload]);
                 error = err;
             }
 
