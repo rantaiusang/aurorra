@@ -319,7 +319,7 @@
         </div>
     </div>
 
-    <!-- MODAL ONGKIR (FIXED CLASS NAMES) -->
+    <!-- MODAL ONGKIR -->
     <div class="modal-overlay" id="ongkirModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeOngkirModal()">&times;</span>
@@ -398,7 +398,7 @@
             t.innerText = msg; c.appendChild(t); setTimeout(() => t.remove(), 4000);
         }
 
-        // --- SECURITY CHECK (FIXED) ---
+        // --- SECURITY CHECK (FIXED SESUAI PERINTAH) ---
         async function checkAdminAuth() {
             // Jika mode debug aktif, langsung masuk
             if (BYPASS_AUTH_FOR_DEBUG) {
@@ -413,16 +413,23 @@
                 const { data: { session } } = await sb.auth.getSession();
                 if (!session) throw new Error("Tidak ada sesi login. Silakan login ulang.");
                 
-                // PASTIKAN NAMA TABEL 'ngebelusers' ADA DI SUPABASE ANDA
-                const { data: user, error } = await sb.from('ngebelusers').select('role').eq('id', session.user.id).single();
+                // PERBAIKAN LOGIC AUTH SESUAI PERINTAH
+                const { data: user, error } = await sb
+                    .from('ngebelusers')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
                 
                 if (error) {
                     console.error("DB Error:", error);
                     throw new Error("Gagal mengambil data user (Cek tabel ngebelusers & RLS Policy)");
                 }
                 
-                if (!user || user.role !== 'admin') throw new Error("Akses ditolak: Anda bukan Admin.");
-                
+                // Kode final yang benar sesuai permintaan
+                if (!user?.role) {
+                    throw new Error("Akses ditolak: Anda bukan Admin.");
+                }
+
                 // Sukses
                 document.getElementById('auth-check-overlay').classList.add('hidden');
                 document.getElementById('adminMainContent').classList.add('visible');
