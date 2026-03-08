@@ -121,9 +121,11 @@
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
         }
         select.form-control {
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg+xml%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D22292.92%22%20height%3D22292.92%22%20viewBox%3D220%200%2012%2012%22%3E%3Cpath%20fill%3D%22cccccc%22%20d%3D%22M7%202l5%205-5%205zM2.5%207l5%205-5%205z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
-        }
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23cccccc'><path d='M5 7l5 5 5-5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
         .form-control:focus { outline: none; border-color: var(--luxury-gold); background: #252525; color: #fff; box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5); }
         option { background-color: #1f1f1f; color: #fff; }
         .form-label { display: block; margin-bottom: 8px; color: #ccc; font-size:0.9rem; }
@@ -501,7 +503,7 @@
                     : '<span class="badge badge-success">Aman</span>';
                 return `
                 <tr>
-                    <td><img src="${p.image_url||'https://via.placeholder.com/40'}" width="40" height="40" style="border-radius:4px;"></td>
+       <td><img src="${p.image_url || 'https://via.placeholder.com/40'}" width="40" height="40"></td>
                     <td><div style="font-weight:600; color:#fff;">${p.name}</div></td>
                     <td><span class="badge" style="background:#333;">${p.category||'-'}</span></td>
                     <td style="font-weight:bold; color:${isLow?'var(--danger)':'var(--success)'}">${p.stock}</td>
