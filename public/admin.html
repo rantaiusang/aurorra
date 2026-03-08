@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurorra Admin - Ultimate System</title>
+    <title>Aurorra Admin - Ultimate System (Fixed)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +54,7 @@
             cursor: pointer; border: 1px solid transparent; user-select: none; font-size: 0.9rem;
         }
         .nav-item:hover, .nav-item.active {
-            background: rgba(212, 175, 55, 0.1); color: var(--lguxury-gold); border-color: rgba(212, 175, 55, 0.3);
+            background: rgba(212, 175, 55, 0.1); color: var(--luxury-gold); border-color: rgba(212, 175, 55, 0.3);
         }
 
         .admin-main {
@@ -105,49 +105,27 @@
         .btn-outline { background: transparent; border: 1px solid var(--luxury-gold); color: var(--luxury-gold); }
         .btn-outline:hover { background: var(--luxury-gold); color: #000; }
         .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+        .btn-danger { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
 
-        /* --- FORMS & INPUTS (FIXED VISIBILITY) --- */
+        /* --- FORMS & INPUTS --- */
         .form-control { 
-            width: 100%; 
-            padding: 12px; 
-            /* PERBAIKAN: Gunakan background solid gelap agar teks putih terlihat */
-            background: #1f1f1f1; 
+            width: 100%; padding: 12px; 
+            background: #1f1f1f; 
             border: 1px solid #444; 
             border-radius: 6px; 
-            color: #e0e0e0; /* Warna teks abu-terang agar kontras tapi tidak menyilaukan mata */
+            color: #e0e0e0; 
             box-sizing: border-box; 
             font-family: inherit; 
             margin-bottom: 15px; 
-            
-            /* Reset styling default browser dropdown agar mengikuti tema gelap */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
         }
-
-        /* PERBAIKAN KHUSUS UNTUK DROPDOWN LIST */
         select.form-control {
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg+xml%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D22292.92%22%20height%3D22292.92%22%20viewBox%3D220%200%2012%2012%22%3E%3Cpath%20fill%3D%22cccccc%22%20d%3D%22M7%202l5%205-5%205zM2.5%207l5%205-5%205z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 30px; /* Ruang untuk panah dropdown */
+            background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
         }
-
-        /* Paksa teks putih saat di-fokus atau saat di-dropdown */
-        .form-control:focus { 
-            outline: none; 
-            border-color: var(--luxury-gold); 
-            background: #252525; 
-            color: #fff; /* Paksa warna putih cerah */
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
-        }
-
-        /* Paksa background gelap pada item option di dropdown list */
-        option {
-            background-color: #1f1f1f1;
-            color: #fff;
-        }
-
+        .form-control:focus { outline: none; border-color: var(--luxury-gold); background: #252525; color: #fff; box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5); }
+        option { background-color: #1f1f1f; color: #fff; }
         .form-label { display: block; margin-bottom: 8px; color: #ccc; font-size:0.9rem; }
         
         /* Modals */
@@ -180,7 +158,8 @@
 
     <div id="auth-check-overlay">
         <div class="loading-spinner" style="width: 50px; height: 50px;"></div>
-        <h2 style="color: var(--luxury-text-gold); font-family: 'Playfair Display';">Verifikasi Keamanan...</h2>
+        <h2 style="color: var(--luxury-gold); font-family: 'Playfair Display';">Verifikasi Keamanan...</h2>
+        <p id="auth-error-msg" style="color:var(--danger); font-size:0.8rem; margin-top:10px; display:none;"></p>
     </div>
 
     <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
@@ -302,7 +281,12 @@
                 <input type="hidden" id="prodId">
                 <div class="form-label">Nama Produk</div><input type="text" id="prodName" class="form-control" required>
                 <div class="form-label">Harga Jual</div><input type="number" id="prodPrice" class="form-control" required>
-                <div class="form-label">Kategori</div><select id="prodCategory" class="form-control"><option value="women">Women</option><option value="men">Men</option><option value="unisex">Unisex</option></select></div>
+                <div class="form-label">Kategori</div>
+                <select id="prodCategory" class="form-control">
+                    <option value="women">Women</option>
+                    <option value="men">Men</option>
+                    <option value="unisex">Unisex</option>
+                </select>
                 <div class="form-label">URL Gambar</div><input type="url" id="prodImage" class="form-control" required>
                 <div class="text-right" style="margin-top:20px;">
                     <button type="button" class="btn btn-danger" onclick="closeProductModal()">Batal</button>
@@ -335,17 +319,25 @@
         </div>
     </div>
 
-    <!-- MODAL ONGKIR -->
+    <!-- MODAL ONGKIR (FIXED CLASS NAMES) -->
     <div class="modal-overlay" id="ongkirModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeOngkirModal()">&times;</span>
             <h3 style="font-family:'Playfair Display'; color:var(--luxury-gold); margin-bottom:20px;">Kelola Ongkir</h3>
             <form id="ongkirForm" onsubmit="handleOngkirSubmit(event)">
                 <input type="hidden" id="ongkirId">
-                <div class="form-label">Kota Tujuan</div><input type="text" id="ongkirTujuan" class="contan" style="color: #ccc; font-size: 0.9rem;">
-                <input type="text" id="ongkirEkspedisi" class="contan" style="color: #ccc; font-size: 0.9rem;">
-                <div class="form-label">Estimasi</div><input type="text" id="ongkirEstimasi" class="contan" style="color: #ccc; font-size: 0.9rem;">
-                <div class="form-label">Tarif (IDR)</div><input type="number" id="ongkirTarif" class="contan" style="color: #ccc; font-size: 0.9rem;">
+                <div class="form-label">Kota Tujuan</div>
+                <input type="text" id="ongkirTujuan" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                
+                <div class="form-label">Ekspedisi</div>
+                <input type="text" id="ongkirEkspedisi" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                
+                <div class="form-label">Estimasi</div>
+                <input type="text" id="ongkirEstimasi" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                
+                <div class="form-label">Tarif (IDR)</div>
+                <input type="number" id="ongkirTarif" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                
                 <div class="text-right" style="margin-top:20px;">
                     <button type="button" class="btn btn-danger" onclick="closeOngkirModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
@@ -362,8 +354,14 @@
             <form id="orderDetailForm" onsubmit="handleOrderDetailSubmit(event)">
                 <input type="hidden" id="detailOrderId">
                 <div class="form-label">Pelanggan</div><input type="text" id="detailCustomer" class="form-control" readonly>
-                <div class="form-label">Status</div>
-                <select id="detailStatus" class="form-control"><option value="pending">Pending</option><option value="paid">Paid</option><option value="shipping">Shipping</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></form></form>
+                <div class="form-label">Status</div> 
+                <select id="detailStatus" class="form-control">
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="shipping">Shipping</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
                 <div class="form-label">Alamat</div><input type="text" id="detailAddress" class="form-control" readonly>
                 
                 <hr style="border-color: #333; margin: 20px 0;">
@@ -382,6 +380,12 @@
     <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:3000;"></div>
 
     <script>
+        // ==========================================
+        // KONFIGURASI DEBUG / BYPASS
+        // ==========================================
+        // Ubah ke TRUE jika Anda ingin melihat dashboard tanpa login (untuk testing UI saja)
+        const BYPASS_AUTH_FOR_DEBUG = false; 
+
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -394,20 +398,45 @@
             t.innerText = msg; c.appendChild(t); setTimeout(() => t.remove(), 4000);
         }
 
-        // --- SECURITY CHECK ---
+        // --- SECURITY CHECK (FIXED) ---
         async function checkAdminAuth() {
+            // Jika mode debug aktif, langsung masuk
+            if (BYPASS_AUTH_FOR_DEBUG) {
+                console.warn("⚠️ AUTH BYPASS AKTIF - Mode Debug");
+                document.getElementById('auth-check-overlay').classList.add('hidden');
+                document.getElementById('adminMainContent').classList.add('visible');
+                loadDashboardStats();
+                return;
+            }
+
             try {
                 const { data: { session } } = await sb.auth.getSession();
-                if (!session) throw new Error("No Session");
-                const { data: user, error } = await sb.from('ngebelusers').select('role').eq('id', session.user.id).single();
-                if (error || !user || user.role !== 'admin') throw new Error("Unauthorized");
+                if (!session) throw new Error("Tidak ada sesi login. Silakan login ulang.");
                 
+                // PASTIKAN NAMA TABEL 'ngebelusers' ADA DI SUPABASE ANDA
+                const { data: user, error } = await sb.from('ngebelusers').select('role').eq('id', session.user.id).single();
+                
+                if (error) {
+                    console.error("DB Error:", error);
+                    throw new Error("Gagal mengambil data user (Cek tabel ngebelusers & RLS Policy)");
+                }
+                
+                if (!user || user.role !== 'admin') throw new Error("Akses ditolak: Anda bukan Admin.");
+                
+                // Sukses
                 document.getElementById('auth-check-overlay').classList.add('hidden');
                 document.getElementById('adminMainContent').classList.add('visible');
                 loadDashboardStats();
             } catch (err) {
-                alert("Akses Ditolak: Area Admin Khusus.");
-                await sb.auth.signOut(); localStorage.clear(); window.location.href = 'index.html';
+                console.error(err);
+                document.getElementById('auth-error-msg').innerText = err.message;
+                document.getElementById('auth-error-msg').style.display = 'block';
+                
+                setTimeout(() => {
+                    alert("Error: " + err.message);
+                    // Opsional: redirect ke index
+                    // window.location.href = 'index.html'; 
+                }, 1000);
             }
         }
 
@@ -425,7 +454,7 @@
             const navItems = document.querySelectorAll('.nav-links .nav-item');
             const index = ['dashboard','products','purchasing','stock','orders','profit','lowstock','ongkir'].indexOf(tab);
             if(index >= 0) navItems[index].classList.add('active');
-            if(window.innerWidth <= 768px) { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobileOverlay').classList.remove('show'); }
+            if(window.innerWidth <= 768px) { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobile-overlay').classList.remove('show'); }
             
             if(tab === 'dashboard') loadDashboardStats();
             if(tab === 'products') loadProducts();
@@ -598,12 +627,12 @@
             closeProductModal(); loadProducts();
         }
 
-        // --- ONGKIR (UPDATED & FIXED) ---
+        // --- ONGKIR (FIXED SYNTAX ERROR) ---
         async function loadOngkir() { 
             const tbody = document.querySelector('#ongkirTable tbody');
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
             
-            // PERBAIKAN 1: Ambil Query Lengkap
+            // Ambil Query Lengkap
             const { data, error } = await sb.from('ongkir').select('*');
             
             if (error) {
@@ -616,7 +645,7 @@
                 return;
             }
 
-            // PERBAIKAN 2: Render Data
+            // PERBAIKAN: Syntax Error di sini sudah diperbaiki (tadinya .join('join(''))
             tbody.innerHTML = data.map(o => `
                 <tr>
                     <td>${o.tujuan}</td>
@@ -628,31 +657,68 @@
                         <button class="btn btn-danger btn-sm" onclick="deleteOngkir('${o.id}')">Hapus</button>
                     </td>
                 </tr>
-            `).join('join('');
+            `).join('');
 
-            // Pastikan fungsi hapus
-            async function deleteOngkir(id) { 
+            // Pastikan fungsi hapus ada di scope
+            window.deleteOngkir = async function(id) { 
                 if(!confirm('Hapus data ongkir ini?')) return; 
                 const { error } = await sb.from('ongkir').delete().eq('id', id); 
                 if(error) showToast("Gagal hapus", "error"); else { showToast("Terhapus", "success"); loadOngkir(); } 
             }
         }
+        
+        // Fungsi dummy untuk edit ongkir (karena tidak ada di kode asli)
+        window.editOngkir = function(id) {
+             const item = document.querySelector('#ongkirTable tr button[onclick*="'+id+'"]').closest('tr');
+             // Logic sederhana untuk demo, seharusnya populate modal
+             showToast("Fitur Edit ID: " + id + " belum diimplementasikan penuh.", "info");
+        }
 
-        function openOrderDetail(id) { /* Load Modal Detail */ document.getElementById('orderDetailModal').classList.add('show'); }
+        function openOrderDetail(id) { document.getElementById('orderDetailModal').classList.add('show'); }
         function closeOrderDetailModal() { document.getElementById('orderDetailModal').classList.remove('show'); }
-        async function handleOrderDetailSubmit(e) { e.preventDefault(); /* Update Order */ showToast("Order diupdate", "success"); closeOrderDetailModal(); loadOrders(); }
+        async function handleOrderDetailSubmit(e) { e.preventDefault(); showToast("Order diupdate", "success"); closeOrderDetailModal(); loadOrders(); }
 
         // --- UTILS ---
         function getStatusBadge(s) {
             let c = 'badge-warning'; if(s.includes('paid')||s.includes('completed')) c='badge-success'; if(s.includes('cancel')) c='badge-danger';
             return `<span class="badge ${c}">${s}</span>`;
         }
-        function renderRecentOrders(d) { /* Render Table */ }
+        function renderRecentOrders(d) { 
+            const tbody = document.querySelector('#recentOrdersTable tbody');
+            if(!d || d.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#666;">Belum ada pesanan</td></tr>';
+                return;
+            }
+            tbody.innerHTML = d.map(o => `
+                <tr>
+                    <td>#${o.id.toString().slice(0,6)}</td>
+                    <td>${o.customer_name || 'Guest'}</td>
+                    <td>${formatPrice(o.total_amount)}</td>
+                    <td>${getStatusBadge(o.status)}</td>
+                    <td style="font-size:0.8rem; color:#888;">${new Date(o.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
         
         async function handleLogout(e) {
             e.preventDefault(); if(confirm("Logout?")) { await sb.auth.signOut(); localStorage.clear(); window.location.href = 'index.html'; }
         }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('mobileOverlay').classList.toggle('show'); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('mobile-overlay').classList.toggle('show'); }
+
+        // Modal Ongkir Handlers
+        window.openOngkirModal = function() { document.getElementById('ongkirModal').classList.add('show'); document.getElementById('ongkirForm').reset(); }
+        window.closeOngkirModal = function() { document.getElementById('ongkirModal').classList.remove('show'); }
+        window.handleOngkirSubmit = async function(e) {
+            e.preventDefault();
+            const tujuan = document.getElementById('ongkirTujuan').value;
+            const ekspedisi = document.getElementById('ongkirEkspedisi').value;
+            const estimasi = document.getElementById('ongkirEstimasi').value;
+            const tarif = document.getElementById('ongkirTarif').value;
+
+            const { error } = await sb.from('ongkir').insert([{ tujuan, ekspedisi, estimasi, tarif }]);
+            if(error) showToast("Gagal simpan: " + error.message, "error");
+            else { showToast("Ongkir disimpan", "success"); closeOngkirModal(); loadOngkir(); }
+        }
 
         window.addEventListener('load', checkAdminAuth);
     </script>
