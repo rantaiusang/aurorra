@@ -365,7 +365,7 @@
     <!-- TOAST -->
     <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:3000;"></div>
 
-       <script>
+          <script>
         // ==========================================
         // KONFIGURASI
         // ==========================================
@@ -385,7 +385,6 @@
             const c = document.getElementById('toast-container');
             if(!c) return;
             const t = document.createElement('div');
-            // Menggunakan string literal dengan benar
             const color = type==='success'?'var(--success)':type==='error'?'var(--danger)':'var(--luxury-gold)';
             t.style.cssText = `background: #1a1a1a; border-left: 4px solid ${color}; color: #fff; padding: 15px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-bottom: 10px; animation: slideUpFade 0.3s;`;
             t.innerText = msg; 
@@ -641,6 +640,7 @@
             return `<span class="badge ${c}">${s}</span>`;
         }
 
+        // PERBAIKAN UTAMA: loadOrders & openOrderDetail
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
             if(!tbody) return;
@@ -663,16 +663,21 @@
                     itemNames = 'Error data';
                 }
 
+                // PERBAIKAN: Jangan konversi ID ke string jika belum perlu, biarkan JavaScript menangani
+                // Namun untuk parameter onclick HTML, kita butuh string
+                const orderIdStr = String(o.id); 
+                const displayId = o.order_id || orderIdStr.slice(0,8);
+
                 return `
                 <tr>
-                    <td>#${o.order_id || o.id.toString().slice(0,8)}</td>
+                    <td>#${displayId}</td>
                     <td>${o.customer_name}</td>
                     <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${itemNames}">${itemNames}</td>
                     <td style="color:var(--luxury-gold);">${o.jasa_kirim || '-'}</td>
                     <td style="font-family:monospace;">${o.resi || '-'}</td>
                     <td>${formatPrice(o.total_amount)}</td>
                     <td>${getStatusBadge(o.status)}</td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${orderIdStr}')">Detail</button></td>
                 </tr>`;
             }).join('');
         }
@@ -752,22 +757,34 @@
              showToast("Fitur Edit ID: " + id + " belum diimplementasikan penuh.", "info");
         }
 
-        async function openOrderDetail(id) {
-            const btn = document.activeElement;
-            const originalText = btn ? btn.innerHTML : '';
+        // PERBAIKAN: Fungsi Detail Order
+        // Kita menggunakan window.openOrderDetail agar bisa dipanggil dari onclick HTML
+        window.openOrderDetail = async function(id) {
+            // Jangan gunakan document.activeElement karena bisa error saat dipanggil langsung
+            const btn = document.querySelector(`button[onclick="openOrderDetail('${id}')"]`);
             if(btn) btn.innerHTML = '...';
 
             try {
+                console.log("Fetching order ID:", id, "Type:", typeof id);
+
                 const { data, error } = await sb
                     .from('orders')
                     .select('*')
-                    .eq('id', id)
+                    .eq('id', id) // Supabase akan otomatis mencocokkan tipe data
                     .single();
 
-                if (error || !data) {
-                    throw new Error("Gagal memuat data order.");
+                if (error) {
+                    console.error("Supabase Error:", error);
+                    throw new Error(error.message);
                 }
 
+                if (!data) {
+                    throw new Error("Data order dengan ID tersebut tidak ditemukan.");
+                }
+
+                console.log("Data fetched:", data);
+
+                // Isi Form
                 const detailId = document.getElementById('detailOrderId');
                 const detailCust = document.getElementById('detailCustomer');
                 const detailAddr = document.getElementById('detailAddress');
@@ -785,9 +802,10 @@
                 const modal = document.getElementById('orderDetailModal');
                 if(modal) modal.classList.add('show');
             } catch (err) {
-                showToast(err.message, "error");
+                console.error(err);
+                showToast("Gagal memuat: " + err.message, "error");
             } finally {
-                if(btn) btn.innerHTML = originalText;
+                if(btn) btn.innerHTML = 'Detail';
             }
         }
 
@@ -796,9 +814,11 @@
             if(m) m.classList.remove('show'); 
         }
 
+        // PERBAIKAN: Hapus onsubmit dari HTML jika sudah pakai addEventListener, atau pastikan tidak konflik.
+        // Di sini kita akan memastikan event listener bekerja dengan benar
         const orderDetailForm = document.getElementById('orderDetailForm');
         if(orderDetailForm) {
-            orderDetailForm.addEventListener('submit', async function(e) {
+            orderDetailForm.onsubmit = async function(e) {
                 e.preventDefault();
 
                 const btn = e.target.querySelector('button[type="submit"]');
@@ -830,7 +850,7 @@
                     btn.innerText = originalText;
                     btn.disabled = false;
                 }
-            });
+            };
         }
 
         function renderRecentOrders(d) { 
@@ -861,9 +881,9 @@
         }
         
         function toggleSidebar() { 
-            const sb = document.getElementById('sidebar'); 
+            const sbEl = document.getElementById('sidebar'); 
             const mo = document.getElementById('mobile-overlay'); 
-            if(sb) sb.classList.toggle('mobile-open'); 
+            if(sbEl) sbEl.classList.toggle('mobile-open'); 
             if(mo) mo.classList.toggle('show'); 
         }
 
