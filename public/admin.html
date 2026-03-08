@@ -19,7 +19,7 @@
             --success: #4CAF50;
             --info: #2196F3;
             --warning: #ff9800;
-            --sidebar-width: 260px;
+            --sidebar-width: 265px;
         }
         
         body {
@@ -54,7 +54,7 @@
             cursor: pointer; border: 1px solid transparent; user-select: none; font-size: 0.9rem;
         }
         .nav-item:hover, .nav-item.active {
-            background: rgba(212, 175, 55, 0.1); color: var(--luxury-gold); border-color: rgba(212, 175, 55, 0.3);
+            background: rgba(212, 175, 55, 0.1); color: var(--lguxury-gold); border-color: rgba(212, 175, 55, 0.3);
         }
 
         .admin-main {
@@ -106,10 +106,49 @@
         .btn-outline:hover { background: var(--luxury-gold); color: #000; }
         .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
 
-        /* --- FORMS & INPUTS --- */
-        .form-control { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid #444; border-radius: 6px; color: #fff; box-sizing: border-box; font-family: inherit; margin-bottom: 15px; }
-        .form-control:focus { outline: none; border-color: var(--luxury-gold); background: rgba(255,255,255,0.08); }
-        .form-label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; }
+        /* --- FORMS & INPUTS (FIXED VISIBILITY) --- */
+        .form-control { 
+            width: 100%; 
+            padding: 12px; 
+            /* PERBAIKAN: Gunakan background solid gelap agar teks putih terlihat */
+            background: #1f1f1f1; 
+            border: 1px solid #444; 
+            border-radius: 6px; 
+            color: #e0e0e0; /* Warna teks abu-terang agar kontras tapi tidak menyilaukan mata */
+            box-sizing: border-box; 
+            font-family: inherit; 
+            margin-bottom: 15px; 
+            
+            /* Reset styling default browser dropdown agar mengikuti tema gelap */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        /* PERBAIKAN KHUSUS UNTUK DROPDOWN LIST */
+        select.form-control {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg+xml%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D22292.92%22%20height%3D22292.92%22%20viewBox%3D220%200%2012%2012%22%3E%3Cpath%20fill%3D%22cccccc%22%20d%3D%22M7%202l5%205-5%205zM2.5%207l5%205-5%205z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px; /* Ruang untuk panah dropdown */
+        }
+
+        /* Paksa teks putih saat di-fokus atau saat di-dropdown */
+        .form-control:focus { 
+            outline: none; 
+            border-color: var(--luxury-gold); 
+            background: #252525; 
+            color: #fff; /* Paksa warna putih cerah */
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Paksa background gelap pada item option di dropdown list */
+        option {
+            background-color: #1f1f1f1;
+            color: #fff;
+        }
+
+        .form-label { display: block; margin-bottom: 8px; color: #ccc; font-size:0.9rem; }
         
         /* Modals */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
@@ -141,10 +180,10 @@
 
     <div id="auth-check-overlay">
         <div class="loading-spinner" style="width: 50px; height: 50px;"></div>
-        <h2 style="color: var(--luxury-gold); font-family: 'Playfair Display';">Verifikasi Keamanan...</h2>
+        <h2 style="color: var(--luxury-text-gold); font-family: 'Playfair Display';">Verifikasi Keamanan...</h2>
     </div>
 
-    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR -->
     <aside class="admin-sidebar" id="sidebar">
@@ -303,10 +342,10 @@
             <h3 style="font-family:'Playfair Display'; color:var(--luxury-gold); margin-bottom:20px;">Kelola Ongkir</h3>
             <form id="ongkirForm" onsubmit="handleOngkirSubmit(event)">
                 <input type="hidden" id="ongkirId">
-                <div class="form-label">Kota Tujuan</div><input type="text" id="ongkirTujuan" class="form-control" required>
-                <div class="form-label">Ekspedisi</div><input type="text" id="ongkirEkspedisi" class="form-control" required>
-                <div class="form-label">Estimasi</div><input type="text" id="ongkirEstimasi" class="form-control" required>
-                <div class="form-label">Tarif (IDR)</div><input type="number" id="ongkirTarif" class="form-control" required>
+                <div class="form-label">Kota Tujuan</div><input type="text" id="ongkirTujuan" class="contan" style="color: #ccc; font-size: 0.9rem;">
+                <input type="text" id="ongkirEkspedisi" class="contan" style="color: #ccc; font-size: 0.9rem;">
+                <div class="form-label">Estimasi</div><input type="text" id="ongkirEstimasi" class="contan" style="color: #ccc; font-size: 0.9rem;">
+                <div class="form-label">Tarif (IDR)</div><input type="number" id="ongkirTarif" class="contan" style="color: #ccc; font-size: 0.9rem;">
                 <div class="text-right" style="margin-top:20px;">
                     <button type="button" class="btn btn-danger" onclick="closeOngkirModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
@@ -324,7 +363,7 @@
                 <input type="hidden" id="detailOrderId">
                 <div class="form-label">Pelanggan</div><input type="text" id="detailCustomer" class="form-control" readonly>
                 <div class="form-label">Status</div>
-                <select id="detailStatus" class="form-control"><option value="pending">Pending</option><option value="paid">Paid</option><option value="shipping">Shipping</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></form>
+                <select id="detailStatus" class="form-control"><option value="pending">Pending</option><option value="paid">Paid</option><option value="shipping">Shipping</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></form></form>
                 <div class="form-label">Alamat</div><input type="text" id="detailAddress" class="form-control" readonly>
                 
                 <hr style="border-color: #333; margin: 20px 0;">
@@ -386,7 +425,7 @@
             const navItems = document.querySelectorAll('.nav-links .nav-item');
             const index = ['dashboard','products','purchasing','stock','orders','profit','lowstock','ongkir'].indexOf(tab);
             if(index >= 0) navItems[index].classList.add('active');
-            if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobileOverlay').classList.remove('show'); }
+            if(window.innerWidth <= 768px) { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobileOverlay').classList.remove('show'); }
             
             if(tab === 'dashboard') loadDashboardStats();
             if(tab === 'products') loadProducts();
@@ -536,8 +575,8 @@
             const { data } = await sb.from('products').select('*').order('created_at', { ascending: false });
             if(data) tbody.innerHTML = data.map(p => `
                 <tr>
-                    <td><img src="${p.image_url||'https://via.placeholder.com/40'}" width="40"></td>
-                    <td>${p.name}</td>
+                    <td><img src="${p.image_url||'https://via.placeholder.com/40'}" width="40" height="40px"></td>
+                    <td><div style="font-weight:600; color:#fff;">${p.name}</td></td>
                     <td>${p.category||'-'}</td>
                     <td>${formatPrice(p.price)}</td>
                     <td>${p.stock}</td>
@@ -555,16 +594,49 @@
         function closeProductModal() { document.getElementById('productModal').classList.remove('show'); }
         async function handleProductSubmit(e) { 
             e.preventDefault(); 
-            // Logic CRUD Product
             showToast("Fitur Edit Product disederhanakan untuk demo ini", "info"); 
             closeProductModal(); loadProducts();
         }
 
-        // --- ONGKIR & ORDER (Legacy but Updated) ---
-        async function loadOngkir() { /* Load Logic */ }
-        function openOngkirModal() { document.getElementById('ongkirModal').classList.add('show'); }
-        function closeOngkirModal() { document.getElementById('ongkirModal').classList.remove('show'); }
-        async function handleOngkirSubmit(e) { e.preventDefault(); /* Insert/Update Ongkir */ showToast("Ongkir disimpan", "success"); closeOngkirModal(); loadOngkir(); }
+        // --- ONGKIR (UPDATED & FIXED) ---
+        async function loadOngkir() { 
+            const tbody = document.querySelector('#ongkirTable tbody');
+            tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
+            
+            // PERBAIKAN 1: Ambil Query Lengkap
+            const { data, error } = await sb.from('ongkir').select('*');
+            
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">Belum ada data ongkir.</td></tr>';
+                return;
+            }
+
+            // PERBAIKAN 2: Render Data
+            tbody.innerHTML = data.map(o => `
+                <tr>
+                    <td>${o.tujuan}</td>
+                    <td>${o.ekspedisi || '-'}</td>
+                    <td>${o.estimasi || '-'}</td>
+                    <td>${formatPrice(o.tarif)}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="editOngkir('${o.id}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteOngkir('${o.id}')">Hapus</button>
+                    </td>
+                </tr>
+            `).join('join('');
+
+            // Pastikan fungsi hapus
+            async function deleteOngkir(id) { 
+                if(!confirm('Hapus data ongkir ini?')) return; 
+                const { error } = await sb.from('ongkir').delete().eq('id', id); 
+                if(error) showToast("Gagal hapus", "error"); else { showToast("Terhapus", "success"); loadOngkir(); } 
+            }
+        }
 
         function openOrderDetail(id) { /* Load Modal Detail */ document.getElementById('orderDetailModal').classList.add('show'); }
         function closeOrderDetailModal() { document.getElementById('orderDetailModal').classList.remove('show'); }
