@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurorra Admin - Ultimate System (SECURE FIX)</title>
+    <title>Aurorra Admin - Ultimate System (PRODUCTION READY)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -367,7 +367,7 @@
         // ==========================================
         // KONFIGURASI
         // ==========================================
-        const BYPASS_AUTH_FOR_DEBUG = false; // HARUS FALSE DI PRODUCTION!
+        const BYPASS_AUTH_FOR_DEBUG = false; 
 
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
@@ -381,7 +381,7 @@
             t.innerText = msg; c.appendChild(t); setTimeout(() => t.remove(), 4000);
         }
 
-        // --- SECURITY CHECK (PERBAIKAN KEAMANAN PENUH) ---
+        // --- SECURITY CHECK ---
         async function checkAdminAuth() {
             if (BYPASS_AUTH_FOR_DEBUG) {
                 console.warn("⚠️ AUTH BYPASS AKTIF");
@@ -395,12 +395,10 @@
                 const { data: { session } } = await sb.auth.getSession();
                 if (!session) throw new Error("Sesi login tidak ditemukan.");
                 
-                // FIX 1 & 2: Query berdasarkan EMAIL & Validasi Role Ketat
-                // Menggunakan .eq('email', session.user.email) karena tabel ngebelusers tidak punya kolom ID
                 const { data: user, error } = await sb
                     .from('ngebelusers')
                     .select('role')
-                    .eq('email', session.user.email) // PERBAIKAN 1
+                    .eq('email', session.user.email)
                     .single();
                 
                 if (error) {
@@ -408,12 +406,10 @@
                     throw new Error("Gagal mengambil data user. Pastikan tabel ngebelusers dan email sesuai.");
                 }
                 
-                // PERBAIKAN 2: Cek role secara eksplisit
                 if (!user || user.role !== "admin") {
                     throw new Error("Akses ditolak: Anda bukan Admin.");
                 }
 
-                // Sukses Login
                 document.getElementById('auth-check-overlay').classList.add('hidden');
                 document.getElementById('adminMainContent').classList.add('visible');
                 loadDashboardStats();
@@ -452,9 +448,10 @@
         }
 
         // --- LOADERS ---
+        // FIX 3: Menambahkan kolom customer_name dan status ke select query
         async function loadDashboardStats() {
             const [orders, profit, lowStock] = await Promise.all([
-                sb.from('orders').select('total_amount, created_at'),
+                sb.from('orders').select('id, customer_name, status, total_amount, created_at'),
                 sb.from('laporan_profit').select('profit'),
                 sb.from('stok_menipis').select('*')
             ]);
@@ -566,7 +563,6 @@
         });
 
         // --- HELPERS ---
-        // PERBAIKAN 4: Status Badge Safety
         function getStatusBadge(s) {
             if(!s) return `<span class="badge badge-secondary">Unknown</span>`;
             let c = 'badge-warning'; 
@@ -575,24 +571,28 @@
             return `<span class="badge ${c}">${s}</span>`;
         }
 
+        // FIX 7: Menambahkan limit(100) untuk performa
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
             tbody.innerHTML = '<tr><td colspan="8" class="loading-spinner"></td></tr>';
-            const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+            const { data } = await sb.from('orders').select('*').limit(100).order('created_at', { ascending: false });
             
             if(!data) return;
 
             tbody.innerHTML = data.map(o => {
-                // PERBAIKAN 3: Safe JSON Parsing
+                // FIX 2: Smart JSON Parsing (check string vs object)
                 let itemNames = '-';
                 try {
-                    const items = JSON.parse(o.items || '[]');
+                    let items = o.items;
+                    if (typeof items === "string") {
+                        items = JSON.parse(items);
+                    }
                     if(Array.isArray(items)) {
                         itemNames = items.map(i => i.name).join(', ');
                     }
                 } catch (e) {
-                    console.error("Error parsing items for order", o.id, e);
-                    itemNames = 'Error parsing data';
+                    console.error("Parse error", e);
+                    itemNames = 'Error data';
                 }
 
                 return `
@@ -613,10 +613,12 @@
             const tbody = document.querySelector('#productsTable tbody');
             tbody.innerHTML = '<tr><td colspan="6" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('products').select('*').order('created_at', { ascending: false });
+            
+            // FIX 1: Perbaiki HTML Tag Error (</td></td> menjadi </div></td>)
             if(data) tbody.innerHTML = data.map(p => `
                 <tr>
                     <td><img src="${p.image_url||'https://via.placeholder.com/40'}" width="40" height="40px"></td>
-                    <td><div style="font-weight:600; color:#fff;">${p.name}</td></td>
+                    <td><div style="font-weight:600; color:#fff;">${p.name}</div></td>
                     <td>${p.category||'-'}</td>
                     <td>${formatPrice(p.price)}</td>
                     <td>${p.stock}</td>
@@ -678,9 +680,81 @@
              showToast("Fitur Edit ID: " + id + " belum diimplementasikan penuh.", "info");
         }
 
-        function openOrderDetail(id) { document.getElementById('orderDetailModal').classList.add('show'); }
+        // FIX 5: Implementasi Open Order Detail (Fetch Data)
+        async function openOrderDetail(id) {
+            const btn = document.activeElement;
+            const originalText = btn ? btn.innerHTML : '';
+            if(btn) btn.innerHTML = '...';
+
+            try {
+                const { data, error } = await sb
+                    .from('orders')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error || !data) {
+                    throw new Error("Gagal memuat data order.");
+                }
+
+                // Isi Form
+                document.getElementById('detailOrderId').value = data.id;
+                document.getElementById('detailCustomer').value = data.customer_name || '';
+                document.getElementById('detailAddress').value = data.customer_address || '';
+                document.getElementById('detailStatus').value = data.status || 'pending';
+                document.getElementById('detailJasaKirim').value = data.jasa_kirim || '';
+                document.getElementById('detailResi').value = data.resi || '';
+
+                document.getElementById('orderDetailModal').classList.add('show');
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                if(btn) btn.innerHTML = originalText;
+            }
+        }
+
         function closeOrderDetailModal() { document.getElementById('orderDetailModal').classList.remove('show'); }
-        async function handleOrderDetailSubmit(e) { e.preventDefault(); showToast("Order diupdate", "success"); closeOrderDetailModal(); loadOrders(); }
+
+        // FIX 6: Implementasi Handle Order Detail Submit (Update Database)
+        async function handleOrderDetailSubmit(e) {
+            e.preventDefault();
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+
+            try {
+                const id = document.getElementById('detailOrderId').value;
+                const status = document.getElementById('detailStatus').value;
+                const jasa_kirim = document.getElementById('detailJasaKirim').value;
+                const resi = document.getElementById('detailResi').value;
+
+                const { error } = await sb
+                    .from('orders')
+                    .update({
+                        status,
+                        jasa_kirim,
+                        resi
+                    })
+                    .eq('id', id);
+
+                if (error) {
+                    throw error;
+                }
+
+                showToast("Pesanan berhasil diperbarui", "success");
+                closeOrderDetailModal();
+                loadOrders(); // Refresh tabel
+
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal update: " + err.message, "error");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
 
         function renderRecentOrders(d) { 
             const tbody = document.querySelector('#recentOrdersTable tbody');
