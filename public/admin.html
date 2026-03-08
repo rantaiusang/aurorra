@@ -365,45 +365,52 @@
     <!-- TOAST -->
     <div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:3000;"></div>
 
-    <script>
+       <script>
         // ==========================================
         // KONFIGURASI
         // ==========================================
-        // Ubah ke true JIKA INGIN MELEWATI LOGIN SEMENTARA (untuk debug)
         const BYPASS_AUTH_FOR_DEBUG = false; 
 
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function formatPrice(p) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p || 0); }
+        function formatPrice(p) { 
+            try {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p || 0); 
+            } catch (e) { return "Rp 0"; }
+        }
+        
         function showToast(msg, type='info') {
             const c = document.getElementById('toast-container');
+            if(!c) return;
             const t = document.createElement('div');
-            t.style.cssText = `background: #1a1a1a; border-left: 4px solid ${type==='success'?'var(--success)':type==='error'?'var(--danger)':'var(--luxury-gold)'}; color: #fff; padding: 15px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-bottom: 10px; animation: slideUpFade 0.3s;`;
-            t.innerText = msg; c.appendChild(t); setTimeout(() => t.remove(), 4000);
+            // Menggunakan string literal dengan benar
+            const color = type==='success'?'var(--success)':type==='error'?'var(--danger)':'var(--luxury-gold)';
+            t.style.cssText = `background: #1a1a1a; border-left: 4px solid ${color}; color: #fff; padding: 15px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-bottom: 10px; animation: slideUpFade 0.3s;`;
+            t.innerText = msg; 
+            c.appendChild(t); 
+            setTimeout(() => { if(t.parentNode) t.remove(); }, 4000);
         }
 
-        // --- SECURITY CHECK (PERBAIKAN UTAMA) ---
+        // --- SECURITY CHECK ---
         async function checkAdminAuth() {
             const overlay = document.getElementById('auth-check-overlay');
             const errorMsg = document.getElementById('auth-error-msg');
             const mainContent = document.getElementById('adminMainContent');
 
             if (BYPASS_AUTH_FOR_DEBUG) {
-                console.warn("⚠️ AUTH BYPASS AKTIF");
-                overlay.classList.add('hidden');
-                mainContent.classList.add('visible');
+                console.warn("AUTH BYPASS AKTIF");
+                if(overlay) overlay.classList.add('hidden');
+                if(mainContent) mainContent.classList.add('visible');
                 loadDashboardStats();
                 return;
             }
 
             try {
-                // 1. Cek Session Supabase
                 const { data: { session } } = await sb.auth.getSession();
-                if (!session) throw new Error("Sesi login tidak ditemukan. Silakan login ulang.");
+                if (!session) throw new Error("Sesi login tidak ditemukan.");
                 
-                // 2. Cek Role di Database (dengan penanganan error)
                 let isAdmin = false;
                 try {
                     const { data: user, error } = await sb
@@ -412,42 +419,32 @@
                         .eq('email', session.user.email)
                         .single();
                     
-                    if (error) throw error; // Lempar error jika query gagal
+                    if (error) throw error;
                     
                     if (user && user.role === "admin") {
                         isAdmin = true;
                     }
                 } catch (dbError) {
-                    console.error("Gagal cek tabel ngebelusers:", dbError);
-                    // PERBAIKAN: Jika tabel user error, kita tidak akan memblokir user sepenuhnya
-                    // tapi memberi peringatan agar loading screen hilang.
-                    showToast("Peringatan: Validasi Role Gagal. Masuk mode terbatas.", "warning");
+                    console.error("DB Auth Check Failed:", dbError);
+                    showToast("Warning: Validasi role database gagal.", "warning");
                 }
 
                 if (!isAdmin && !errorMsg.style.display) {
-                    // Jika bukan admin dan belum ada error DB sebelumnya
-                    throw new Error("Akses ditolak: Anda bukan Admin.");
+                    throw new Error("Akses ditolak: Bukan Admin.");
                 }
 
-                // SUKSES: Tampilkan konten
-                overlay.classList.add('hidden');
-                mainContent.classList.add('visible');
+                if(overlay) overlay.classList.add('hidden');
+                if(mainContent) mainContent.classList.add('visible');
                 loadDashboardStats();
-
             } catch (err) {
-                console.error("Auth Error:", err);
-                // Tampilkan pesan error di layar loading
-                errorMsg.innerText = err.message;
-                errorMsg.style.display = 'block';
-                
-                // HILANGKAN LOADING SPINNER AGAR USER TAU ADA ERROR
-                document.querySelector('#auth-check-overlay .loading-spinner').style.display = 'none';
-                
-                setTimeout(() => {
-                    alert("Akses Ditolak / Error: " + err.message);
-                    // Opsional: Redirect ke login jika perlu
-                    // window.location.href = 'login.html'; 
-                }, 1000);
+                console.error(err);
+                if(errorMsg) {
+                    errorMsg.innerText = err.message;
+                    errorMsg.style.display = 'block';
+                }
+                const spinner = document.querySelector('#auth-check-overlay .loading-spinner');
+                if(spinner) spinner.style.display = 'none';
+                setTimeout(() => alert("Error: " + err.message), 500);
             }
         }
 
@@ -458,14 +455,25 @@
                 'stock': 'Stock Monitoring', 'orders': 'Pesanan', 'profit': 'Laporan Profit',
                 'lowstock': 'Stok Menipis', 'ongkir': 'Ongkir'
             };
-            document.getElementById('pageTitle').innerText = titles[tab];
+            const titleEl = document.getElementById('pageTitle');
+            if(titleEl) titleEl.innerText = titles[tab] || 'Admin';
+            
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            
+            const activeTab = document.getElementById(`tab-${tab}`);
+            if(activeTab) activeTab.classList.remove('hidden');
+
             const navItems = document.querySelectorAll('.nav-links .nav-item');
             const index = ['dashboard','products','purchasing','stock','orders','profit','lowstock','ongkir'].indexOf(tab);
-            if(index >= 0) navItems[index].classList.add('active');
-            if(window.innerWidth <= 768px) { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobile-overlay').classList.remove('show'); }
+            if(index >= 0 && navItems[index]) navItems[index].classList.add('active');
+            
+            if(window.innerWidth <= 768) { 
+                const sidebar = document.getElementById('sidebar');
+                const mobileOverlay = document.getElementById('mobile-overlay');
+                if(sidebar) sidebar.classList.remove('mobile-open');
+                if(mobileOverlay) mobileOverlay.classList.remove('show');
+            }
             
             if(tab === 'dashboard') loadDashboardStats();
             if(tab === 'products') loadProducts();
@@ -487,24 +495,36 @@
 
             if(orders.data) {
                 const rev = orders.data.reduce((a,c)=>a+(parseFloat(c.total_amount)||0),0);
-                document.getElementById('totalRevenue').innerText = formatPrice(rev);
-                document.getElementById('totalOrders').innerText = orders.data.length;
+                const revEl = document.getElementById('totalRevenue');
+                if(revEl) revEl.innerText = formatPrice(rev);
+                
+                const ordEl = document.getElementById('totalOrders');
+                if(ordEl) ordEl.innerText = orders.data.length;
+                
                 renderRecentOrders(orders.data.slice(0,5));
             }
             if(profit.data) {
                 const prof = profit.data.reduce((a,c)=>a+(parseFloat(c.profit)||0),0);
-                document.getElementById('totalProfit').innerText = formatPrice(prof);
+                const profEl = document.getElementById('totalProfit');
+                if(profEl) profEl.innerText = formatPrice(prof);
             }
-            if(lowStock.data) document.getElementById('lowStockCount').innerText = lowStock.data.length;
+            if(lowStock.data) {
+                const lsEl = document.getElementById('lowStockCount');
+                if(lsEl) lsEl.innerText = lowStock.data.length;
+            }
         }
 
         async function loadPurchasing() {
             const tbody = document.querySelector('#purchasingTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('purchasing').select('qty, harga, created_at, products(name)').order('created_at', { ascending: false });
+            
+            if(!data) return;
+            
             tbody.innerHTML = data.map(p => `
                 <tr>
-                    <td><div style="font-weight:600;">${p.products?.name || 'Unknown'}</div></td>
+                    <td><div style="font-weight:600;">${p.products && p.products.name ? p.products.name : 'Unknown'}</div></td>
                     <td><span class="badge badge-success">+${p.qty}</span></td>
                     <td>${formatPrice(p.harga)}</td>
                     <td>${formatPrice(p.qty * p.harga)}</td>
@@ -516,13 +536,18 @@
         async function loadProductOptionsForPurchasing() {
             const { data } = await sb.from('products').select('id, name').order('name');
             const select = document.getElementById('purchaseProduct');
-            select.innerHTML = '<option value="">-- Pilih Produk --</option>' + data.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            if(select && data) {
+                select.innerHTML = '<option value="">-- Pilih Produk --</option>' + data.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            }
         }
 
         async function loadStockMonitor() {
             const tbody = document.querySelector('#stockMonitorTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('products').select('*').order('name');
+            if(!data) return;
+            
             tbody.innerHTML = data.map(p => {
                 const isLow = p.stock < 5;
                 const statusBadge = isLow 
@@ -541,6 +566,7 @@
 
         async function loadProfit() {
             const tbody = document.querySelector('#profitTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('laporan_profit').select('*');
             if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="5">Belum ada data profit.</td></tr>';
@@ -556,6 +582,7 @@
 
         async function loadLowStock() {
             const tbody = document.querySelector('#lowStockTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="3" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('stok_menipis').select('*');
             if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="3">Stok aman.</td></tr>';
@@ -568,28 +595,42 @@
         }
 
         // --- MODAL HANDLERS ---
-        function openPurchasingModal() { document.getElementById('purchasingModal').classList.add('show'); loadProductOptionsForPurchasing(); }
-        function closePurchasingModal() { document.getElementById('purchasingModal').classList.remove('show'); document.getElementById('purchasingForm').reset(); }
+        function openPurchasingModal() { 
+            const m = document.getElementById('purchasingModal');
+            if(m) {
+                m.classList.add('show'); 
+                loadProductOptionsForPurchasing();
+            }
+        }
+        function closePurchasingModal() { 
+            const m = document.getElementById('purchasingModal');
+            const f = document.getElementById('purchasingForm');
+            if(m) m.classList.remove('show'); 
+            if(f) f.reset(); 
+        }
 
         // --- ACTION HANDLERS ---
-        document.getElementById('purchasingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const pid = document.getElementById('purchaseProduct').value;
-            const qty = parseInt(document.getElementById('purchaseQty').value);
-            const harga = parseFloat(document.getElementById('purchasePrice').value);
+        const purchasingForm = document.getElementById('purchasingForm');
+        if(purchasingForm) {
+            purchasingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const pid = document.getElementById('purchaseProduct').value;
+                const qty = parseInt(document.getElementById('purchaseQty').value);
+                const harga = parseFloat(document.getElementById('purchasePrice').value);
 
-            if(!pid || !qty || !harga) return showToast("Data tidak lengkap", "error");
+                if(!pid || !qty || !harga) return showToast("Data tidak lengkap", "error");
 
-            const { error } = await sb.from('purchasing').insert([{ product_id: pid, qty, harga }]);
-            if(error) {
-                showToast("Gagal: " + error.message, "error");
-            } else {
-                showToast("Pembelian dicatat & Stok bertambah!", "success");
-                closePurchasingModal();
-                loadPurchasing();
-                loadDashboardStats(); 
-            }
-        });
+                const { error } = await sb.from('purchasing').insert([{ product_id: pid, qty, harga }]);
+                if(error) {
+                    showToast("Gagal: " + error.message, "error");
+                } else {
+                    showToast("Pembelian dicatat & Stok bertambah!", "success");
+                    closePurchasingModal();
+                    loadPurchasing();
+                    loadDashboardStats(); 
+                }
+            });
+        }
 
         // --- HELPERS ---
         function getStatusBadge(s) {
@@ -602,13 +643,13 @@
 
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="8" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('orders').select('*').limit(100).order('created_at', { ascending: false });
             
             if(!data) return;
 
             tbody.innerHTML = data.map(o => {
-                // Smart JSON Parsing
                 let itemNames = '-';
                 try {
                     let items = o.items;
@@ -619,7 +660,6 @@
                         itemNames = items.map(i => i.name).join(', ');
                     }
                 } catch (e) {
-                    console.error("Parse error", e);
                     itemNames = 'Error data';
                 }
 
@@ -639,10 +679,10 @@
 
         async function loadProducts() {
             const tbody = document.querySelector('#productsTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="6" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('products').select('*').order('created_at', { ascending: false });
             
-            // PERBAIKAN BUG HTML: Ganti </div></td> yang salah menjadi </div></td> yang benar (sebelumnya ada typo di loop)
             if(data) tbody.innerHTML = data.map(p => `
                 <tr>
                     <td><img src="${p.image_url||'https://via.placeholder.com/40'}" width="40" height="40px"></td>
@@ -657,20 +697,24 @@
         function openProductModal(id = null) { 
             const m = document.getElementById('productModal'); 
             const f = document.getElementById('productForm'); 
-            f.reset(); 
-            if(id) { /* Logic edit existing */ } 
-            m.classList.add('show'); 
+            if(f) f.reset(); 
+            if(m) m.classList.add('show'); 
         }
-        function closeProductModal() { document.getElementById('productModal').classList.remove('show'); }
+        function closeProductModal() { 
+            const m = document.getElementById('productModal'); 
+            if(m) m.classList.remove('show'); 
+        }
         async function handleProductSubmit(e) { 
             e.preventDefault(); 
             showToast("Fitur Edit Product disederhanakan untuk demo ini", "info"); 
-            closeProductModal(); loadProducts();
+            closeProductModal(); 
+            loadProducts();
         }
 
         // --- ONGKIR ---
         async function loadOngkir() { 
             const tbody = document.querySelector('#ongkirTable tbody');
+            if(!tbody) return;
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
             const { data, error } = await sb.from('ongkir').select('*');
             
@@ -724,15 +768,22 @@
                     throw new Error("Gagal memuat data order.");
                 }
 
-                // Isi Form
-                document.getElementById('detailOrderId').value = data.id;
-                document.getElementById('detailCustomer').value = data.customer_name || '';
-                document.getElementById('detailAddress').value = data.customer_address || '';
-                document.getElementById('detailStatus').value = data.status || 'pending';
-                document.getElementById('detailJasaKirim').value = data.jasa_kirim || '';
-                document.getElementById('detailResi').value = data.resi || '';
+                const detailId = document.getElementById('detailOrderId');
+                const detailCust = document.getElementById('detailCustomer');
+                const detailAddr = document.getElementById('detailAddress');
+                const detailStatus = document.getElementById('detailStatus');
+                const detailJasa = document.getElementById('detailJasaKirim');
+                const detailResi = document.getElementById('detailResi');
 
-                document.getElementById('orderDetailModal').classList.add('show');
+                if(detailId) detailId.value = data.id;
+                if(detailCust) detailCust.value = data.customer_name || '';
+                if(detailAddr) detailAddr.value = data.customer_address || '';
+                if(detailStatus) detailStatus.value = data.status || 'pending';
+                if(detailJasa) detailJasa.value = data.jasa_kirim || '';
+                if(detailResi) detailResi.value = data.resi || '';
+
+                const modal = document.getElementById('orderDetailModal');
+                if(modal) modal.classList.add('show');
             } catch (err) {
                 showToast(err.message, "error");
             } finally {
@@ -740,50 +791,51 @@
             }
         }
 
-        function closeOrderDetailModal() { document.getElementById('orderDetailModal').classList.remove('show'); }
+        function closeOrderDetailModal() { 
+            const m = document.getElementById('orderDetailModal'); 
+            if(m) m.classList.remove('show'); 
+        }
 
-        async function handleOrderDetailSubmit(e) {
-            e.preventDefault();
+        const orderDetailForm = document.getElementById('orderDetailForm');
+        if(orderDetailForm) {
+            orderDetailForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerText;
-            btn.innerText = "Menyimpan...";
-            btn.disabled = true;
+                const btn = e.target.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                btn.innerText = "Menyimpan...";
+                btn.disabled = true;
 
-            try {
-                const id = document.getElementById('detailOrderId').value;
-                const status = document.getElementById('detailStatus').value;
-                const jasa_kirim = document.getElementById('detailJasaKirim').value;
-                const resi = document.getElementById('detailResi').value;
+                try {
+                    const id = document.getElementById('detailOrderId').value;
+                    const status = document.getElementById('detailStatus').value;
+                    const jasa_kirim = document.getElementById('detailJasaKirim').value;
+                    const resi = document.getElementById('detailResi').value;
 
-                const { error } = await sb
-                    .from('orders')
-                    .update({
-                        status,
-                        jasa_kirim,
-                        resi
-                    })
-                    .eq('id', id);
+                    const { error } = await sb
+                        .from('orders')
+                        .update({ status, jasa_kirim, resi })
+                        .eq('id', id);
 
-                if (error) {
-                    throw error;
+                    if (error) throw error;
+
+                    showToast("Pesanan berhasil diperbarui", "success");
+                    closeOrderDetailModal();
+                    loadOrders(); 
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("Gagal update: " + err.message, "error");
+                } finally {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 }
-
-                showToast("Pesanan berhasil diperbarui", "success");
-                closeOrderDetailModal();
-                loadOrders(); // Refresh tabel
-
-            } catch (err) {
-                console.error(err);
-                showToast("Gagal update: " + err.message, "error");
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+            });
         }
 
         function renderRecentOrders(d) { 
             const tbody = document.querySelector('#recentOrdersTable tbody');
+            if(!tbody) return;
             if(!d || d.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#666;">Belum ada pesanan</td></tr>';
                 return;
@@ -800,13 +852,34 @@
         }
         
         async function handleLogout(e) {
-            e.preventDefault(); if(confirm("Logout?")) { await sb.auth.signOut(); localStorage.clear(); window.location.href = 'index.html'; }
+            e.preventDefault(); 
+            if(confirm("Logout?")) { 
+                await sb.auth.signOut(); 
+                localStorage.clear(); 
+                window.location.href = 'index.html'; 
+            }
         }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('mobile-overlay').classList.toggle('show'); }
+        
+        function toggleSidebar() { 
+            const sb = document.getElementById('sidebar'); 
+            const mo = document.getElementById('mobile-overlay'); 
+            if(sb) sb.classList.toggle('mobile-open'); 
+            if(mo) mo.classList.toggle('show'); 
+        }
 
         // Modal Ongkir Handlers
-        window.openOngkirModal = function() { document.getElementById('ongkirModal').classList.add('show'); document.getElementById('ongkirForm').reset(); }
-        window.closeOngkirModal = function() { document.getElementById('ongkirModal').classList.remove('show'); }
+        window.openOngkirModal = function() { 
+            const m = document.getElementById('ongkirModal');
+            const f = document.getElementById('ongkirForm');
+            if(m) m.classList.add('show'); 
+            if(f) f.reset(); 
+        }
+        
+        window.closeOngkirModal = function() { 
+            const m = document.getElementById('ongkirModal'); 
+            if(m) m.classList.remove('show'); 
+        }
+        
         window.handleOngkirSubmit = async function(e) {
             e.preventDefault();
             const tujuan = document.getElementById('ongkirTujuan').value;
