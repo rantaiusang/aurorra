@@ -8,7 +8,7 @@
     <!-- Font Google -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Supabase JS (Wajib ada di Index untuk cek Auth) -->
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -25,7 +25,9 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        html {
+        html, body {
+            width: 100%;
+            overflow-x: hidden; /* Mencegah scroll kanan/kiri */
             scroll-behavior: smooth;
         }
 
@@ -33,26 +35,29 @@
             background-color: var(--dark-bg);
             color: var(--text-white);
             font-family: 'Poppins', sans-serif;
-            overflow-x: hidden;
             line-height: 1.6;
         }
 
-        /* --- 2. HEADER (RESPONSIF & TOMBOL PAS) --- */
+        /* --- 2. HEADER (FIXED & RESPONSIF) --- */
         header {
             background: rgba(15, 12, 21, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding: 15px 5%;
+            padding: 0 20px; /* Padding horizontal aman */
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             width: 100%;
-            z-index: 1000;
-            transition: 0.3s;
-            box-sizing: border-box;
             height: 70px;
+            z-index: 1000;
+            box-sizing: border-box;
+            /* Mencegah header mengekrut */
+            flex-shrink: 0;
+            min-width: 320px; /* Minimal lebar konten */
         }
 
         .logo {
@@ -65,18 +70,22 @@
             white-space: nowrap;
             text-shadow: 0 0 10px 1px rgba(212, 175, 55, 0.3);
             z-index: 1001;
+            /* Mencegah logo terlalu besar di HP */
+            max-width: 150px; 
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .nav-links {
             display: flex;
-            gap: 20px;
             align-items: center;
-            flex-shrink: 0;
+            margin-left: auto; /* Paksa tombol ke kanan */
+            flex-shrink: 0; /* Cegah tombol gepeng */
         }
 
         /* Tombol Login/User */
         .btn-header {
-            padding: 8px 24px;
+            padding: 8px 20px;
             background: var(--luxury-gold);
             color: #000;
             border-radius: 30px;
@@ -85,13 +94,15 @@
             font-size: 0.85rem;
             transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
             white-space: nowrap;
-            flex-shrink: 0;
+            cursor: pointer;
+            border: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 100px;
-            cursor: pointer;
-            border: none;
+            min-width: 80px; /* Lebar minimum aman */
+            max-width: 180px; /* Batas lebar jika nama user panjang */
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .btn-header:hover {
@@ -119,8 +130,10 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 120px 5% 80px;
+            padding: 100px 20px 80px; /* Padding horizontal aman (20px) */
             position: relative;
+            width: 100%;
+            max-width: 100%; /* Cegah overflow horizontal */
         }
 
         .hero-container {
@@ -129,39 +142,26 @@
             gap: 40px;
             align-items: center;
             width: 100%;
-            max-width: 1400px;
+            max-width: 1200px; /* Lebar konten maksimal */
+            margin: 0 auto;
         }
 
-        /* Grid Area untuk Desktop */
-        .hero-text-col {
-            grid-column: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .hero-visual {
-            grid-column: 2;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transform: translateX(30px);
-            animation: fadeInRight 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
-        }
+        /* Kontrol Urutan Grid Mobile */
+        .hero-text-col { grid-column: 1; display: flex; flex-direction: column; }
+        .hero-visual { grid-column: 2; position: relative; display: flex; justify-content: center; align-items: center; }
 
         .glow-bg {
             position: absolute;
-            width: 600px;
-            height: 600px;
+            width: 100%; max-width: 500px;
+            height: 100%; max-height: 500px;
             background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
-            top: 10%;
-            right: -10%;
+            top: 50%; right: 0;
+            transform: translateY(-50%);
             z-index: -1;
             pointer-events: none;
         }
 
-        /* Teks Animasi Hero */
+        /* Animasi & Teks */
         .hero-text {
             opacity: 0;
             transform: translateY(30px);
@@ -179,6 +179,7 @@
             padding: 4px 10px;
             border: 1px solid rgba(138, 28, 28, 0.3);
             border-radius: 4px;
+            width: fit-content;
         }
 
         .hero h1 {
@@ -195,8 +196,8 @@
             font-size: 1rem;
             color: var(--text-gray);
             margin-bottom: 30px;
-            max-width: 500px;
             font-weight: 300;
+            width: 100%;
         }
 
         /* Tombol Action */
@@ -207,6 +208,7 @@
             opacity: 0;
             transform: translateY(30px);
             animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
+            width: 100%;
         }
 
         .btn-primary {
@@ -223,6 +225,7 @@
             display: inline-block;
             text-align: center;
             flex: 1 1 auto;
+            min-width: 150px;
         }
 
         .btn-primary:hover {
@@ -244,6 +247,7 @@
             display: inline-block;
             text-align: center;
             flex: 1 1 auto;
+            min-width: 150px;
         }
 
         .btn-outline:hover {
@@ -251,6 +255,12 @@
             border-color: var(--luxury-gold);
             color: var(--luxury-gold);
             background: rgba(212, 175, 55, 0.05);
+        }
+
+        .hero-visual {
+            opacity: 0;
+            transform: translateX(30px);
+            animation: fadeInRight 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
         }
 
         .hero-img {
@@ -263,21 +273,16 @@
             display: block;
         }
 
-        .hero-img:hover {
-            transform: scale(1.02) translateY(-5px);
-            box-shadow: 25px 25px 70px rgba(212, 175, 55, 0.15);
-        }
-
         /* --- 4. FEATURES SECTION --- */
         .features {
-            padding: 100px 5%;
+            padding: 80px 20px;
             background: linear-gradient(to bottom, var(--dark-bg), #120e12);
             position: relative;
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 80px;
+            margin-bottom: 60px;
             opacity: 0;
             transform: translateY(30px);
             transition: all 1s ease;
@@ -304,27 +309,26 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .feature-card {
             background: var(--dark-card);
-            padding: 35px 25px;
+            padding: 30px 20px;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.05);
             transition: 0.4s ease;
             opacity: 0;
             transform: translateY(40px);
             transition: opacity 0.8s ease, transform 0.8s ease;
+            text-align: center;
         }
 
         .feature-card.visible {
             opacity: 1;
             transform: translateY(0);
         }
-
-        .feature-card:nth-child(1).visible { transition-delay: 0.1s; }
-        .feature-card:nth-child(2).visible { transition-delay: 0.2s; }
-        .feature-card:nth-child(3).visible { transition-delay: 0.3s; }
 
         .feature-card:hover {
             transform: translateY(-10px);
@@ -338,6 +342,7 @@
             background: -webkit-linear-gradient(var(--luxury-gold), #fff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
 
         .feature-card h3 {
@@ -350,10 +355,10 @@
         .feature-card p {
             color: var(--text-gray);
             font-size: 0.9rem;
-            line-height: 1.7;
+            line-height: 1.6;
         }
 
-        /* --- 5. ANIMATIONS KEYFRAMES --- */
+        /* --- 5. ANIMATIONS --- */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
@@ -367,7 +372,7 @@
         /* --- FOOTER --- */
         footer {
             background: #0a080c;
-            padding: 50px 5%;
+            padding: 40px 20px;
             border-top: 1px solid rgba(255,255,255,0.05);
             text-align: center;
             opacity: 0;
@@ -381,11 +386,11 @@
         }
 
         footer p { color: #555; font-size: 0.9rem; }
-
+        
         .footer-links a {
             color: #666;
             text-decoration: none;
-            margin: 0 8px;
+            margin: 0 5px;
             font-size: 0.8rem;
             transition: 0.3s;
             display: inline-block;
@@ -396,86 +401,81 @@
             text-decoration: underline;
         }
 
-        /* --- 6. RESPONSIVE (FIXED MOBILE LAYOUT) --- */
+        /* --- 6. RESPONSIVE MEDIA QUERIES --- */
         
         /* Tablet & Mobile Landscape */
         @media (max-width: 992px) {
             .hero-container {
                 grid-template-columns: 1fr;
                 text-align: center;
-                gap: 50px;
+                gap: 40px;
             }
-            
-            /* Posisi kolom di Mobile: Teks di atas, Gambar di bawah */
-            .hero-text-col { grid-column: 1; grid-row: 1; order: 1; }
-            .hero-visual { grid-column: 1; grid-row: 2; order: 2; }
-            
+
+            /* DOM Order: Teks (Judul, P, Tombol) dulu, baru Gambar */
+            .hero-text-col { grid-column: 1; order: 1; }
+            .hero-visual { grid-column: 1; order: 2; }
+
             .hero h1 { font-size: 2.8rem; }
-            .hero p { margin: 0 auto 30px; } /* Center paragraf */
-            .hero-buttons { justify-content: center; width: 100%; }
+            .hero p { margin: 0 auto 25px; max-width: 500px; }
+            .hero-buttons { justify-content: center; }
             
-            /* Reset animasi visual agar fade in dari bawah seperti teks */
             .hero-visual {
-                animation: fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
+                animation: fadeInUp 1s ease forwards; /* Fade in dari bawah di mobile */
                 transform: translateY(30px);
             }
             
             .hero-img { max-width: 320px; margin: 0 auto; }
-            header { padding: 15px 20px; }
+            header { padding: 0 15px; height: 65px; }
             .logo { font-size: 1.3rem; }
         }
 
         /* Mobile Portrait (HP Kecil) */
         @media (max-width: 600px) {
-            header {
-                padding: 10px 20px;
-                height: 60px;
-            }
+            header { height: 60px; padding: 0 15px; }
             
-            .logo { font-size: 1.1rem; }
+            .logo { font-size: 1.1rem; max-width: 120px; }
 
             .btn-header {
-                padding: 6px 16px;
+                padding: 6px 12px;
                 font-size: 0.75rem;
-                min-width: 80px;
+                min-width: 60px; /* Lebar minimal disesuaikan */
             }
 
-            .hero {
-                padding-top: 80px; /* Kompensasi fixed header */
-                padding-left: 20px;
-                padding-right: 20px;
-                padding-bottom: 60px;
-            }
+            .hero { padding-top: 80px; }
             
             .hero h1 {
-                font-size: 2.2rem;
+                font-size: 2rem; /* Ukuran font disesuaikan layar kecil */
                 line-height: 1.2;
                 margin-bottom: 15px;
             }
             
             .hero p {
                 font-size: 0.9rem;
-                margin-bottom: 25px;
-                padding: 0 10px; /* Sedikit nafas kiri kanan teks */
+                margin-bottom: 20px;
             }
 
             .hero-buttons {
-                flex-direction: column;
-                gap: 12px;
+                flex-direction: column; /* Tombol vertikal agar muat */
+                gap: 10px;
                 width: 100%;
-                /* Pastikan tombol muncul di bawah paragraf pada flow DOM */
-                margin-top: 0; 
             }
             
             .btn-primary, .btn-outline {
                 width: 100%;
-                padding: 12px 20px;
+                padding: 12px;
                 font-size: 0.9rem;
             }
 
             .hero-img { max-width: 260px; }
             .features-grid { grid-template-columns: 1fr; }
-            .section-header h2 { font-size: 1.8rem; }
+            .section-header h2 { font-size: 1.6rem; }
+        }
+
+        /* Super Small Mobile (iPhone SE, dll) */
+        @media (max-width: 360px) {
+            .logo { font-size: 1rem; }
+            .btn-header { font-size: 0.7rem; padding: 5px 10px; }
+            .hero h1 { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -492,7 +492,7 @@
     <section class="hero">
         <div class="glow-bg"></div>
         <div class="hero-container">
-            <!-- Kiri: Teks (Dibungkus div baru untuk kontrol Grid Mobile) -->
+            <!-- Kiri: Teks & Tombol (Order 1) -->
             <div class="hero-text-col">
                 <div class="hero-text">
                     <span class="hero-tag">Koleksi Eksklusif</span>
@@ -502,14 +502,13 @@
                     </p>
                 </div>
                     
-                <!-- Tombol (Dipindahkan masuk ke kolom teks agar urutan di mobile: Judul -> P -> Tombol) -->
                 <div class="hero-buttons">
                     <a href="store.html" class="btn-primary">Lihat Koleksi</a>
                     <a href="about.html" class="btn-outline">Tentang Kami</a>
                 </div>
             </div>
 
-            <!-- Kanan: Visual -->
+            <!-- Kanan: Visual (Order 2) -->
             <div class="hero-visual">
                 <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Luxury Perfume" class="hero-img" loading="lazy">
             </div>
@@ -550,95 +549,89 @@
     <!-- Footer -->
     <footer class="fade-on-scroll">
         <p style="font-family: 'Playfair Display'; font-size: 1.2rem; color: var(--luxury-gold); margin-bottom: 20px;">Aurorra Parfumerie</p>
-            
+        
         <div class="footer-links" style="margin-bottom: 20px;">
             <a href="privacy.html">Privacy Policy</a> |     
             <a href="terms.html">Terms & Conditions</a>
         </div>
-            
+        
         <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
     
-    <!-- SCRIPT ANIMASI SCROLL & SUPABASE AUTH HANDLER -->
+    <!-- SCRIPT -->
     <script>
         // ==========================================
-        // 1. CONFIG SUPABASE (Sama dengan file lain)
+        // 1. CONFIG SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA UPDATE HEADER (BERDASARKAN SUPABASE SESSION)
+        // 2. LOGIKA UPDATE HEADER
         // ==========================================
         async function updateHeaderBasedOnSession() {
             const btnLogin = document.getElementById('headerBtn');
 
-            // ✅ FIX: Cek Session langsung dari Supabase, bukan LocalStorage
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
 
-            if (session) {
-                // User SUDAH LOGIN
-                const userEmail = session.user.email;
-                const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || userEmail.split('@')[0];
-                
-                // Update Teks Tombol
-                btnLogin.innerText = userName;
-                btnLogin.href = "#";
-                
-                // Update Style ke Logged In (Outline Gold)
-                btnLogin.classList.add('logged-in');
-
-                // Event Listener Logout
-                // Kita gunakan cara mengganti onclick secara langsung
-                btnLogin.onclick = async function(e) {
-                    e.preventDefault();
+                if (session) {
+                    // User SUDAH LOGIN
+                    const userEmail = session.user.email;
+                    // Ambil nama dari metadata atau potong email
+                    const userName = session.user.user_metadata?.full_name || 
+                                      session.user.user_metadata?.name || 
+                                      userEmail.split('@')[0];
                     
-                    if(confirm("Apakah Anda yakin ingin keluar?")) {
-                        // ✅ FIX: Panggil SignOut Supabase
-                        await supabaseClient.auth.signOut();
-                        
-                        // ✅ FIX: Jangan reload, panggil ulang fungsi update agar UI berubah instan
-                        // Tapi untuk UX yang bersih di halaman ini, reload lebih aman
-                        window.location.reload(); 
-                    }
-                };
+                    // Truncate nama jika terlalu panjang untuk mobile
+                    const displayName = userName.length > 10 ? userName.substring(0, 10) + '...' : userName;
+                    
+                    btnLogin.innerText = displayName;
+                    btnLogin.href = "#";
+                    btnLogin.classList.add('logged-in');
 
-            } else {
-                // User BELUM LOGIN
-                btnLogin.innerText = "Login";
-                btnLogin.href = "login.html";
-                btnLogin.classList.remove('logged-in');
-                btnLogin.onclick = null; // Hapus event logout
+                    btnLogin.onclick = async function(e) {
+                        e.preventDefault();
+                        if(confirm("Apakah Anda yakin ingin keluar?")) {
+                            await supabaseClient.auth.signOut();
+                            window.location.reload(); 
+                        }
+                    };
+
+                } else {
+                    // User BELUM LOGIN
+                    btnLogin.innerText = "Login";
+                    btnLogin.href = "login.html";
+                    btnLogin.classList.remove('logged-in');
+                    btnLogin.onclick = null;
+                }
+            } catch (error) {
+                console.error("Error checking session:", error);
             }
         }
 
         // ==========================================
-        // 3. EVENT LISTENERS UTAMA
+        // 3. INITIALIZATION
         // ==========================================
-        
-        // Saat DOM siap
         document.addEventListener("DOMContentLoaded", function() {
             updateHeaderBasedOnSession();
         });
 
-        // Saat Halaman selesai load
         window.onload = function() {
             window.scrollTo(0, 0);
             initScrollAnimations();
         };
 
-        // Saat Tombol Back ditekan (BFCache Fix)
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                console.log("Halaman dimuat dari cache. Cek ulang session Supabase...");
                 updateHeaderBasedOnSession();
                 window.scrollTo(0, 0);
             }
         });
 
         // ==========================================
-        // 4. FUNGSI ANIMASI SCROLL
+        // 4. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
             const observerOptions = {
