@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurorra Admin - Ultimate System (Fixed)</title>
+    <title>Aurorra Admin - Ultimate System (SECURE FIX)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -97,7 +97,7 @@
         .badge-success { background: rgba(76, 175, 80, 0.2); color: var(--success); }
         .badge-danger { background: rgba(255, 77, 77, 0.2); color: var(--danger); }
         .badge-warning { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
-        .badge-info { background: rgba(33, 150, 243, 0.2); color: var(--info); }
+        .badge-secondary { background: rgba(255,255,255,0.1); color: #aaa; }
 
         .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
         .btn-primary { background: var(--luxury-gold); color: #000; }
@@ -206,7 +206,7 @@
             </div>
         </div>
 
-        <!-- PRODUCTS (CRUD ONLY) -->
+        <!-- PRODUCTS -->
         <div id="tab-products" class="tab-content hidden">
             <div class="data-section">
                 <div class="section-header"><h2 class="section-title">Manajemen Produk</h2><button class="btn btn-primary" onclick="openProductModal()">+ Tambah Produk</button></div>
@@ -214,7 +214,7 @@
             </div>
         </div>
 
-        <!-- PURCHASING (STOK MASUK) -->
+        <!-- PURCHASING -->
         <div id="tab-purchasing" class="tab-content hidden">
             <div class="data-section">
                 <div class="section-header">
@@ -228,13 +228,10 @@
             </div>
         </div>
 
-        <!-- STOCK MONITORING (READ ONLY) -->
+        <!-- STOCK MONITORING -->
         <div id="tab-stock" class="tab-content hidden">
             <div class="data-section">
                 <div class="section-header"><h2 class="section-title">Monitoring Stok</h2><button class="btn btn-outline btn-sm" onclick="loadStockMonitor()">🔄 Refresh</button></div>
-                <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">
-                    Stok diperbarui otomatis oleh sistem Purchasing dan Order. <span style="color:var(--danger)">Merah</span> = Stok Menipis.
-                </p>
                 <div class="table-responsive"><table id="stockMonitorTable"><thead><tr><th>Gambar</th><th>Nama</th><th>Kategori</th><th>Stok</th><th>Status</th></tr></thead><tbody><tr><td colspan="5">Memuat...</td></tr></tbody></table></div>
             </div>
         </div>
@@ -296,7 +293,7 @@
         </div>
     </div>
 
-    <!-- MODAL PURCHASING (NEW) -->
+    <!-- MODAL PURCHASING -->
     <div class="modal-overlay" id="purchasingModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closePurchasingModal()">&times;</span>
@@ -304,13 +301,10 @@
             <form id="purchasingForm">
                 <div class="form-label">Pilih Produk</div>
                 <select id="purchaseProduct" class="form-control" required><option value="">-- Pilih Produk --</option></select>
-                
                 <div class="form-label">Jumlah (Qty)</div>
                 <input type="number" id="purchaseQty" class="form-control" placeholder="Contoh: 10" required min="1">
-                
                 <div class="form-label">Harga Modal (Per Unit)</div>
                 <input type="number" id="purchasePrice" class="form-control" placeholder="Harga beli satuan" required>
-
                 <div class="text-right" style="margin-top:20px;">
                     <button type="button" class="btn btn-danger" onclick="closePurchasingModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan & Tambah Stok</button>
@@ -326,18 +320,10 @@
             <h3 style="font-family:'Playfair Display'; color:var(--luxury-gold); margin-bottom:20px;">Kelola Ongkir</h3>
             <form id="ongkirForm" onsubmit="handleOngkirSubmit(event)">
                 <input type="hidden" id="ongkirId">
-                <div class="form-label">Kota Tujuan</div>
-                <input type="text" id="ongkirTujuan" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
-                
-                <div class="form-label">Ekspedisi</div>
-                <input type="text" id="ongkirEkspedisi" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
-                
-                <div class="form-label">Estimasi</div>
-                <input type="text" id="ongkirEstimasi" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
-                
-                <div class="form-label">Tarif (IDR)</div>
-                <input type="number" id="ongkirTarif" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
-                
+                <div class="form-label">Kota Tujuan</div><input type="text" id="ongkirTujuan" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                <div class="form-label">Ekspedisi</div><input type="text" id="ongkirEkspedisi" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                <div class="form-label">Estimasi</div><input type="text" id="ongkirEstimasi" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
+                <div class="form-label">Tarif (IDR)</div><input type="number" id="ongkirTarif" class="form-control" style="color: #ccc; font-size: 0.9rem;" required>
                 <div class="text-right" style="margin-top:20px;">
                     <button type="button" class="btn btn-danger" onclick="closeOngkirModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
@@ -363,11 +349,9 @@
                     <option value="cancelled">Cancelled</option>
                 </select>
                 <div class="form-label">Alamat</div><input type="text" id="detailAddress" class="form-control" readonly>
-                
                 <hr style="border-color: #333; margin: 20px 0;">
                 <div class="form-label">Jasa Kirim</div><input type="text" id="detailJasaKirim" class="form-control">
                 <div class="form-label">Nomor Resi</div><input type="text" id="detailResi" class="form-control">
-                
                 <div class="text-right" style="margin-top:20px;">
                     <button type="button" class="btn btn-danger" onclick="closeOrderDetailModal()">Tutup</button>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
@@ -381,10 +365,9 @@
 
     <script>
         // ==========================================
-        // KONFIGURASI DEBUG / BYPASS
+        // KONFIGURASI
         // ==========================================
-        // Ubah ke TRUE jika Anda ingin melihat dashboard tanpa login (untuk testing UI saja)
-        const BYPASS_AUTH_FOR_DEBUG = false; 
+        const BYPASS_AUTH_FOR_DEBUG = false; // HARUS FALSE DI PRODUCTION!
 
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
@@ -398,11 +381,10 @@
             t.innerText = msg; c.appendChild(t); setTimeout(() => t.remove(), 4000);
         }
 
-        // --- SECURITY CHECK (FIXED SESUAI PERINTAH) ---
+        // --- SECURITY CHECK (PERBAIKAN KEAMANAN PENUH) ---
         async function checkAdminAuth() {
-            // Jika mode debug aktif, langsung masuk
             if (BYPASS_AUTH_FOR_DEBUG) {
-                console.warn("⚠️ AUTH BYPASS AKTIF - Mode Debug");
+                console.warn("⚠️ AUTH BYPASS AKTIF");
                 document.getElementById('auth-check-overlay').classList.add('hidden');
                 document.getElementById('adminMainContent').classList.add('visible');
                 loadDashboardStats();
@@ -411,26 +393,27 @@
 
             try {
                 const { data: { session } } = await sb.auth.getSession();
-                if (!session) throw new Error("Tidak ada sesi login. Silakan login ulang.");
+                if (!session) throw new Error("Sesi login tidak ditemukan.");
                 
-                // PERBAIKAN LOGIC AUTH SESUAI PERINTAH
+                // FIX 1 & 2: Query berdasarkan EMAIL & Validasi Role Ketat
+                // Menggunakan .eq('email', session.user.email) karena tabel ngebelusers tidak punya kolom ID
                 const { data: user, error } = await sb
                     .from('ngebelusers')
                     .select('role')
-                    .eq('id', session.user.id)
+                    .eq('email', session.user.email) // PERBAIKAN 1
                     .single();
                 
                 if (error) {
-                    console.error("DB Error:", error);
-                    throw new Error("Gagal mengambil data user (Cek tabel ngebelusers & RLS Policy)");
+                    console.error("DB Auth Error:", error);
+                    throw new Error("Gagal mengambil data user. Pastikan tabel ngebelusers dan email sesuai.");
                 }
                 
-                // Kode final yang benar sesuai permintaan
-                if (!user?.role) {
+                // PERBAIKAN 2: Cek role secara eksplisit
+                if (!user || user.role !== "admin") {
                     throw new Error("Akses ditolak: Anda bukan Admin.");
                 }
 
-                // Sukses
+                // Sukses Login
                 document.getElementById('auth-check-overlay').classList.add('hidden');
                 document.getElementById('adminMainContent').classList.add('visible');
                 loadDashboardStats();
@@ -438,12 +421,7 @@
                 console.error(err);
                 document.getElementById('auth-error-msg').innerText = err.message;
                 document.getElementById('auth-error-msg').style.display = 'block';
-                
-                setTimeout(() => {
-                    alert("Error: " + err.message);
-                    // Opsional: redirect ke index
-                    // window.location.href = 'index.html'; 
-                }, 1000);
+                setTimeout(() => alert("Akses Ditolak: " + err.message), 500);
             }
         }
 
@@ -583,26 +561,52 @@
                 showToast("Pembelian dicatat & Stok bertambah!", "success");
                 closePurchasingModal();
                 loadPurchasing();
-                loadDashboardStats(); // Update stats
+                loadDashboardStats(); 
             }
         });
 
-        // --- HELPERS (Legacy Logic) ---
+        // --- HELPERS ---
+        // PERBAIKAN 4: Status Badge Safety
+        function getStatusBadge(s) {
+            if(!s) return `<span class="badge badge-secondary">Unknown</span>`;
+            let c = 'badge-warning'; 
+            if(s.includes('paid')||s.includes('completed')) c='badge-success'; 
+            if(s.includes('cancel')) c='badge-danger';
+            return `<span class="badge ${c}">${s}</span>`;
+        }
+
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
             tbody.innerHTML = '<tr><td colspan="8" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
-            if(data) tbody.innerHTML = data.map(o => `
+            
+            if(!data) return;
+
+            tbody.innerHTML = data.map(o => {
+                // PERBAIKAN 3: Safe JSON Parsing
+                let itemNames = '-';
+                try {
+                    const items = JSON.parse(o.items || '[]');
+                    if(Array.isArray(items)) {
+                        itemNames = items.map(i => i.name).join(', ');
+                    }
+                } catch (e) {
+                    console.error("Error parsing items for order", o.id, e);
+                    itemNames = 'Error parsing data';
+                }
+
+                return `
                 <tr>
                     <td>#${o.order_id || o.id.toString().slice(0,8)}</td>
                     <td>${o.customer_name}</td>
-                    <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${JSON.parse(o.items||'[]').map(i=>i.name).join(', ')}</td>
+                    <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${itemNames}">${itemNames}</td>
                     <td style="color:var(--luxury-gold);">${o.jasa_kirim || '-'}</td>
                     <td style="font-family:monospace;">${o.resi || '-'}</td>
                     <td>${formatPrice(o.total_amount)}</td>
                     <td>${getStatusBadge(o.status)}</td>
                     <td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td>
-                </tr>`).join('');
+                </tr>`;
+            }).join('');
         }
 
         async function loadProducts() {
@@ -634,12 +638,10 @@
             closeProductModal(); loadProducts();
         }
 
-        // --- ONGKIR (FIXED SYNTAX ERROR) ---
+        // --- ONGKIR ---
         async function loadOngkir() { 
             const tbody = document.querySelector('#ongkirTable tbody');
             tbody.innerHTML = '<tr><td colspan="5" class="loading-spinner"></td></tr>';
-            
-            // Ambil Query Lengkap
             const { data, error } = await sb.from('ongkir').select('*');
             
             if (error) {
@@ -652,7 +654,6 @@
                 return;
             }
 
-            // PERBAIKAN: Syntax Error di sini sudah diperbaiki (tadinya .join('join(''))
             tbody.innerHTML = data.map(o => `
                 <tr>
                     <td>${o.tujuan}</td>
@@ -666,7 +667,6 @@
                 </tr>
             `).join('');
 
-            // Pastikan fungsi hapus ada di scope
             window.deleteOngkir = async function(id) { 
                 if(!confirm('Hapus data ongkir ini?')) return; 
                 const { error } = await sb.from('ongkir').delete().eq('id', id); 
@@ -674,10 +674,7 @@
             }
         }
         
-        // Fungsi dummy untuk edit ongkir (karena tidak ada di kode asli)
         window.editOngkir = function(id) {
-             const item = document.querySelector('#ongkirTable tr button[onclick*="'+id+'"]').closest('tr');
-             // Logic sederhana untuk demo, seharusnya populate modal
              showToast("Fitur Edit ID: " + id + " belum diimplementasikan penuh.", "info");
         }
 
@@ -685,11 +682,6 @@
         function closeOrderDetailModal() { document.getElementById('orderDetailModal').classList.remove('show'); }
         async function handleOrderDetailSubmit(e) { e.preventDefault(); showToast("Order diupdate", "success"); closeOrderDetailModal(); loadOrders(); }
 
-        // --- UTILS ---
-        function getStatusBadge(s) {
-            let c = 'badge-warning'; if(s.includes('paid')||s.includes('completed')) c='badge-success'; if(s.includes('cancel')) c='badge-danger';
-            return `<span class="badge ${c}">${s}</span>`;
-        }
         function renderRecentOrders(d) { 
             const tbody = document.querySelector('#recentOrdersTable tbody');
             if(!d || d.length === 0) {
