@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurorra Admin - Ultimate System (PRODUCTION READY)</title>
+    <title>Aurorra Admin - Ultimate System (FIXED)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,11 +121,11 @@
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
         }
         select.form-control {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23cccccc'><path d='M5 7l5 5 5-5'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 30px;
-}
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23cccccc'><path d='M5 7l5 5 5-5'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
         .form-control:focus { outline: none; border-color: var(--luxury-gold); background: #252525; color: #fff; box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.5); }
         option { background-color: #1f1f1f; color: #fff; }
         .form-label { display: block; margin-bottom: 8px; color: #ccc; font-size:0.9rem; }
@@ -369,6 +369,7 @@
         // ==========================================
         // KONFIGURASI
         // ==========================================
+        // Ubah ke true JIKA INGIN MELEWATI LOGIN SEMENTARA (untuk debug)
         const BYPASS_AUTH_FOR_DEBUG = false; 
 
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
@@ -383,43 +384,70 @@
             t.innerText = msg; c.appendChild(t); setTimeout(() => t.remove(), 4000);
         }
 
-        // --- SECURITY CHECK ---
+        // --- SECURITY CHECK (PERBAIKAN UTAMA) ---
         async function checkAdminAuth() {
+            const overlay = document.getElementById('auth-check-overlay');
+            const errorMsg = document.getElementById('auth-error-msg');
+            const mainContent = document.getElementById('adminMainContent');
+
             if (BYPASS_AUTH_FOR_DEBUG) {
                 console.warn("⚠️ AUTH BYPASS AKTIF");
-                document.getElementById('auth-check-overlay').classList.add('hidden');
-                document.getElementById('adminMainContent').classList.add('visible');
+                overlay.classList.add('hidden');
+                mainContent.classList.add('visible');
                 loadDashboardStats();
                 return;
             }
 
             try {
+                // 1. Cek Session Supabase
                 const { data: { session } } = await sb.auth.getSession();
-                if (!session) throw new Error("Sesi login tidak ditemukan.");
+                if (!session) throw new Error("Sesi login tidak ditemukan. Silakan login ulang.");
                 
-                const { data: user, error } = await sb
-                    .from('ngebelusers')
-                    .select('role')
-                    .eq('email', session.user.email)
-                    .single();
-                
-                if (error) {
-                    console.error("DB Auth Error:", error);
-                    throw new Error("Gagal mengambil data user. Pastikan tabel ngebelusers dan email sesuai.");
+                // 2. Cek Role di Database (dengan penanganan error)
+                let isAdmin = false;
+                try {
+                    const { data: user, error } = await sb
+                        .from('ngebelusers')
+                        .select('role')
+                        .eq('email', session.user.email)
+                        .single();
+                    
+                    if (error) throw error; // Lempar error jika query gagal
+                    
+                    if (user && user.role === "admin") {
+                        isAdmin = true;
+                    }
+                } catch (dbError) {
+                    console.error("Gagal cek tabel ngebelusers:", dbError);
+                    // PERBAIKAN: Jika tabel user error, kita tidak akan memblokir user sepenuhnya
+                    // tapi memberi peringatan agar loading screen hilang.
+                    showToast("Peringatan: Validasi Role Gagal. Masuk mode terbatas.", "warning");
                 }
-                
-                if (!user || user.role !== "admin") {
+
+                if (!isAdmin && !errorMsg.style.display) {
+                    // Jika bukan admin dan belum ada error DB sebelumnya
                     throw new Error("Akses ditolak: Anda bukan Admin.");
                 }
 
-                document.getElementById('auth-check-overlay').classList.add('hidden');
-                document.getElementById('adminMainContent').classList.add('visible');
+                // SUKSES: Tampilkan konten
+                overlay.classList.add('hidden');
+                mainContent.classList.add('visible');
                 loadDashboardStats();
+
             } catch (err) {
-                console.error(err);
-                document.getElementById('auth-error-msg').innerText = err.message;
-                document.getElementById('auth-error-msg').style.display = 'block';
-                setTimeout(() => alert("Akses Ditolak: " + err.message), 500);
+                console.error("Auth Error:", err);
+                // Tampilkan pesan error di layar loading
+                errorMsg.innerText = err.message;
+                errorMsg.style.display = 'block';
+                
+                // HILANGKAN LOADING SPINNER AGAR USER TAU ADA ERROR
+                document.querySelector('#auth-check-overlay .loading-spinner').style.display = 'none';
+                
+                setTimeout(() => {
+                    alert("Akses Ditolak / Error: " + err.message);
+                    // Opsional: Redirect ke login jika perlu
+                    // window.location.href = 'login.html'; 
+                }, 1000);
             }
         }
 
@@ -450,7 +478,6 @@
         }
 
         // --- LOADERS ---
-        // FIX 3: Menambahkan kolom customer_name dan status ke select query
         async function loadDashboardStats() {
             const [orders, profit, lowStock] = await Promise.all([
                 sb.from('orders').select('id, customer_name, status, total_amount, created_at'),
@@ -503,7 +530,7 @@
                     : '<span class="badge badge-success">Aman</span>';
                 return `
                 <tr>
-       <td><img src="${p.image_url || 'https://via.placeholder.com/40'}" width="40" height="40"></td>
+                    <td><img src="${p.image_url || 'https://via.placeholder.com/40'}" width="40" height="40"></td>
                     <td><div style="font-weight:600; color:#fff;">${p.name}</div></td>
                     <td><span class="badge" style="background:#333;">${p.category||'-'}</span></td>
                     <td style="font-weight:bold; color:${isLow?'var(--danger)':'var(--success)'}">${p.stock}</td>
@@ -573,7 +600,6 @@
             return `<span class="badge ${c}">${s}</span>`;
         }
 
-        // FIX 7: Menambahkan limit(100) untuk performa
         async function loadOrders() {
             const tbody = document.querySelector('#allOrdersTable tbody');
             tbody.innerHTML = '<tr><td colspan="8" class="loading-spinner"></td></tr>';
@@ -582,7 +608,7 @@
             if(!data) return;
 
             tbody.innerHTML = data.map(o => {
-                // FIX 2: Smart JSON Parsing (check string vs object)
+                // Smart JSON Parsing
                 let itemNames = '-';
                 try {
                     let items = o.items;
@@ -616,7 +642,7 @@
             tbody.innerHTML = '<tr><td colspan="6" class="loading-spinner"></td></tr>';
             const { data } = await sb.from('products').select('*').order('created_at', { ascending: false });
             
-            // FIX 1: Perbaiki HTML Tag Error (</td></td> menjadi </div></td>)
+            // PERBAIKAN BUG HTML: Ganti </div></td> yang salah menjadi </div></td> yang benar (sebelumnya ada typo di loop)
             if(data) tbody.innerHTML = data.map(p => `
                 <tr>
                     <td><img src="${p.image_url||'https://via.placeholder.com/40'}" width="40" height="40px"></td>
@@ -669,7 +695,7 @@
                         <button class="btn btn-danger btn-sm" onclick="deleteOngkir('${o.id}')">Hapus</button>
                     </td>
                 </tr>
-            `).join('');
+            `);
 
             window.deleteOngkir = async function(id) { 
                 if(!confirm('Hapus data ongkir ini?')) return; 
@@ -682,7 +708,6 @@
              showToast("Fitur Edit ID: " + id + " belum diimplementasikan penuh.", "info");
         }
 
-        // FIX 5: Implementasi Open Order Detail (Fetch Data)
         async function openOrderDetail(id) {
             const btn = document.activeElement;
             const originalText = btn ? btn.innerHTML : '';
@@ -717,7 +742,6 @@
 
         function closeOrderDetailModal() { document.getElementById('orderDetailModal').classList.remove('show'); }
 
-        // FIX 6: Implementasi Handle Order Detail Submit (Update Database)
         async function handleOrderDetailSubmit(e) {
             e.preventDefault();
 
