@@ -27,7 +27,7 @@
 
         html, body {
             width: 100%;
-            overflow-x: hidden; /* Mencegah scroll kanan/kiri */
+            overflow-x: hidden; /* Mencegah scroll horizontal di mobile */
             scroll-behavior: smooth;
         }
 
@@ -36,6 +36,7 @@
             color: var(--text-white);
             font-family: 'Poppins', sans-serif;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased; /* Font lebih halus di mobile */
         }
 
         /* --- 2. HEADER (FIXED & RESPONSIF) --- */
@@ -43,7 +44,7 @@
             background: rgba(15, 12, 21, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding: 0 20px; /* Padding horizontal aman */
+            padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -55,9 +56,8 @@
             height: 70px;
             z-index: 1000;
             box-sizing: border-box;
-            /* Mencegah header mengekrut */
             flex-shrink: 0;
-            min-width: 320px; /* Minimal lebar konten */
+            min-width: 320px;
         }
 
         .logo {
@@ -70,7 +70,6 @@
             white-space: nowrap;
             text-shadow: 0 0 10px 1px rgba(212, 175, 55, 0.3);
             z-index: 1001;
-            /* Mencegah logo terlalu besar di HP */
             max-width: 150px; 
             overflow: hidden;
             text-overflow: ellipsis;
@@ -79,11 +78,10 @@
         .nav-links {
             display: flex;
             align-items: center;
-            margin-left: auto; /* Paksa tombol ke kanan */
-            flex-shrink: 0; /* Cegah tombol gepeng */
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
-        /* Tombol Login/User */
         .btn-header {
             padding: 8px 20px;
             background: var(--luxury-gold);
@@ -99,8 +97,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 80px; /* Lebar minimum aman */
-            max-width: 180px; /* Batas lebar jika nama user panjang */
+            min-width: 80px;
+            max-width: 180px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -130,10 +128,10 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 100px 20px 80px; /* Padding horizontal aman (20px) */
+            padding: 100px 20px 80px; /* Padding samping 20px aman untuk mobile */
             position: relative;
             width: 100%;
-            max-width: 100%; /* Cegah overflow horizontal */
+            max-width: 100%;
         }
 
         .hero-container {
@@ -142,11 +140,10 @@
             gap: 40px;
             align-items: center;
             width: 100%;
-            max-width: 1200px; /* Lebar konten maksimal */
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        /* Kontrol Urutan Grid Mobile */
         .hero-text-col { grid-column: 1; display: flex; flex-direction: column; }
         .hero-visual { grid-column: 2; position: relative; display: flex; justify-content: center; align-items: center; }
 
@@ -161,7 +158,6 @@
             pointer-events: none;
         }
 
-        /* Animasi & Teks */
         .hero-text {
             opacity: 0;
             transform: translateY(30px);
@@ -200,7 +196,6 @@
             width: 100%;
         }
 
-        /* Tombol Action */
         .hero-buttons {
             display: flex;
             gap: 15px;
@@ -273,7 +268,156 @@
             display: block;
         }
 
-        /* --- 4. FEATURES SECTION --- */
+        /* --- 4. BEST SELLER SECTION (DYNAMIC) --- */
+        .best-seller-section {
+            padding: 80px 20px;
+            background-color: var(--dark-bg);
+        }
+
+        .best-seller-grid {
+            display: grid;
+            /* Mobile Friendly: minmax 250px, auto-fit membuat kolom turun otomatis di layar kecil */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.4s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .product-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--luxury-gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+        }
+
+        .product-img-wrapper {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Tinggi tetap agar rapi */
+            overflow: hidden;
+            background: #2a2a2a; /* Placeholder bg saat loading */
+        }
+
+        .product-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Gambar tidak gepeng */
+            transition: transform 0.5s ease;
+        }
+
+        .product-card:hover .product-img-wrapper img {
+            transform: scale(1.1);
+        }
+
+        .badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--luxury-gold);
+            color: #000;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+
+        .product-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .product-info h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 5px;
+            /* Mencegah teks panjang merusak layout */
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- STYLE HARGA BLUR / HIDDEN --- */
+        .price {
+            color: var(--luxury-gold);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            transition: filter 0.3s ease, color 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* Harga saat belum login */
+        .price.blurred {
+            color: transparent;
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+            user-select: none;
+        }
+        
+        /* Teks "Login untuk melihat" muncul saat hover */
+        .price.blurred:hover::after {
+            content: "Login untuk melihat harga";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 0.8rem;
+            width: 150px;
+            text-align: center;
+            text-shadow: none;
+            background: rgba(0,0,0,0.8);
+            padding: 5px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .btn-card {
+            display: block;
+            width: 100%;
+            padding: 10px 0;
+            background: transparent;
+            border: 1px solid var(--text-gray);
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .btn-card:hover {
+            background: var(--luxury-gold);
+            border-color: var(--luxury-gold);
+            color: #000;
+        }
+
+        /* --- 5. FEATURES SECTION --- */
         .features {
             padding: 80px 20px;
             background: linear-gradient(to bottom, var(--dark-bg), #120e12);
@@ -358,20 +502,176 @@
             line-height: 1.6;
         }
 
-        /* --- 5. ANIMATIONS --- */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* --- 6. TESTIMONIALS SECTION --- */
+        .testimonials {
+            padding: 80px 20px;
+            background: var(--dark-bg);
+            text-align: center;
         }
 
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
+        .testi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        /* --- FOOTER --- */
-        footer {
+        .testi-card {
+            background: var(--dark-card);
+            padding: 40px 30px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: 0.8s ease;
+        }
+        
+        .testi-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stars {
+            color: var(--luxury-gold);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .testi-text {
+            font-style: italic;
+            color: #ccc;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .testi-author {
+            color: var(--luxury-gold);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* --- 7. LOYALTY PROGRAM --- */
+        .loyalty-section {
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #1a151b, #0f0c15);
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            text-align: center;
+        }
+
+        .loyalty-container {
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 1s ease;
+        }
+
+        .loyalty-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .loyalty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        .loyalty-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--luxury-gold);
+            margin-bottom: 15px;
+        }
+
+        .loyalty-section p {
+            color: var(--text-gray);
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        /* --- 8. NEWSLETTER --- */
+        .newsletter {
+            padding: 60px 20px;
+            text-align: center;
             background: #0a080c;
+        }
+
+        .newsletter-content {
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 1s ease;
+        }
+
+        .newsletter-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .newsletter h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .newsletter p {
+            color: var(--text-gray);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .newsletter-input {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #161216;
+            color: #fff;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .newsletter-input:focus {
+            border-color: var(--luxury-gold);
+        }
+
+        .btn-subscribe {
+            padding: 12px 20px;
+            background: var(--luxury-gold);
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-subscribe:hover {
+            background: #fff;
+        }
+
+        /* --- 9. FOOTER --- */
+        footer {
+            background: #050406;
             padding: 40px 20px;
             border-top: 1px solid rgba(255,255,255,0.05);
             text-align: center;
@@ -401,7 +701,18 @@
             text-decoration: underline;
         }
 
-        /* --- 6. RESPONSIVE MEDIA QUERIES --- */
+        /* --- 10. ANIMATIONS --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* --- 11. RESPONSIVE MEDIA QUERIES (MOBILE OPTIMIZED) --- */
         
         /* Tablet & Mobile Landscape */
         @media (max-width: 992px) {
@@ -410,8 +721,7 @@
                 text-align: center;
                 gap: 40px;
             }
-
-            /* DOM Order: Teks (Judul, P, Tombol) dulu, baru Gambar */
+            /* Urutan mobile: Teks dulu, gambar kedua */
             .hero-text-col { grid-column: 1; order: 1; }
             .hero-visual { grid-column: 1; order: 2; }
 
@@ -420,7 +730,7 @@
             .hero-buttons { justify-content: center; }
             
             .hero-visual {
-                animation: fadeInUp 1s ease forwards; /* Fade in dari bawah di mobile */
+                animation: fadeInUp 1s ease forwards; 
                 transform: translateY(30px);
             }
             
@@ -438,13 +748,13 @@
             .btn-header {
                 padding: 6px 12px;
                 font-size: 0.75rem;
-                min-width: 60px; /* Lebar minimal disesuaikan */
+                min-width: 60px; 
             }
 
             .hero { padding-top: 80px; }
             
             .hero h1 {
-                font-size: 2rem; /* Ukuran font disesuaikan layar kecil */
+                font-size: 2rem; 
                 line-height: 1.2;
                 margin-bottom: 15px;
             }
@@ -467,8 +777,15 @@
             }
 
             .hero-img { max-width: 260px; }
-            .features-grid { grid-template-columns: 1fr; }
-            .section-header h2 { font-size: 1.6rem; }
+            
+            /* Grid jadi 1 kolom di HP */
+            .features-grid, .best-seller-grid, .testi-grid { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .section-header h2, .newsletter h3, .loyalty-section h3 { font-size: 1.6rem; }
+            
+            .newsletter-form { flex-direction: column; }
         }
 
         /* Super Small Mobile (iPhone SE, dll) */
@@ -492,7 +809,7 @@
     <section class="hero">
         <div class="glow-bg"></div>
         <div class="hero-container">
-            <!-- Kiri: Teks & Tombol (Order 1) -->
+            <!-- Kiri: Teks & Tombol -->
             <div class="hero-text-col">
                 <div class="hero-text">
                     <span class="hero-tag">Koleksi Eksklusif</span>
@@ -508,9 +825,25 @@
                 </div>
             </div>
 
-            <!-- Kanan: Visual (Order 2) -->
+            <!-- Kanan: Visual -->
             <div class="hero-visual">
                 <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Luxury Perfume" class="hero-img" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <!-- Best Seller Section (DYNAMIC: Diisi oleh JavaScript) -->
+    <section class="best-seller-section">
+        <div class="section-header fade-on-scroll">
+            <h2>Parfum Terpopuler</h2>
+            <p>Pilihan favorit pelanggan kami bulan ini.</p>
+        </div>
+
+        <!-- Container ini akan diisi produk dari Supabase -->
+        <div class="best-seller-grid" id="productGrid">
+            <!-- Skeleton Loading atau Spinner bisa ditambahkan disini jika perlu -->
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-gray);">
+                Memuat produk...
             </div>
         </div>
     </section>
@@ -539,10 +872,57 @@
 
             <!-- Card 3 -->
             <div class="feature-card fade-on-scroll">
-                <div class="feature-icon">π</div>
-                <h3>Pembayaran Modern</h3>
-                <p>Transparan, aman, dan mendukung masa depan. Bayar menggunakan Pi Network tanpa biaya tersembunyi.</p>
+                <div class="feature-icon">🔒</div>
+                <h3>Transaksi Aman</h3>
+                <p>Privasi dan keamanan data Anda adalah prioritas kami. Setiap transaksi dilindungi dengan enkripsi SSL standar industri.</p>
             </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="section-header fade-on-scroll">
+            <h2>Kata Mereka</h2>
+            <p>Apa kata pelanggan setia kami.</p>
+        </div>
+        <div class="testi-grid">
+            <div class="testi-card fade-on-scroll">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testi-text">"Aromanya tahan lama dan elegan. Sangat cocok untuk acara malam. Packagingnya juga sangat rapi."</p>
+                <p class="testi-author">– Rina, Jakarta</p>
+            </div>
+            <div class="testi-card fade-on-scroll">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testi-text">"Packaging premium dan pengiriman cepat. Saya sudah repeat order 3 kali dan kualitasnya selalu konsisten."</p>
+                <p class="testi-author">– Dimas, Bandung</p>
+            </div>
+            <div class="testi-card fade-on-scroll">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testi-text">"Pelayanan ramah dan responsif. Parfumnya wangi banget tapi nggak bikin pusing. Recommended!"</p>
+                <p class="testi-author">– Sarah, Surabaya</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loyalty Program Section -->
+    <section class="loyalty-section">
+        <div class="loyalty-container fade-on-scroll">
+            <div class="loyalty-icon">🎁</div>
+            <h3>Aurorra Rewards</h3>
+            <p>🎁 Dapatkan 1 poin setiap belanja Rp50.000<br>Kumpulkan poin dan tukarkan dengan diskon eksklusif.</p>
+            <a href="#" class="btn-primary" style="display: inline-block; min-width: 200px;">Lihat Program Rewards</a>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="newsletter-content fade-on-scroll">
+            <h3>Dapatkan Promo Eksklusif</h3>
+            <p>Masukkan email Anda untuk mendapatkan promo dan koleksi terbaru.</p>
+            <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Terima kasih telah berlangganan!');">
+                <input type="email" class="newsletter-input" placeholder="Email Anda..." required>
+                <button type="submit" class="btn-subscribe">Langganan</button>
+            </form>
         </div>
     </section>
 
@@ -569,23 +949,123 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA UPDATE HEADER
+        // 2. AUTO LOGOUT 4 JAM (IDLE TIMER)
         // ==========================================
-        async function updateHeaderBasedOnSession() {
+        let inactivityTime = function () {
+            let time;
+            const logoutTime = 4 * 60 * 60 * 1000; // 4 Jam dalam milidetik
+
+            // Reset timer jika ada aktivitas
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+            document.ontouchstart = resetTimer;
+            document.onclick = resetTimer;
+
+            function logout() {
+                alert("Sesi Anda telah berakhir karena tidak aktif selama 4 jam.");
+                supabaseClient.auth.signOut();
+                window.location.href = "login.html"; // Redirect ke login
+            }
+
+            function resetTimer() {
+                clearTimeout(time);
+                time = setTimeout(logout, logoutTime);
+            }
+        };
+
+        // Jalankan fungsi auto logout
+        inactivityTime();
+
+        // ==========================================
+        // 3. FETCH PRODUK DARI DATABASE & RENDER HTML
+        // ==========================================
+        async function loadProducts() {
+            const productGrid = document.getElementById('productGrid');
+            
+            try {
+                // Ambil data dari tabel 'products', urutkan berdasarkan created_at (terbaru dulu), ambil 4 data
+                const { data: products, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(4);
+
+                if (error) throw error;
+
+                if (products && products.length > 0) {
+                    productGrid.innerHTML = ''; // Hapus teks "Memuat..."
+                    
+                    products.forEach((product, index) => {
+                        // Format Harga (misal: 250000 -> Rp250.000)
+                        const formattedPrice = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(product.price);
+
+                        // Template String untuk Kartu Produk
+                        const cardHTML = `
+                            <div class="product-card fade-on-scroll">
+                                <div class="badge">⭐ Best Seller</div>
+                                <div class="product-img-wrapper">
+                                    <!-- Menggunakan gambar dari kolom 'image_url' di database -->
+                                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" 
+                                         alt="${product.name}" 
+                                         loading="lazy">
+                                </div>
+                                <div class="product-info">
+                                    <div>
+                                        <h3 title="${product.name}">${product.name}</h3>
+                                        <!-- Class 'blurred' ada di sini, akan dihandle oleh fungsi checkSession -->
+                                        <p class="price blurred" data-price="${formattedPrice}">
+                                            ${formattedPrice}
+                                        </p>
+                                    </div>
+                                    <a href="store.html" class="btn-card">Beli Sekarang</a>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Masukkan ke grid
+                        productGrid.insertAdjacentHTML('beforeend', cardHTML);
+                    });
+
+                    // Setelah HTML dimasukkan, jalankan fungsi cek harga (login/gak)
+                    updateUIBasedOnSession();
+                    
+                    // Re-trigger animasi scroll untuk elemen baru
+                    initScrollAnimations();
+                    
+                } else {
+                    productGrid.innerHTML = '<p style="text-align:center; grid-column:1/-1;">Belum ada produk tersedia.</p>';
+                }
+            } catch (error) {
+                console.error("Error loading products:", error);
+                productGrid.innerHTML = '<p style="text-align:center; color:red;">Gagal memuat produk.</p>';
+            }
+        }
+
+        // ==========================================
+        // 4. LOGIKA UPDATE HEADER & HARGA (LOGIN CHECKER)
+        // ==========================================
+        async function updateUIBasedOnSession() {
             const btnLogin = document.getElementById('headerBtn');
+            // Ambil elemen harga (perlu dipanggil ulang setelah produk dimuat)
+            const prices = document.querySelectorAll('.price'); 
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
 
                 if (session) {
-                    // User SUDAH LOGIN
+                    // --- USER SUDAH LOGIN ---
+                    
+                    // 1. Update Header
                     const userEmail = session.user.email;
-                    // Ambil nama dari metadata atau potong email
                     const userName = session.user.user_metadata?.full_name || 
                                       session.user.user_metadata?.name || 
                                       userEmail.split('@')[0];
                     
-                    // Truncate nama jika terlalu panjang untuk mobile
                     const displayName = userName.length > 10 ? userName.substring(0, 10) + '...' : userName;
                     
                     btnLogin.innerText = displayName;
@@ -600,12 +1080,24 @@
                         }
                     };
 
+                    // 2. Tampilkan Harga (Hapus class 'blurred')
+                    prices.forEach(priceEl => {
+                        priceEl.classList.remove('blurred');
+                    });
+
                 } else {
-                    // User BELUM LOGIN
+                    // --- USER BELUM LOGIN ---
+                    
+                    // 1. Update Header
                     btnLogin.innerText = "Login";
                     btnLogin.href = "login.html";
                     btnLogin.classList.remove('logged-in');
                     btnLogin.onclick = null;
+
+                    // 2. Sembunyikan Harga (Tambah class 'blurred')
+                    prices.forEach(priceEl => {
+                        priceEl.classList.add('blurred');
+                    });
                 }
             } catch (error) {
                 console.error("Error checking session:", error);
@@ -613,26 +1105,26 @@
         }
 
         // ==========================================
-        // 3. INITIALIZATION
+        // 5. INITIALIZATION
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
-            updateHeaderBasedOnSession();
+            // Pertama, load produk dulu
+            loadProducts();
         });
 
         window.onload = function() {
             window.scrollTo(0, 0);
-            initScrollAnimations();
         };
 
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                updateHeaderBasedOnSession();
+                updateUIBasedOnSession();
                 window.scrollTo(0, 0);
             }
         });
 
         // ==========================================
-        // 4. SCROLL ANIMATIONS
+        // 6. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
             const observerOptions = {
