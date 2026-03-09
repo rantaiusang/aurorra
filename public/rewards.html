@@ -311,18 +311,18 @@
                 return;
             }
 
-            // Ambil Saldo Poin
-            const { data: rewardData, error: rewardError } = await supabaseClient
-                .from('user_rewards')
-                .select('points_balance')
+            // === PERUBAHAN: Menggunakan tabel 'ngebelusers' dan kolom 'loyalty_points' ===
+            const { data: userData, error } = await supabaseClient
+                .from('ngebelusers')
+                .select('loyalty_points')
                 .eq('user_id', user.id)
                 .single();
 
-            if (rewardData) {
-                document.getElementById('userPoints').innerText = rewardData.points_balance;
+            if (userData) {
+                document.getElementById('userPoints').innerText = userData.loyalty_points;
             } else {
-                // Jika user belum punya record rewards, buat baru saldo 0
-                await supabaseClient.from('user_rewards').insert([{ user_id: user.id, points_balance: 0 }]);
+                // Jika user ada di auth tapi belum ada di ngebelusers (kadang terjadi saat baru daftar)
+                alert("Data profil Anda belum ditemukan. Silakan hubungi admin.");
                 document.getElementById('userPoints').innerText = "0";
             }
 
@@ -388,13 +388,13 @@
                 // Hitung Diskon
                 const discountAmount = (pointsToRedeem / RATE) * 10000; // 100 poin = 10rb
                 
-                // Generate Kode Unik (Misal: REDEEM-TIMESTAMP-USERID)
+                // Generate Kode Unik
                 const voucherCode = `AURORA-${Date.now().toString(36).toUpperCase()}-${user.id.slice(0,4)}`;
 
-                // 1. Kurangi Poin di Tabel user_rewards
+                // === PERUBAHAN: Update poin di tabel 'ngebelusers' ===
                 const { error: updateError } = await supabaseClient
-                    .from('user_rewards')
-                    .update({ points_balance: currentBalance - pointsToRedeem })
+                    .from('ngebelusers')
+                    .update({ loyalty_points: currentBalance - pointsToRedeem })
                     .eq('user_id', user.id);
 
                 if (updateError) throw updateError;
