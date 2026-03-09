@@ -278,6 +278,10 @@
         .product-info { padding: 20px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .product-name { font-family: 'Playfair Display', serif; font-size:1.1rem; color: #fff; margin-bottom:5px; }
         .product-desc { font-size: 0.8rem; color: #888; margin-bottom:5px; height: 35px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Style untuk Size */
+        .product-size { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; font-style: italic; }
+        
         .product-stock { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
         .product-stock.out-of-stock { color: #ff6b6b; font-weight: 600; }
         .product-price { font-size: 1rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 5px; display: block; }
@@ -475,7 +479,7 @@
                 <p>Aroma yang mendefinisikan karakter Anda.</p>
             </div>
 
-            <!-- BANNER PROMO POIN (POINT 5) -->
+            <!-- BANNER PROMO POIN -->
             <div style="
                 background:rgba(76,175,80,0.1);
                 border:1px solid rgba(76,175,80,0.3);
@@ -580,33 +584,21 @@
         let ordersChannel = null;
         let resumePaymentUrl = null;
 
-        // ==========================================
-        // ✨ RESUME PAYMENT FUNCTIONS (FIXED POINT 1)
-        // ==========================================
         async function checkResumePayment() {
             const { data: { user } } = await supabaseClient.auth.getUser();
-
-            // FIX 7: Jalan hanya jika user login
             if (!user) return;
-
             const now = new Date().toISOString();
-
-            // FIX 1: Filter database langsung untuk expired
             const { data, error } = await supabaseClient
                 .from("orders")
                 .select("*")
                 .eq("user_id", user.id)
                 .eq("status", "pending")
-                .gt("expired_at", now) // Hanya ambil yang BELUM expired
+                .gt("expired_at", now)
                 .order("created_at", { ascending: false })
                 .limit(1)
                 .maybeSingle();
-
             if (error || !data) return;
-
-            // Tambahan safety (double check)
             if (!data.payment_url) return;
-
             showResumePaymentPopup(data.payment_url, data.order_id);
         }
 
@@ -626,9 +618,6 @@
             document.getElementById("resumePaymentPopup").style.display = "none";
         }
 
-        // ==========================================
-        // 🔔 REALTIME CHANNEL (FIXED POINT 4)
-        // ==========================================
         function setupRealtimeOrders(userId) {
             if (!userId) return;
             if (ordersChannel) supabaseClient.removeChannel(ordersChannel);
@@ -641,7 +630,6 @@
                     const newStatus = payload.new.status;
                     
                     if (payload.old.status !== newStatus) {
-                        // FIX 4: Gunakan order_id yang lebih aman
                         showToast(`Order #${payload.new.order_id} status: ${newStatus.toUpperCase()}`, 'success');
                     }
 
@@ -653,16 +641,11 @@
                     if (newStatus === 'paid' || newStatus === 'lunas') {
                         localStorage.removeItem("aurora_cart");
                         renderSidebarCart();
-                        
-                        // --- LOGIKA POIN (POINT 4) ---
-                        // 1. Tampilkan notifikasi poin
                         showToast("🎁 Poin loyalitas telah ditambahkan ke akun Anda!", "success");
                         
-                        // 2. Refresh Data User agar poin di Header & Profil terupdate
                         if(currentUser) {
                             await syncUserToSupabase(currentUser);
-                            renderHeader(); // Update header
-                            // Update profil modal jika sedang terbuka
+                            renderHeader(); 
                             if(document.getElementById('profileModal').classList.contains('show')) {
                                 openProfileModal();
                             }
@@ -687,9 +670,6 @@
             }, 4000);
         }
 
-        // ==========================================
-        // 🔐 AUTO LOGOUT (FIXED POINT 6)
-        // ==========================================
         const IDLE_LIMIT = 12 * 60 * 60 * 1000;
         const ACTIVITY_KEY = 'aurora_last_activity';
         let activityTimer = null;
@@ -708,11 +688,8 @@
         async function forceLogout() {
             if (ordersChannel) supabaseClient.removeChannel(ordersChannel);
             try { await supabaseClient.auth.signOut(); } catch (e) {}
-            
-            // FIX 6: Bersihkan SEMUA storage
             localStorage.clear();
             sessionStorage.clear();
-            
             window.location.reload();
         }
 
@@ -733,9 +710,6 @@
         const floatCart = document.getElementById('floating-cart');
         const countSpan = document.getElementById('cart-count-float');
 
-        // ==========================================
-        // 🛠 HELPER: CLEAN PRICE
-        // ==========================================
         function cleanPrice(priceInput) {
             if (priceInput === null || priceInput === undefined) return 0;
             let p = String(priceInput).replace(/[^\d]/g, "");
@@ -777,9 +751,6 @@
             if (hasChanges) renderSidebarCart();
         }
 
-        // ==========================================
-        // 🧠 HEADER RENDER (POINT 2: Tampilkan Poin)
-        // ==========================================
         function renderHeader() {
             let displayName = "Guest";
             let avatarLetter = "G";
@@ -792,8 +763,6 @@
                 else displayName = "User";
                 avatarLetter = displayName.charAt(0).toUpperCase();
                 
-                // --- LOGIKA POIN (POINT 2) ---
-                // Ambil poin dari dbUser, jika null default 0
                 const userPoints = (dbUser && dbUser.loyalty_points) ? dbUser.loyalty_points : 0;
                 const pointsDisplay = `<span style="color:#4CAF50; font-size:0.8rem;"> • ${userPoints} pts</span>`;
 
@@ -803,7 +772,6 @@
                     <div class="dropdown-item logout" onclick="handleLogout()">Logout</div>
                 `;
                 
-                // Masukkan poin ke dalam nama di header
                 navContainer.innerHTML = `
                     <div class="user-menu-container">
                         <div class="user-btn" onclick="toggleDropdown()">
@@ -848,7 +816,7 @@
                 if (data) { dbUser = data; return true; }
                 else {
                     const { data: newUser, error: insertError } = await supabaseClient.from('ngebelusers').insert([{
-                        id: user.uid, email: user.email || null, full_name: user.full_name || user.username || null, phone: null, role: 'user', is_admin: false, loyalty_points: 0 // Init points 0
+                        id: user.uid, email: user.email || null, full_name: user.full_name || user.username || null, phone: null, role: 'user', is_admin: false, loyalty_points: 0
                     }]).select().single();
                     if (insertError) return false;
                     dbUser = newUser; return true;
@@ -866,8 +834,6 @@
                     
                     const targetUserId = dbUser ? dbUser.id : user.id;
                     setupRealtimeOrders(targetUserId);
-                    
-                    // FIX 7: Panggil checkResumePayment setelah login berhasil
                     await checkResumePayment();
                 } else {
                     const localUserStr = localStorage.getItem('ngebelusers');
@@ -906,27 +872,20 @@
             }
         }
 
-        // ==========================================
-        // ✨ CEK PENDING ORDER (FIXED POINT 2)
-        // ==========================================
         async function checkPendingOrder(userId) {
             const now = new Date().toISOString();
-
             const { data, error } = await supabaseClient
                 .from('orders')
                 .select('*')
                 .eq('user_id', userId)
                 .eq('status', 'pending') 
-                // FIX 2: Filter expired di database juga
                 .gt("expired_at", now) 
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
-
             if (error) return null;
             if (!data) return null;
             if (!data.payment_url) return null;
-
             return data.payment_url;
         }
 
@@ -952,7 +911,6 @@
                         clearInterval(timerIntervals[orderId]);
                         delete timerIntervals[orderId];
                     }
-                    // Auto refresh history modal jika timer habis
                     setTimeout(() => { 
                         const modal = document.getElementById('historyModal');
                         if(modal && modal.classList.contains('show')) openHistoryModal(); 
@@ -986,9 +944,6 @@
             return fallback || '';
         }
 
-        // ==========================================
-        // 👤 PROFIL MODAL (POINT 1: Tampilkan Poin)
-        // ==========================================
         function openProfileModal() {
             if (!currentUser) return; 
             const contentDiv = document.getElementById('profileContent');
@@ -999,8 +954,6 @@
             const email = displayUser.email || "-";
             const phone = displayUser.phone || "-";
             const fullName = displayUser.full_name || displayUser.username || "-";
-            
-            // --- LOGIKA POIN (POINT 1) ---
             const points = (dbUser && dbUser.loyalty_points) ? dbUser.loyalty_points : 0;
 
             contentDiv.innerHTML = `
@@ -1014,7 +967,6 @@
                     <h4 style="color:var(--luxury-gold); margin-bottom:10px;">Info Akun</h4>
                     <div class="profile-detail-row"><span class="profile-label">Role</span><span class="profile-value">${dbUser.role || 'User'}</span></div>
                     <div class="profile-detail-row"><span class="profile-label">Admin Status</span><span class="profile-value">${dbUser.is_admin ? 'Yes' : 'No'}</span></div>
-                    <!-- TAMBAHAN BARIS LOYALTY POINTS -->
                     <div class="profile-detail-row">
                         <span class="profile-label">Loyalty Points</span>
                         <span class="profile-value points">${points} poin</span>
@@ -1166,7 +1118,7 @@
         }
 
         // ==========================================
-        // 🛍️ PRODUK (POINT 3: Estimasi Poin)
+        // 🛍️ PRODUK (DENGAN PENAMBAHAN SIZE_ML)
         // ==========================================
         function renderProducts() {
             productGrid.innerHTML = ''; 
@@ -1214,8 +1166,9 @@
                 const descText = getSafeValue(product, 'description', 'desc', '-');
                 const productId = String(product.id);
                 
-                // --- LOGIKA POIN (POINT 3) ---
-                // Hitung estimasi poin: Harga / 50.000
+                // --- LOGIKA SIZE_ML (BARU) ---
+                const sizeVal = product.size_ml ? `${product.size_ml} ml` : '';
+                
                 const cleanProductPrice = cleanPrice(product.price);
                 const estimatedPoints = Math.floor(cleanProductPrice / 50000);
                 const pointsHtml = estimatedPoints > 0 
@@ -1229,8 +1182,12 @@
                         <div>
                             <h3 class="product-name">${displayName}</h3>
                             <p class="product-desc" title="${descText}">${descText}</p>
+                            
+                            <!-- TAMPILAN SIZE BARU -->
+                            ${sizeVal ? `<div class="product-size">${sizeVal}</div>` : ''}
+                            
                             <span class="product-price price-container">${displayPrice}</span>
-                            ${pointsHtml} <!-- TAMBAHAN ESTIMASI POIN -->
+                            ${pointsHtml}
                             <div class="${isOutOfStock ? 'product-stock out-of-stock' : 'product-stock'}">${isOutOfStock ? 'Stok Habis' : 'Stok: ' + stockVal}</div>
                         </div>
                         <button class="btn-buy" onclick="addToCart(event, '${productId}')" ${btnDisabled}>${btnText}</button>
@@ -1331,9 +1288,6 @@
             updateFloatingCart(totalItems);
         }
 
-        // ==========================================
-        // PROCEED TO CHECKOUT (FIXED UX)
-        // ==========================================
         async function proceedToCheckout() {
             const { data, error } = await supabaseClient.auth.getUser();
             if (error || !data?.user) { alert("Harus login dulu."); window.location.href = "login.html"; return; }
@@ -1341,8 +1295,6 @@
             const userId = dbUser ? dbUser.id : user.id;
 
             const pendingPayment = await checkPendingOrder(userId);
-            
-            // Jika ada pending payment yang valid, tawarkan user
             if (pendingPayment) {
                 if (confirm("Anda memiliki pembayaran yang belum selesai. Lanjutkan pembayaran?")) {
                     window.location.href = pendingPayment;
