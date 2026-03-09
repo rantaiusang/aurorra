@@ -940,6 +940,7 @@
     </footer>
     
     <!-- SCRIPT -->
+    <!-- SCRIPT -->
     <script>
         // ==========================================
         // 1. CONFIG SUPABASE
@@ -978,7 +979,68 @@
         inactivityTime();
 
         // ==========================================
-        // 3. FETCH PRODUK DARI DATABASE & RENDER HTML
+        // 3. LOGIKA NEWSLETTER (SUDAH DIPERBAIKI)
+        // ==========================================
+        function initNewsletter() {
+            const form = document.querySelector('.newsletter-form');
+            
+            if (!form) return; // Jika form tidak ditemukan, stop
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault(); // Mencegah reload halaman
+                
+                const input = this.querySelector('input[type="email"]');
+                const button = this.querySelector('button[type="submit"]');
+                const email = input.value;
+                const originalBtnText = button.innerText;
+
+                // Validasi sederhana
+                if (!email) {
+                    alert("Mohon masukkan email Anda.");
+                    return;
+                }
+
+                // Ubah tombol menjadi status loading
+                button.innerText = "Memproses...";
+                button.disabled = true;
+                button.style.opacity = "0.7";
+
+                try {
+                    // KIRIM DATA KE TABEL 'subscribers' DI SUPABASE
+                    const { data, error } = await supabaseClient
+                        .from('subscribers')
+                        .insert([{ 
+                            email: email,
+                            created_at: new Date() // Opsional, Supabase biasanya auto
+                        }]);
+
+                    if (error) {
+                        // Cek jika error karena email duplikat
+                        if (error.code === '23505') {
+                            alert("Email ini sudah terdaftar sebelumnya!");
+                        } else {
+                            throw error;
+                        }
+                    } else {
+                        // SUKSES
+                        alert("Terima kasih! Anda telah berhasil berlangganan.");
+                        form.reset(); // Kosongkan input email
+                    }
+
+                } catch (err) {
+                    console.error("Gagal berlangganan:", err);
+                    alert("Maaf, terjadi kesalahan sistem. Silakan coba lagi nanti.");
+                } finally {
+                    // Kembalikan tombol ke kondisi semula
+                    button.innerText = originalBtnText;
+                    button.disabled = false;
+                    button.style.opacity = "1";
+                }
+            });
+        }
+
+        // ==========================================
+        // 4. FETCH PRODUK DARI DATABASE & RENDER HTML
         // ==========================================
         async function loadProducts() {
             const productGrid = document.getElementById('productGrid');
@@ -1047,7 +1109,7 @@
         }
 
         // ==========================================
-        // 4. LOGIKA UPDATE HEADER & HARGA (LOGIN CHECKER)
+        // 5. LOGIKA UPDATE HEADER & HARGA (LOGIN CHECKER)
         // ==========================================
         async function updateUIBasedOnSession() {
             const btnLogin = document.getElementById('headerBtn');
@@ -1105,10 +1167,12 @@
         }
 
         // ==========================================
-        // 5. INITIALIZATION
+        // 6. INITIALIZATION
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
-            // Pertama, load produk dulu
+            // Inisialisasi Newsletter
+            initNewsletter();
+            // Load produk
             loadProducts();
         });
 
@@ -1124,7 +1188,7 @@
         });
 
         // ==========================================
-        // 6. SCROLL ANIMATIONS
+        // 7. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
             const observerOptions = {
@@ -1145,5 +1209,6 @@
             fadeElements.forEach(el => observer.observe(el));
         }
     </script>
+    
 </body>
 </html>
