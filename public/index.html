@@ -938,9 +938,7 @@
         
         <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
-    
-    <!-- SCRIPT -->
-    <!-- SCRIPT -->
+      <!-- SCRIPT -->
     <script>
         // ==========================================
         // 1. CONFIG SUPABASE
@@ -979,59 +977,48 @@
         inactivityTime();
 
         // ==========================================
-        // 3. LOGIKA NEWSLETTER (SUDAH DIPERBAIKI)
+        // 3. LOGIKA NEWSLETTER
         // ==========================================
         function initNewsletter() {
             const form = document.querySelector('.newsletter-form');
             
-            if (!form) return; // Jika form tidak ditemukan, stop
+            if (!form) return; 
 
             form.addEventListener('submit', async function(e) {
-                e.preventDefault(); // Mencegah reload halaman
-                
+                e.preventDefault(); 
                 const input = this.querySelector('input[type="email"]');
                 const button = this.querySelector('button[type="submit"]');
                 const email = input.value;
                 const originalBtnText = button.innerText;
 
-                // Validasi sederhana
                 if (!email) {
                     alert("Mohon masukkan email Anda.");
                     return;
                 }
 
-                // Ubah tombol menjadi status loading
                 button.innerText = "Memproses...";
                 button.disabled = true;
                 button.style.opacity = "0.7";
 
                 try {
-                    // KIRIM DATA KE TABEL 'subscribers' DI SUPABASE
                     const { data, error } = await supabaseClient
                         .from('subscribers')
-                        .insert([{ 
-                            email: email,
-                            created_at: new Date() // Opsional, Supabase biasanya auto
-                        }]);
+                        .insert([{ email: email, created_at: new Date() }]);
 
                     if (error) {
-                        // Cek jika error karena email duplikat
                         if (error.code === '23505') {
                             alert("Email ini sudah terdaftar sebelumnya!");
                         } else {
                             throw error;
                         }
                     } else {
-                        // SUKSES
                         alert("Terima kasih! Anda telah berhasil berlangganan.");
-                        form.reset(); // Kosongkan input email
+                        form.reset(); 
                     }
-
                 } catch (err) {
                     console.error("Gagal berlangganan:", err);
                     alert("Maaf, terjadi kesalahan sistem. Silakan coba lagi nanti.");
                 } finally {
-                    // Kembalikan tombol ke kondisi semula
                     button.innerText = originalBtnText;
                     button.disabled = false;
                     button.style.opacity = "1";
@@ -1040,38 +1027,74 @@
         }
 
         // ==========================================
-        // 4. FETCH PRODUK DARI DATABASE & RENDER HTML
+        // 4. FUNGSI PENGACAK (SHUFFLE) DENGAN SEED
+        // ==========================================
+        function shuffleWithSeed(array, seed) {
+            let m = array.length, t, i;
+            // Pseudo-random number generator sederhana berdasarkan seed
+            let random = function() {
+                var x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            };
+
+            // Copy array agar tidak merusak data asli
+            let arr = [...array]; 
+
+            while (m) {
+                i = Math.floor(random() * m--);
+                t = arr[m];
+                arr[m] = arr[i];
+                arr[i] = t;
+            }
+            return arr;
+        }
+
+        // ==========================================
+        // 5. FETCH PRODUK (LOGIKA MINGGUAN DIUBAH)
         // ==========================================
         async function loadProducts() {
             const productGrid = document.getElementById('productGrid');
             
             try {
-                // Ambil data dari tabel 'products', urutkan berdasarkan created_at (terbaru dulu), ambil 4 data
+                // 1. Ambil 50 Produk Terbaru sebagai kandidat
                 const { data: products, error } = await supabaseClient
                     .from('products')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(4);
+                    .limit(50); // Ambil 50 untuk diacak, bukan 4 langsung
 
                 if (error) throw error;
 
                 if (products && products.length > 0) {
-                    productGrid.innerHTML = ''; // Hapus teks "Memuat..."
+                    productGrid.innerHTML = ''; 
+
+                    // 2. Hitung Nomor Minggu Sekarang (Sebagai Seed Pengacak)
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), 0, 0);
+                    const diff = now - start;
+                    const oneWeek = 1000 * 60 * 60 * 24 * 7;
+                    const weekNumber = Math.floor(diff / oneWeek);
+
+                    // 3. Acak produk berdasarkan nomor minggu
+                    // Hasil acak akan sama untuk semua orang di minggu yang sama,
+                    // tapi akan berubah saat minggu berganti.
+                    let shuffledProducts = shuffleWithSeed(products, weekNumber);
+
+                    // 4. Ambil hanya 4 produk teratas setelah diacak
+                    const selectedProducts = shuffledProducts.slice(0, 4);
                     
-                    products.forEach((product, index) => {
-                        // Format Harga (misal: 250000 -> Rp250.000)
+                    // 5. Render ke HTML
+                    selectedProducts.forEach((product) => {
                         const formattedPrice = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
                         }).format(product.price);
 
-                        // Template String untuk Kartu Produk
                         const cardHTML = `
                             <div class="product-card fade-on-scroll">
                                 <div class="badge">⭐ Best Seller</div>
                                 <div class="product-img-wrapper">
-                                    <!-- Menggunakan gambar dari kolom 'image_url' di database -->
                                     <img src="${product.image_url || 'https://via.placeholder.com/400'}" 
                                          alt="${product.name}" 
                                          loading="lazy">
@@ -1079,7 +1102,6 @@
                                 <div class="product-info">
                                     <div>
                                         <h3 title="${product.name}">${product.name}</h3>
-                                        <!-- Class 'blurred' ada di sini, akan dihandle oleh fungsi checkSession -->
                                         <p class="price blurred" data-price="${formattedPrice}">
                                             ${formattedPrice}
                                         </p>
@@ -1088,15 +1110,10 @@
                                 </div>
                             </div>
                         `;
-                        
-                        // Masukkan ke grid
                         productGrid.insertAdjacentHTML('beforeend', cardHTML);
                     });
 
-                    // Setelah HTML dimasukkan, jalankan fungsi cek harga (login/gak)
                     updateUIBasedOnSession();
-                    
-                    // Re-trigger animasi scroll untuk elemen baru
                     initScrollAnimations();
                     
                 } else {
@@ -1109,20 +1126,16 @@
         }
 
         // ==========================================
-        // 5. LOGIKA UPDATE HEADER & HARGA (LOGIN CHECKER)
+        // 6. LOGIKA UPDATE HEADER & HARGA
         // ==========================================
         async function updateUIBasedOnSession() {
             const btnLogin = document.getElementById('headerBtn');
-            // Ambil elemen harga (perlu dipanggil ulang setelah produk dimuat)
             const prices = document.querySelectorAll('.price'); 
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
 
                 if (session) {
-                    // --- USER SUDAH LOGIN ---
-                    
-                    // 1. Update Header
                     const userEmail = session.user.email;
                     const userName = session.user.user_metadata?.full_name || 
                                       session.user.user_metadata?.name || 
@@ -1142,21 +1155,16 @@
                         }
                     };
 
-                    // 2. Tampilkan Harga (Hapus class 'blurred')
                     prices.forEach(priceEl => {
                         priceEl.classList.remove('blurred');
                     });
 
                 } else {
-                    // --- USER BELUM LOGIN ---
-                    
-                    // 1. Update Header
                     btnLogin.innerText = "Login";
                     btnLogin.href = "login.html";
                     btnLogin.classList.remove('logged-in');
                     btnLogin.onclick = null;
 
-                    // 2. Sembunyikan Harga (Tambah class 'blurred')
                     prices.forEach(priceEl => {
                         priceEl.classList.add('blurred');
                     });
@@ -1167,13 +1175,11 @@
         }
 
         // ==========================================
-        // 6. INITIALIZATION
+        // 7. INITIALIZATION
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
-            // Inisialisasi Newsletter
             initNewsletter();
-            // Load produk
-            loadProducts();
+            loadProducts(); // Memanggil fungsi loadProducts yang sudah diacak mingguan
         });
 
         window.onload = function() {
@@ -1188,7 +1194,7 @@
         });
 
         // ==========================================
-        // 7. SCROLL ANIMATIONS
+        // 8. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
             const observerOptions = {
@@ -1209,6 +1215,10 @@
             fadeElements.forEach(el => observer.observe(el));
         }
     </script>
+    
+</body>
+</html>
+    
     
 </body>
 </html>
