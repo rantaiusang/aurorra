@@ -280,7 +280,7 @@
         .product-desc { font-size: 0.8rem; color: #888; margin-bottom:5px; height: 35px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .product-stock { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
         .product-stock.out-of-stock { color: #ff6b6b; font-weight: 600; }
-        .product-price { font-size: 1rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 15px; display: block; }
+        .product-price { font-size: 1rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 5px; display: block; }
         .btn-buy { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--luxury-gold); color: var(--luxury-gold); font-weight: 600; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; border-radius: 5px; }
         .btn-buy:hover:not(:disabled) { background: var(--luxury-gold); color: #000; }
         .btn-buy:disabled { border-color: #444; color: #666; cursor: not-allowed; background: transparent; }
@@ -475,6 +475,20 @@
                 <p>Aroma yang mendefinisikan karakter Anda.</p>
             </div>
 
+            <!-- BANNER PROMO POIN (POINT 5) -->
+            <div style="
+                background:rgba(76,175,80,0.1);
+                border:1px solid rgba(76,175,80,0.3);
+                padding:10px;
+                text-align:center;
+                border-radius:8px;
+                margin-bottom:20px;
+                color:#4CAF50;
+                font-size:0.9rem;
+            ">
+                🎁 Dapatkan 1 poin setiap belanja Rp50.000
+            </div>
+
             <div class="search-container page-entry delay-2">
                 <span class="search-icon">🔍</span>
                 <input type="text" id="searchInput" class="search-input" placeholder="Cari parfum..." oninput="handleSearch(this.value)">
@@ -622,7 +636,7 @@
             ordersChannel = supabaseClient
                 .channel(`public:orders:user_id=eq.${userId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${userId}` },
-                (payload) => {
+                async (payload) => {
                     console.log('🔔 Realtime Update Received:', payload);
                     const newStatus = payload.new.status;
                     
@@ -639,6 +653,20 @@
                     if (newStatus === 'paid' || newStatus === 'lunas') {
                         localStorage.removeItem("aurora_cart");
                         renderSidebarCart();
+                        
+                        // --- LOGIKA POIN (POINT 4) ---
+                        // 1. Tampilkan notifikasi poin
+                        showToast("🎁 Poin loyalitas telah ditambahkan ke akun Anda!", "success");
+                        
+                        // 2. Refresh Data User agar poin di Header & Profil terupdate
+                        if(currentUser) {
+                            await syncUserToSupabase(currentUser);
+                            renderHeader(); // Update header
+                            // Update profil modal jika sedang terbuka
+                            if(document.getElementById('profileModal').classList.contains('show')) {
+                                openProfileModal();
+                            }
+                        }
                     }
                 }
                 )
@@ -749,6 +777,9 @@
             if (hasChanges) renderSidebarCart();
         }
 
+        // ==========================================
+        // 🧠 HEADER RENDER (POINT 2: Tampilkan Poin)
+        // ==========================================
         function renderHeader() {
             let displayName = "Guest";
             let avatarLetter = "G";
@@ -760,23 +791,40 @@
                 else if (currentUser && currentUser.username) displayName = currentUser.username;
                 else displayName = "User";
                 avatarLetter = displayName.charAt(0).toUpperCase();
+                
+                // --- LOGIKA POIN (POINT 2) ---
+                // Ambil poin dari dbUser, jika null default 0
+                const userPoints = (dbUser && dbUser.loyalty_points) ? dbUser.loyalty_points : 0;
+                const pointsDisplay = `<span style="color:#4CAF50; font-size:0.8rem;"> • ${userPoints} pts</span>`;
+
                 menuItems = `
                     <div class="dropdown-item" onclick="openProfileModal()">Profil Saya</div>
                     <div class="dropdown-item" onclick="openHistoryModal()">Riwayat Pesanan</div>
                     <div class="dropdown-item logout" onclick="handleLogout()">Logout</div>
                 `;
+                
+                // Masukkan poin ke dalam nama di header
+                navContainer.innerHTML = `
+                    <div class="user-menu-container">
+                        <div class="user-btn" onclick="toggleDropdown()">
+                            <div class="user-avatar">${avatarLetter}</div>
+                            <span style="color: #fff; font-size: 0.9rem;">${displayName}${pointsDisplay}</span>
+                            <span style="color: #666;">▼</span>
+                        </div>
+                        <div class="dropdown-menu" id="dropdownMenu">${menuItems}</div>
+                    </div>`;
             } else {
                 menuItems = `<div class="dropdown-item login-action" onclick="window.location.href='login.html'">Login Sekarang</div>`;
+                navContainer.innerHTML = `
+                    <div class="user-menu-container">
+                        <div class="user-btn" onclick="toggleDropdown()">
+                            <div class="user-avatar">${avatarLetter}</div>
+                            <span style="color: #fff; font-size: 0.9rem;">${displayName}</span>
+                            <span style="color: #666;">▼</span>
+                        </div>
+                        <div class="dropdown-menu" id="dropdownMenu">${menuItems}</div>
+                    </div>`;
             }
-            navContainer.innerHTML = `
-                <div class="user-menu-container">
-                    <div class="user-btn" onclick="toggleDropdown()">
-                        <div class="user-avatar">${avatarLetter}</div>
-                        <span style="color: #fff; font-size: 0.9rem;">${displayName}</span>
-                        <span style="color: #666;">▼</span>
-                    </div>
-                    <div class="dropdown-menu" id="dropdownMenu">${menuItems}</div>
-                </div>`;
             updatePriceVisibility();
         }
 
@@ -800,7 +848,7 @@
                 if (data) { dbUser = data; return true; }
                 else {
                     const { data: newUser, error: insertError } = await supabaseClient.from('ngebelusers').insert([{
-                        id: user.uid, email: user.email || null, full_name: user.full_name || user.username || null, phone: null, role: 'user', is_admin: false
+                        id: user.uid, email: user.email || null, full_name: user.full_name || user.username || null, phone: null, role: 'user', is_admin: false, loyalty_points: 0 // Init points 0
                     }]).select().single();
                     if (insertError) return false;
                     dbUser = newUser; return true;
@@ -938,6 +986,9 @@
             return fallback || '';
         }
 
+        // ==========================================
+        // 👤 PROFIL MODAL (POINT 1: Tampilkan Poin)
+        // ==========================================
         function openProfileModal() {
             if (!currentUser) return; 
             const contentDiv = document.getElementById('profileContent');
@@ -948,16 +999,26 @@
             const email = displayUser.email || "-";
             const phone = displayUser.phone || "-";
             const fullName = displayUser.full_name || displayUser.username || "-";
+            
+            // --- LOGIKA POIN (POINT 1) ---
+            const points = (dbUser && dbUser.loyalty_points) ? dbUser.loyalty_points : 0;
+
             contentDiv.innerHTML = `
                 <div class="profile-detail-row"><span class="profile-label">Nama Lengkap</span><span class="profile-value">${fullName}</span></div>
                 <div class="profile-detail-row"><span class="profile-label">UUID</span><span class="profile-value">${uuid}</span></div>
                 <div class="profile-detail-row"><span class="profile-label">Email</span><span class="profile-value">${email}</span></div>
                 <div class="profile-detail-row"><span class="label">Phone</span><span class="profile-value">${phone}</span></div>
+                
                 ${dbUser ? `
                 <div style="margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px;">
                     <h4 style="color:var(--luxury-gold); margin-bottom:10px;">Info Akun</h4>
                     <div class="profile-detail-row"><span class="profile-label">Role</span><span class="profile-value">${dbUser.role || 'User'}</span></div>
                     <div class="profile-detail-row"><span class="profile-label">Admin Status</span><span class="profile-value">${dbUser.is_admin ? 'Yes' : 'No'}</span></div>
+                    <!-- TAMBAHAN BARIS LOYALTY POINTS -->
+                    <div class="profile-detail-row">
+                        <span class="profile-label">Loyalty Points</span>
+                        <span class="profile-value points">${points} poin</span>
+                    </div>
                 </div>` : '<p style="text-align:center; color:#666; margin-top:10px;">Data DB belum dimuat.</p>'}
             `;
         }
@@ -1104,6 +1165,9 @@
             renderProducts();
         }
 
+        // ==========================================
+        // 🛍️ PRODUK (POINT 3: Estimasi Poin)
+        // ==========================================
         function renderProducts() {
             productGrid.innerHTML = ''; 
             let categoryKey = 'category';
@@ -1150,6 +1214,14 @@
                 const descText = getSafeValue(product, 'description', 'desc', '-');
                 const productId = String(product.id);
                 
+                // --- LOGIKA POIN (POINT 3) ---
+                // Hitung estimasi poin: Harga / 50.000
+                const cleanProductPrice = cleanPrice(product.price);
+                const estimatedPoints = Math.floor(cleanProductPrice / 50000);
+                const pointsHtml = estimatedPoints > 0 
+                    ? `<div style="font-size:0.75rem;color:#4CAF50;">🎁 +${estimatedPoints} poin</div>` 
+                    : '';
+
                 card.innerHTML = `
                     <div class="category-badge">${displayCategory}</div>
                     <div class="product-img-wrapper"><img src="${imgSrc}" class="product-img" onerror="this.src='https://via.placeholder.com/250'"></div>
@@ -1158,6 +1230,7 @@
                             <h3 class="product-name">${displayName}</h3>
                             <p class="product-desc" title="${descText}">${descText}</p>
                             <span class="product-price price-container">${displayPrice}</span>
+                            ${pointsHtml} <!-- TAMBAHAN ESTIMASI POIN -->
                             <div class="${isOutOfStock ? 'product-stock out-of-stock' : 'product-stock'}">${isOutOfStock ? 'Stok Habis' : 'Stok: ' + stockVal}</div>
                         </div>
                         <button class="btn-buy" onclick="addToCart(event, '${productId}')" ${btnDisabled}>${btnText}</button>
@@ -1191,7 +1264,7 @@
             let cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
             const existingItem = cart.find(item => String(item.id) === String(clickedId));
             if (existingItem) {
-                if ((existingItem.qty + 1) > currentStock) { alert("Stok tidak mencukupan."); return; }
+                if ((existingItem.qty + 1) > currentStock) { alert("Stok tidak mencukupi."); return; }
                 existingItem.qty = (existingItem.qty || 1) + 1;
             } else {
                 cart.push({ ...product, qty: 1, price: cleanPrice(product.price) });
