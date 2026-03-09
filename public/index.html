@@ -939,6 +939,7 @@
         <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
       <!-- SCRIPT -->
+          <!-- SCRIPT -->
     <script>
         // ==========================================
         // 1. CONFIG SUPABASE
@@ -948,13 +949,49 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. AUTO LOGOUT 4 JAM (IDLE TIMER)
+        // 2. LOGIKA REWARDS BUTTON (BARU)
+        // ==========================================
+        const rewardsBtn = document.getElementById('rewardsBtn');
+        const loginModal = document.getElementById('loginModal');
+
+        if (rewardsBtn) {
+            rewardsBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                // Cek apakah user sudah login
+                const { data: { session } } = await supabaseClient.auth.getSession();
+
+                if (session) {
+                    // Jika SUDAH LOGIN -> Langsung ke Halaman Rewards
+                    window.location.href = "rewards.html";
+                } else {
+                    // Jika BELUM LOGIN -> Tampilkan Modal Pop-up
+                    loginModal.classList.add('active');
+                }
+            });
+        }
+
+        // Fungsi Tutup Modal
+        function closeModal() {
+            loginModal.classList.remove('active');
+        }
+
+        // Tutup modal jika klik di luar kotak
+        if (loginModal) {
+            loginModal.addEventListener('click', function(e) {
+                if (e.target === loginModal) {
+                    closeModal();
+                }
+            });
+        }
+
+        // ==========================================
+        // 3. AUTO LOGOUT 4 JAM (IDLE TIMER)
         // ==========================================
         let inactivityTime = function () {
             let time;
-            const logoutTime = 4 * 60 * 60 * 1000; // 4 Jam dalam milidetik
+            const logoutTime = 4 * 60 * 60 * 1000;
 
-            // Reset timer jika ada aktivitas
             window.onload = resetTimer;
             document.onmousemove = resetTimer;
             document.onkeypress = resetTimer;
@@ -964,7 +1001,7 @@
             function logout() {
                 alert("Sesi Anda telah berakhir karena tidak aktif selama 4 jam.");
                 supabaseClient.auth.signOut();
-                window.location.href = "login.html"; // Redirect ke login
+                window.location.href = "login.html";
             }
 
             function resetTimer() {
@@ -972,16 +1009,13 @@
                 time = setTimeout(logout, logoutTime);
             }
         };
-
-        // Jalankan fungsi auto logout
         inactivityTime();
 
         // ==========================================
-        // 3. LOGIKA NEWSLETTER
+        // 4. LOGIKA NEWSLETTER
         // ==========================================
         function initNewsletter() {
             const form = document.querySelector('.newsletter-form');
-            
             if (!form) return; 
 
             form.addEventListener('submit', async function(e) {
@@ -1017,7 +1051,7 @@
                     }
                 } catch (err) {
                     console.error("Gagal berlangganan:", err);
-                    alert("Maaf, terjadi kesalahan sistem. Silakan coba lagi nanti.");
+                    alert("Maaf, terjadi kesalahan sistem.");
                 } finally {
                     button.innerText = originalBtnText;
                     button.disabled = false;
@@ -1027,19 +1061,15 @@
         }
 
         // ==========================================
-        // 4. FUNGSI PENGACAK (SHUFFLE) DENGAN SEED
+        // 5. FUNGSI PENGACAK
         // ==========================================
         function shuffleWithSeed(array, seed) {
             let m = array.length, t, i;
-            // Pseudo-random number generator sederhana berdasarkan seed
             let random = function() {
                 var x = Math.sin(seed++) * 10000;
                 return x - Math.floor(x);
             };
-
-            // Copy array agar tidak merusak data asli
             let arr = [...array]; 
-
             while (m) {
                 i = Math.floor(random() * m--);
                 t = arr[m];
@@ -1050,40 +1080,31 @@
         }
 
         // ==========================================
-        // 5. FETCH PRODUK (LOGIKA MINGGUAN DIUBAH)
+        // 6. FETCH PRODUK
         // ==========================================
         async function loadProducts() {
             const productGrid = document.getElementById('productGrid');
             
             try {
-                // 1. Ambil 50 Produk Terbaru sebagai kandidat
                 const { data: products, error } = await supabaseClient
                     .from('products')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(50); // Ambil 50 untuk diacak, bukan 4 langsung
+                    .limit(50); 
 
                 if (error) throw error;
 
                 if (products && products.length > 0) {
                     productGrid.innerHTML = ''; 
-
-                    // 2. Hitung Nomor Minggu Sekarang (Sebagai Seed Pengacak)
                     const now = new Date();
                     const start = new Date(now.getFullYear(), 0, 0);
                     const diff = now - start;
                     const oneWeek = 1000 * 60 * 60 * 24 * 7;
                     const weekNumber = Math.floor(diff / oneWeek);
 
-                    // 3. Acak produk berdasarkan nomor minggu
-                    // Hasil acak akan sama untuk semua orang di minggu yang sama,
-                    // tapi akan berubah saat minggu berganti.
                     let shuffledProducts = shuffleWithSeed(products, weekNumber);
-
-                    // 4. Ambil hanya 4 produk teratas setelah diacak
                     const selectedProducts = shuffledProducts.slice(0, 4);
                     
-                    // 5. Render ke HTML
                     selectedProducts.forEach((product) => {
                         const formattedPrice = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
@@ -1126,7 +1147,7 @@
         }
 
         // ==========================================
-        // 6. LOGIKA UPDATE HEADER & HARGA
+        // 7. LOGIKA UPDATE HEADER & HARGA
         // ==========================================
         async function updateUIBasedOnSession() {
             const btnLogin = document.getElementById('headerBtn');
@@ -1175,11 +1196,11 @@
         }
 
         // ==========================================
-        // 7. INITIALIZATION
+        // 8. INITIALIZATION
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
             initNewsletter();
-            loadProducts(); // Memanggil fungsi loadProducts yang sudah diacak mingguan
+            loadProducts();
         });
 
         window.onload = function() {
@@ -1194,7 +1215,7 @@
         });
 
         // ==========================================
-        // 8. SCROLL ANIMATIONS
+        // 9. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
             const observerOptions = {
@@ -1215,6 +1236,9 @@
             fadeElements.forEach(el => observer.observe(el));
         }
     </script>
+    
+</body>
+</html>
     
 </body>
 </html>
