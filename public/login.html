@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Login | Aurora Store</title>
+    <title>Login | Aurorra Store</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@
             </div>
 
             <h2 id="status-title">Menghubungkan...</h2>
-            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman ke Aurora</p>
+            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman ke Aurorra</p>
 
             <!-- Tombol Google (Muncul jika belum login) -->
             <button id="btn-google" class="btn-google" onclick="handleGoogleLogin()">
@@ -221,7 +221,7 @@
                     console.log("✅ Login Terdeteksi. Mengecek Database...");
                     
                     ui.title.innerText = "Verifikasi Akun...";
-                    ui.desc.innerText = "Mengecek data profil Aurora.";
+                    ui.desc.innerText = "Mengecek data profil Aurorra.";
                     ui.spinner.style.borderTopColor = "var(--luxury-gold)";
 
                     // Cek data di tabel 'aurorausers' (Ganti nama tabel jika berbeda)
@@ -272,7 +272,7 @@
                     } else {
                         // Default User (Customer) -> Store
                         ui.title.innerText = "Selamat Datang";
-                        ui.desc.innerText = "Masuk ke Aurora Store...";
+                        ui.desc.innerText = "Masuk ke Aurorra Store...";
                         ui.spinner.style.borderTopColor = "#10b981"; // Hijau
                         setTimeout(() => {
                             window.location.href = 'store.html';
