@@ -228,6 +228,7 @@
         .close-modal:hover { color: #fff; }
 
         .profile-detail-row { margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+        .profile-label { color: #aaa; font-size: 0.9rem; }
         .profile-value { font-weight: 600; color: #fff; text-align: right; }
         .profile-value.points { color: var(--success); font-size: 1.1rem; font-weight: 700; }
 
@@ -503,6 +504,7 @@
                         return true;
                     }
                     
+                    // Insert new user if not found
                     const { data: newUser, error: insertError } = await AuroraStore.supabase.from('ngebelusers').insert([{
                         id: user.uid, 
                         email: user.email || null, 
@@ -510,7 +512,7 @@
                         phone: null, 
                         role: 'user', 
                         is_admin: false, 
-                        loyalty_points: 0
+                        loyalty_points: 0 // Initialize points
                     }]).select().single();
                     
                     if (insertError) return false;
@@ -542,7 +544,7 @@
                 try { await AuroraStore.supabase.auth.signOut(); } catch (e) {}
                 localStorage.clear();
                 sessionStorage.clear();
-                // PERUBAHAN: Redirect ke index.html
+                // PERBAIKAN: Redirect ke index.html
                 window.location.href = 'index.html'; 
             },
 
@@ -782,6 +784,7 @@
 
                 if (AuroraStore.state.isLoggedIn) {
                     const name = dbUser?.full_name || currentUser?.full_name || currentUser?.username || "User";
+                    // KEMBALIKAN: Ambil loyalty_points dari dbUser
                     const points = dbUser?.loyalty_points || 0;
                     const avatar = name.charAt(0).toUpperCase();
 
@@ -883,6 +886,7 @@
                 const content = document.getElementById('profileContent');
                 document.getElementById('profileModal').classList.add('show');
                 
+                // KEMBALIKAN: Tampilkan loyalty_points di profil
                 content.innerHTML = `
                     <div class="profile-detail-row"><span class="profile-label">Nama</span><span class="profile-value">${user.full_name || user.username || '-'}</span></div>
                     <div class="profile-detail-row"><span class="profile-label">Email</span><span class="profile-value">${user.email || '-'}</span></div>
