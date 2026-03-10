@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Exclusive Voucher - Aurorra Store</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Tambahkan Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        :root { --luxury-gold: #d4af37; --dark-bg: #0f0c15; --dark-card: #161216; --text-gray: #a0a0a0; --text-white: #ffffff; }
+        :root { --luxury-gold: #d4af37; --dark-bg: #0f0c15; --dark-card: #161216; --text-gray: #a0a0a0; --text-white: #ffffff; --success: #2ecc71; --danger: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: var(--dark-bg); color: var(--text-white); font-family: 'Poppins', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .voucher-container { width: 100%; max-width: 480px; text-align: center; z-index: 1; }
@@ -18,24 +17,36 @@
         .subtitle span { color: var(--luxury-gold); font-weight: 600; }
         .card-box { background: rgba(22, 18, 22, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 20px; padding: 30px; margin-bottom: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .step-label { display: inline-block; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); color: #000; font-weight: 700; font-size: 0.75rem; padding: 5px 15px; border-radius: 20px; margin-bottom: 20px; text-transform: uppercase; }
-        .step-desc { color: #ccc; font-size: 0.9rem; margin-bottom: 25px; }
+        .step-desc { color: #ccc; font-size: 0.9rem; margin-bottom: 25px; line-height: 1.6; }
         
-        .btn-gold { display: block; padding: 14px 35px; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); color: #000; text-decoration: none; font-weight: 700; border-radius: 8px; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); width: 100%; border: none; cursor: pointer; font-size: 1rem; margin-bottom: 15px; }
-        .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4); }
+        .btn-gold { display: block; padding: 14px 35px; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); color: #000; text-decoration: none; font-weight: 700; border-radius: 8px; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); width: 100%; border: none; cursor: pointer; font-size: 1rem; margin-bottom: 15px; transition: transform 0.2s; }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4); }
         
         .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 5px; display: flex; gap: 10px; margin-top: 20px; }
-        .input-code { flex: 1; background: transparent; border: none; padding: 12px 15px; color: #fff; font-family: 'Poppins', sans-serif; letter-spacing: 2px; outline: none; text-align: center; text-transform: uppercase; }
-        .input-code::placeholder { text-transform: none; letter-spacing: normal; color: #555; }
+        .input-code { flex: 1; background: transparent; border: none; padding: 12px 15px; color: #fff; font-family: 'Poppins', sans-serif; letter-spacing: 2px; outline: none; text-align: center; text-transform: uppercase; font-weight: 600; }
+        .input-code::placeholder { text-transform: none; letter-spacing: normal; color: #555; font-weight: 400; }
         
-        .btn-verify { background: var(--luxury-gold); color: #000; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-verify { background: var(--luxury-gold); color: #000; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .btn-verify:active { transform: scale(0.95); }
         
         .notification { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; font-size: 0.9rem; animation: fadeIn 0.3s; }
-        .notif-success { background: rgba(39, 174, 96, 0.15); border: 1px solid rgba(39, 174, 96, 0.3); color: #2ecc71; }
-        .notif-error { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; }
+        .notif-success { background: rgba(39, 174, 96, 0.15); border: 1px solid rgba(39, 174, 96, 0.3); color: var(--success); }
+        .notif-error { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: var(--danger); }
         
-        .btn-shop-now { display: none; margin-top: 20px; background: #fff; color: #000; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--luxury-gold); transition: 0.3s; width: 100%; }
-        .btn-shop-now:hover { background: var(--luxury-gold); color: #000; }
+        /* Style untuk Countdown Redirect */
+        .redirect-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: #fff;
+            display: none; /* Hidden by default */
+        }
+        .redirect-box .countdown {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--luxury-gold);
+        }
         
         .small-note { font-size: 0.75rem; color: #555; margin-top: 15px; line-height: 1.4; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -64,13 +75,17 @@
             
             <div class="input-wrapper">
                 <input type="text" class="input-code" id="userCode" placeholder="Contoh: AUR-X9Z" maxlength="10">
-                <button class="btn-verify" onclick="verifyVoucher()">Cek</button>
+                <button class="btn-verify" id="btnCheckCode" onclick="verifyVoucher()">Cek</button>
             </div>
 
             <div id="notification" class="notification"></div>
             
-            <!-- Tombol ini akan muncul setelah kode benar -->
-            <a href="store.html" class="btn-shop-now" id="btnShop">🛒 Belanja Sekarang</a>
+            <!-- BOX REDIRECT: Muncul saat sukses -->
+            <div id="redirectBox" class="redirect-box">
+                <p>✅ Kode Valid! Mengalihkan ke pembayaran dalam:</p>
+                <div class="countdown" id="countdownTimer">3</div>
+                <small style="color:#888;">Jika tidak redirect otomatis, <a href="checkout.html" style="color:var(--luxury-gold)">klik di sini</a></small>
+            </div>
 
             <p class="small-note">*Screenshot bukti review Anda dan kirim ke Admin via WhatsApp untuk mendapatkan kode unik.</p>
         </div>
@@ -78,24 +93,24 @@
 
     <script>
         // ==========================================
-        // 1. KONFIGURASI SUPABASE (Sama dengan Admin)
+        // 1. KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. FUNGSI UTAMA VERIFIKASI
+        // 2. FUNGSI UTAMA VERIFIKASI & REDIRECT
         // ==========================================
         async function verifyVoucher() {
             const codeInput = document.getElementById('userCode').value.toUpperCase().trim();
             const notifElement = document.getElementById('notification');
-            const btnShop = document.getElementById('btnShop');
-            const btnVerify = document.querySelector('.btn-verify');
+            const btnVerify = document.getElementById('btnCheckCode');
+            const redirectBox = document.getElementById('redirectBox');
 
-            // Reset tampilan
+            // Reset UI
             notifElement.style.display = "none";
-            btnShop.style.display = "none";
+            redirectBox.style.display = "none";
 
             if (!codeInput) {
                 showError("⚠️ Silakan masukkan kode terlebih dahulu.");
@@ -103,7 +118,7 @@
             }
 
             // Loading state
-            btnVerify.innerText = "Memeriksa...";
+            btnVerify.innerText = "Cek...";
             btnVerify.disabled = true;
 
             try {
@@ -127,7 +142,7 @@
                     return;
                 }
 
-                // 3. Jika Kode Valid & Belum Dipakai -> UPDATE STATUS TERPAKAI
+                // 3. Jika Kode Valid -> UPDATE STATUS TERPAKAI
                 const { error: updateError } = await sb
                     .from('vouchers')
                     .update({ is_used: true })
@@ -139,25 +154,26 @@
                     return;
                 }
 
-                // 4. BERHASIL
+                // 4. SIMPAN KE LOCAL STORAGE
+                const voucherData = {
+                    discount: 10000,
+                    active: true,
+                    time: new Date().getTime(),
+                    code: codeInput
+                };
+                localStorage.setItem('aurorraVoucher', JSON.stringify(voucherData));
+
+                // 5. TAMPILKAN SUKSES & MULAI REDIRECT
                 notifElement.style.display = "block";
                 notifElement.className = "notification notif-success";
                 notifElement.innerHTML = "✅ <strong>Kode Valid!</strong><br>Diskon Rp 10.000 AKTIF!";
                 
-                btnShop.style.display = "block";
-
-                // Simpan status ke Local Storage untuk halaman checkout
-                const voucherData = {
-                    discount: 10000,
-                    active: true,
-                    time: new Date().getTime()
-                };
-                localStorage.setItem('aurorraVoucher', JSON.stringify(voucherData));
+                // Mulai Countdown Redirect
+                startRedirectCountdown();
 
             } catch (err) {
                 console.error(err);
                 showError("Terjadi kesalahan koneksi.");
-            } finally {
                 resetButton();
             }
         }
@@ -170,9 +186,31 @@
         }
 
         function resetButton() {
-            const btnVerify = document.querySelector('.btn-verify');
+            const btnVerify = document.getElementById('btnCheckCode');
             btnVerify.innerText = "Cek";
             btnVerify.disabled = false;
+        }
+
+        // ==========================================
+        // 3. LOGIKA COUNTDOWN REDIRECT
+        // ==========================================
+        function startRedirectCountdown() {
+            const redirectBox = document.getElementById('redirectBox');
+            const countdownEl = document.getElementById('countdownTimer');
+            let timeLeft = 3; // 3 detik
+
+            redirectBox.style.display = "block"; // Tampilkan box countdown
+            countdownEl.innerText = timeLeft;
+
+            const timer = setInterval(() => {
+                timeLeft--;
+                countdownEl.innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    window.location.href = 'checkout.html'; // ALIHKAN KE CHECKOUT
+                }
+            }, 1000);
         }
     </script>
 </body>
