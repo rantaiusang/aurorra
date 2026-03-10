@@ -93,8 +93,6 @@
         .store-header h1 { font-family: 'Playfair Display', serif; font-size: 3.2rem; color: var(--luxury-gold); margin: 0 0 10px 0; font-weight: 700; letter-spacing: -0.5px; }
         .store-header p { color: #888; font-style: italic; line-height: 1.6; letter-spacing: 0.5px; }
 
-        /* Promo Banner DIHILANGKAN sesuai request */
-
         .search-container { max-width: 500px; margin: 0 auto 40px auto; position: relative; }
         .search-input { width: 100%; padding: 14px 20px 14px 45px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; transition: all 0.3s; }
         .search-input:focus { outline: none; border-color: var(--luxury-gold); background: rgba(255, 255, 255, 0.07); }
@@ -113,28 +111,43 @@
             gap: 28px;
         }
 
-        /* Responsive: Mobile 2 Grid */
+        /* Responsive: Mobile 2 Grid (PERBAIKAN TAMPILAN) */
         @media (max-width: 1024px) {
-            .main-layout { flex-direction: column-reverse; padding: 20px 5%; }
+            .main-layout { flex-direction: column-reverse; padding: 20px 3%; }
             .cart-sidebar { position: static; margin-bottom: 30px; max-height: 400px; }
             .catalog-section { padding-right: 0; }
             
-            /* Tablet: 2 kolom */
-            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-            .product-img-wrapper { height: 200px; }
+            /* Tablet/Mobile: 2 kolom RAPI */
+            .product-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 10px; /* Rapikan gap */
+            }
+            
+            /* Ubah gambar jadi Persegi (1:1) agar rapi */
+            .product-img-wrapper { 
+                height: 0; 
+                padding-bottom: 100%; /* Ratio 1:1 */
+                position: relative;
+            }
+            .product-img {
+                position: absolute;
+                top: 0; left: 0; width: 100%; height: 100%;
+            }
         }
 
         @media (max-width: 600px) {
             .store-header h1 { font-size: 2rem; }
-            .product-grid { gap: 10px; }
-            .product-info { padding: 10px; }
-            .product-name { font-size: 0.9rem; }
+            .product-info { padding: 8px; }
+            .product-name { font-size: 0.85rem; }
+            .product-price { font-size: 0.9rem; }
+            .btn-buy { padding: 6px; font-size: 0.65rem; letter-spacing: 0.5px; }
         }
 
         .product-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); cursor: pointer; }
         .product-card.show { opacity: 1; transform: translateY(0); }
         .product-card:hover { transform: translateY(-8px); border-color: rgba(212, 175, 55, 0.4); box-shadow: 0 15px 40px rgba(0,0,0, 0.6); }
         
+        /* Desktop Image Wrapper */
         .product-img-wrapper { width: 100%; height: 260px; overflow: hidden; position: relative; background: #000; }
         .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; display: block; opacity: 0.9; }
         .product-card:hover .product-img { transform: scale(1.08); opacity: 1; }
@@ -143,7 +156,17 @@
         .product-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #fff; margin-bottom: 5px; font-weight: 600; }
         .product-price { font-size: 1.05rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 5px; display: block; }
         
-        /* Teks Poin DIHILANGKAN dari grid */
+        /* RATING STYLES (BARU) */
+        .product-rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+        }
+        .rating-stars { color: var(--luxury-gold); letter-spacing: 1px; }
+        .rating-score { color: #aaa; font-weight: 500; }
         
         .btn-buy { width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 500; cursor: pointer; transition: all 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; border-radius: 5px; }
         .btn-buy:hover:not(:disabled) { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); }
@@ -410,6 +433,23 @@
             },
             calculatePoints(amount) {
                 return Math.floor(AuroraStore.utils.cleanPrice(amount) / AuroraStore.config.POINT_RATE);
+            },
+            /* HELPER: Generate Stars HTML */
+            generateStarsHTML(rating) {
+                let stars = '';
+                const fullStars = Math.floor(rating);
+                const hasHalf = rating % 1 >= 0.5;
+                
+                for (let i = 0; i < fullStars; i++) {
+                    stars += '★'; // Full Star
+                }
+                if (hasHalf) {
+                    stars += '⯨'; // Half Star (or use ☆)
+                }
+                // Empty stars to fill up to 5? Optional.
+                // for(let i=stars.length; i<5; i++) stars += '☆';
+                
+                return stars;
             }
         },
 
@@ -600,7 +640,9 @@
                     const isOutOfStock = stock <= 0;
                     const price = AuroraStore.utils.formatPrice(product.price);
                     
-                    // Teks poin dihapus dari sini
+                    // Ambil data Rating dari DB
+                    const rating = parseFloat(product.rating) || 0.0;
+                    const soldCount = parseInt(product.sold_count) || 0;
 
                     card.innerHTML = `
                         <div class="category-badge">${cat}</div>
@@ -608,6 +650,11 @@
                         <div class="product-info">
                             <div>
                                 <h3 class="product-name">${name}</h3>
+                                <div class="product-rating">
+                                    <span class="rating-stars">${AuroraStore.utils.generateStarsHTML(rating)}</span>
+                                    <span class="rating-score">${rating.toFixed(1)}</span>
+                                    <span style="color:#666; font-size:0.7rem;">(${soldCount})</span>
+                                </div>
                                 <span class="product-price price-container">${price}</span>
                                 <div style="font-size:0.75rem;color:#666;margin-top:5px;">${isOutOfStock ? '<span style="color:#ff6b6b">Habis</span>' : `Stok: ${stock}`}</div>
                             </div>
@@ -808,7 +855,7 @@
                 document.getElementById('qvName').innerText = product.name || 'Produk';
                 document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi tersedia.';
                 
-                // Render Size mL (Baru)
+                // Render Size mL
                 const sizeML = product.size_ml ? `${product.size_ml} mL` : 'Ukuran tidak tersedia';
                 document.getElementById('qvSize').innerText = sizeML;
 
