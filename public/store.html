@@ -542,7 +542,8 @@
                 try { await AuroraStore.supabase.auth.signOut(); } catch (e) {}
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.reload();
+                // PERUBAHAN: Redirect ke index.html
+                window.location.href = 'index.html'; 
             },
 
             handleLogout() {
