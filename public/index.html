@@ -38,7 +38,7 @@
             font-family: 'Poppins', sans-serif;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-            padding-bottom: calc(var(--nav-height) + 20px); 
+            padding-bottom: calc(var(--nav-height) + 40px); 
         }
 
         /* --- 2. HEADER (MINIMALIS) --- */
@@ -71,7 +71,7 @@
 
         .nav-links { display: none; }
 
-        /* --- 3. BOTTOM NAVIGATION (SCROLLABLE) --- */
+        /* --- 3. BOTTOM NAVIGATION (AUTO SCROLL & HIDE) --- */
         .bottom-nav {
             position: fixed;
             bottom: 15px;
@@ -87,7 +87,7 @@
             border: 1px solid rgba(212, 175, 55, 0.1);
             display: flex;
             overflow-x: auto;
-            scroll-behavior: smooth;
+            scroll-behavior: auto; /* Ubah ke auto untuk kontrol JS yang smooth */
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             align-items: center;
@@ -95,6 +95,16 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             z-index: 9999;
             padding: 0 10px;
+            
+            /* Transisi untuk Hide/Show */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+        }
+
+        /* Class untuk menyembunyikan navigasi */
+        .bottom-nav.hidden-nav {
+            transform: translate(-50%, 100px); /* Geser ke bawah */
+            opacity: 0;
+            pointer-events: none;
         }
 
         .bottom-nav::-webkit-scrollbar { display: none; }
@@ -456,24 +466,10 @@
             .loyalty-card { padding: 30px 15px; }
             .nav-item { padding: 8px 15px; min-width: 60px; }
             
-            /* --- MODIFIKASI UKURAN KOTAK PRODUK --- */
-            /* Mengubah grid menjadi 1 kolom, tapi kartu tidak memenuhi layar */
-            .best-seller-section {
-                padding: 40px 15px; /* Tambah padding section */
-            }
-            .best-seller-grid {
-                grid-template-columns: 1fr; /* 1 kolom per baris */
-                gap: 25px; /* Jarak antar kartu */
-                padding: 0 5px; /* Padding tambahan di dalam grid */
-            }
-            .product-card {
-                width: 92%; /* Ukuran kartu 92% dari layar */
-                margin: 0 auto; /* Posisi tengah */
-                border-radius: 15px; /* Sedikit lebih bulat */
-            }
-            .product-img-wrapper {
-                height: 250px; /* Tinggi gambar sedikit dinaikkan agar proporsional */
-            }
+            .best-seller-section { padding: 40px 15px; }
+            .best-seller-grid { grid-template-columns: 1fr; gap: 25px; padding: 0 5px; }
+            .product-card { width: 92%; margin: 0 auto; border-radius: 15px; }
+            .product-img-wrapper { height: 250px; }
         }
     </style>
 </head>
@@ -625,10 +621,82 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA REWARDS BUTTON
+        // 2. LOGIKA NAVIGASI (AUTO SCROLL & HIDE)
+        // ==========================================
+        const navElement = document.getElementById('mainNav');
+        let autoScrollInterval;
+        let scrollDirection = 1; // 1: Kanan ke Kiri, -1: Kiri ke Kanan
+        let isUserInteracting = false;
+        let lastScrollTop = 0;
+        let scrollTimeout;
+
+        // Fungsi untuk menjalankan auto-scroll
+        function startAutoScroll() {
+            if (autoScrollInterval) clearInterval(autoScrollInterval);
+            
+            // Kecepatan (semakin kecil angkanya, semakin lambat)
+            const speed = 0.5; 
+            
+            autoScrollInterval = setInterval(() => {
+                if (isUserInteracting) return; // Jangan scroll jika user pegang
+                
+                // Logika Scroll Loop (Kanan ke Kiri)
+                navElement.scrollLeft += speed * scrollDirection;
+                
+                // Jika sudah mencapai ujung kanan
+                if (navElement.scrollLeft >= navElement.scrollWidth - navElement.clientWidth) {
+                    scrollDirection = -1; // Balik ke kiri
+                } 
+                // Jika sudah mencapai ujung kiri
+                else if (navElement.scrollLeft <= 0) {
+                    scrollDirection = 1; // Balik ke kanan
+                }
+            }, 16); // 60fps
+        }
+
+        // Deteksi Interaksi User (Sentuh/Geser)
+        navElement.addEventListener('touchstart', () => { isUserInteracting = true; });
+        navElement.addEventListener('touchend', () => { 
+            // Lanjutkan auto scroll setelah 3 detik diam
+            setTimeout(() => { isUserInteracting = false; }, 3000); 
+        });
+        navElement.addEventListener('mousedown', () => { isUserInteracting = true; });
+        navElement.addEventListener('mouseup', () => { 
+            setTimeout(() => { isUserInteracting = false; }, 3000); 
+        });
+
+        // Fungsi Hide/Show saat Scroll Halaman Utama
+        window.addEventListener('scroll', function() {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            // Clear timeout sebelumnya (reset timer)
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+
+            // Logika Hide: Jika scroll ke bawah
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                navElement.classList.add('hidden-nav');
+            } 
+            // Logika Show: Jika scroll ke atas
+            else {
+                navElement.classList.remove('hidden-nav');
+            }
+
+            lastScrollTop = scrollTop;
+
+            // SHOW kembali setelah berhenti scroll selama 500ms
+            scrollTimeout = setTimeout(() => {
+                navElement.classList.remove('hidden-nav');
+            }, 500);
+        });
+
+        // Jalankan Auto Scroll saat halaman load
+        startAutoScroll();
+
+
+        // ==========================================
+        // 3. LOGIKA REWARDS BUTTON
         // ==========================================
         const rewardsBtn = document.getElementById('rewardsBtn');
-
         if (rewardsBtn) {
             rewardsBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
@@ -643,7 +711,7 @@
         }
 
         // ==========================================
-        // 3. AUTO LOGOUT 4 JAM
+        // 4. AUTO LOGOUT 4 JAM
         // ==========================================
         let inactivityTime = function () {
             let time;
@@ -666,7 +734,7 @@
         inactivityTime();
 
         // ==========================================
-        // 4. LOGIKA NEWSLETTER
+        // 5. LOGIKA NEWSLETTER
         // ==========================================
         function initNewsletter() {
             const form = document.querySelector('.newsletter-form');
@@ -694,7 +762,7 @@
         }
 
         // ==========================================
-        // 5. FUNGSI PENGACAK
+        // 6. FUNGSI PENGACAK
         // ==========================================
         function shuffleWithSeed(array, seed) {
             let m = array.length, t, i;
@@ -713,7 +781,7 @@
         }
 
         // ==========================================
-        // 6. FETCH PRODUK
+        // 7. FETCH PRODUK
         // ==========================================
         async function loadProducts() {
             const productGrid = document.getElementById('productGrid');
@@ -764,7 +832,7 @@
         }
 
         // ==========================================
-        // 7. LOGIKA UPDATE HEADER & HARGA (MODIFIKASI)
+        // 8. LOGIKA UPDATE HEADER & HARGA (MODIFIKASI)
         // ==========================================
         async function updateUIBasedOnSession() {
             const navLoginBtn = document.getElementById('navLoginBtn');
@@ -801,7 +869,7 @@
         }
 
         // ==========================================
-        // 8. INITIALIZATION
+        // 9. INITIALIZATION
         // ==========================================
         document.addEventListener("DOMContentLoaded", function() {
             initNewsletter();
@@ -811,7 +879,7 @@
         window.onload = function() { window.scrollTo(0, 0); };
 
         // ==========================================
-        // 9. SCROLL ANIMATIONS
+        // 10. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
             const observer = new IntersectionObserver((entries) => {
