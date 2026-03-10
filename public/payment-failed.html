@@ -2,207 +2,348 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pembayaran Gagal - Aurorra Store</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font (Sama dengan Index & Store) -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Icon Library -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        :root { 
-            --luxury-gold: #d4af37; 
-            --dark-bg: #0f0c15; 
-            --card-bg: #1a1620; 
-            --danger-color: #ff4d4d; 
-            --danger-bg: rgba(255, 77, 77, 0.1); 
-        }
-        body { 
-            background-color: var(--dark-bg); 
-            color: #ffffff; 
-            font-family: 'Poppins', sans-serif; 
-            margin: 0; 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        
-        .container {
-            text-align: center;
-            padding: 20px;
-            max-width: 500px;
-            width: 100%;
+        /* --- VARIABLES (SAMA DENGAN ACUAN) --- */
+        :root {
+            --luxury-gold: #d4af37;
+            --luxury-gold-light: #f3e5ab;
+            --dark-bg: #0f0c15;
+            --dark-card: #161216;
+            --text-gray: #a0a0a0;
+            --text-white: #ffffff;
+            --danger-color: #ff4d4d;
+            --danger-bg: rgba(255, 77, 77, 0.05);
         }
 
-        .icon-wrapper {
-            width: 80px;
-            height: 80px;
+        /* --- RESET & BODY --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- HEADER (SEKARANG SAMA PERSIS DENGAN ACUAN) --- */
+        header {
+            background: rgba(15, 12, 21, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 15px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-white);
+            text-decoration: none;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .logo:hover { color: var(--luxury-gold); }
+
+        /* --- CONTAINER --- */
+        .page-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 140px 20px 80px; /* Padding atas besar karena header sticky */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            transition: color 0.3s;
+            opacity: 0; /* Initial state untuk animasi */
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease, color 0.3s;
+        }
+        
+        .back-link.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .back-link:hover {
+            color: var(--luxury-gold);
+        }
+
+        /* --- CONTENT CARD --- */
+        .content-card {
+            background: var(--dark-card);
+            padding: 50px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center; /* Pusatkan konten utama */
+        }
+
+        /* --- ANIMASI FADE IN SCROLL --- */
+        .fade-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .fade-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- CUSTOM ERROR STYLES --- */
+        .error-header {
+            margin-bottom: 40px;
+        }
+
+        .icon-box {
+            width: 100px;
+            height: 100px;
             background: var(--danger-bg);
-            border: 2px solid var(--danger-color);
             border-radius: 50%;
-            margin: 0 auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            margin: 0 auto 25px;
+            border: 1px solid rgba(255, 77, 77, 0.2);
             color: var(--danger-color);
-            animation: pulse 2s infinite;
+            font-size: 3rem;
+            animation: pulse-gentle 3s infinite ease-in-out;
         }
 
-        h1 {
+        .error-title {
             font-family: 'Playfair Display', serif;
-            color: #ffffff;
-            font-size: 2rem;
+            font-size: 2.5rem;
+            color: var(--text-white);
             margin-bottom: 10px;
         }
-        
-        .subtitle {
-            color: #aaa;
-            font-size: 1rem;
-            margin-bottom: 30px;
-            line-height: 1.5;
+
+        .error-desc {
+            color: var(--text-gray);
+            font-size: 1.05rem;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.7;
         }
 
         .error-code {
+            margin-top: 20px;
             font-family: monospace;
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 5px;
-            color: var(--danger-color);
-            margin-bottom: 30px;
+            font-size: 0.85rem;
+            color: rgba(255, 77, 77, 0.7);
+            background: rgba(0,0,0,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
             display: inline-block;
         }
 
-        .btn-group {
+        /* --- BUTTON GROUP --- */
+        .action-buttons {
+            margin-top: 50px;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        .btn {
-            width: 100%;
-            padding: 16px;
+        .btn-luxury {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 30px;
             border-radius: 50px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
-        .btn-primary {
-            background-color: var(--luxury-gold);
+        .btn-primary-gold {
+            background: linear-gradient(135deg, var(--luxury-gold), #b8960be6);
             color: #000;
-            border: none;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
         }
-        .btn-primary:hover {
-            background-color: #ffed4a;
+
+        .btn-primary-gold:hover {
+            background: #ffed4a;
             transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
         }
 
-        .btn-secondary {
+        .btn-secondary-outline {
             background-color: transparent;
-            color: #ccc;
-            border: 1px solid #555;
-        }
-        .btn-secondary:hover {
-            border-color: #fff;
-            color: #fff;
+            color: var(--text-gray);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .footer-text {
-            margin-top: 40px;
-            font-size: 0.8rem;
-            color: #666;
-        }
-        .footer-text a {
+        .btn-secondary-outline:hover {
+            border-color: var(--luxury-gold);
             color: var(--luxury-gold);
-            text-decoration: none;
+            background: rgba(212, 175, 55, 0.05);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+        .mini-footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #555;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 1s ease;
+        }
+        .mini-footer.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes pulse-gentle {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.3); }
+            50% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(255, 77, 77, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            header { padding: 15px 5%; }
+            .logo { font-size: 1.2rem; }
+            .page-wrapper { padding: 120px 20px 60px; }
+            .content-card { padding: 40px 25px; }
+            .error-title { font-size: 1.8rem; }
+            .icon-box { width: 80px; height: 80px; font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="icon-wrapper">
-            <i class="fas fa-times"></i>
-        </div>
+    <!-- Header (Serupa dengan Store/Policy) -->
+    <header>
+        <div style="width: 20px;"></div> <!-- Spacer kiri -->
+        <a href="index.html" class="logo">Aurorra ⚡</a>
+        <div style="width: 20px;"></div> <!-- Spacer kanan agar logo di tengah -->
+    </header>
 
-        <h1>Pembayaran Gagal</h1>
-        <p class="subtitle" id="errorMessage">
-            Maaf, transaksi Anda tidak dapat diproses. Silakan coba lagi atau hubungi tim kami.
-        </p>
+    <div class="page-wrapper">
+        
+        <!-- Tombol Kembali -->
+        <a href="store.html" class="back-link fade-on-scroll">
+            <span>&larr;</span> Kembali ke Toko
+        </a>
 
-        <!-- Tampilkan Error Code jika ada (misal dari URL parameter) -->
-        <div id="errorCode" class="error-code" style="display: none;"></div>
+        <div class="content-card">
+            
+            <!-- Konten Error -->
+            <div class="error-header fade-on-scroll">
+                <div class="icon-box">
+                    <i class="fas fa-times"></i>
+                </div>
+                <h1 class="error-title">Transaksi Gagal</h1>
+                <p class="error-desc" id="errorMessage">
+                    Maaf, proses pembayaran Anda tidak dapat diselesaikan. Silakan periksa kembali data Anda atau coba gunakan metode pembayaran lain.
+                </p>
+                <div id="errorCode" class="error-code" style="display: none;"></div>
+            </div>
 
-        <div class="btn-group">
-            <a href="store.html" class="btn btn-primary">
-                <i class="fas fa-shopping-bag"></i> Kembali ke Toko
-            </a>
-            <a href="checkout.html" class="btn btn-secondary">
-                <i class="fas fa-redo"></i> Coba Lagi
-            </a>
-        </div>
+            <!-- Tombol Aksi -->
+            <div class="action-buttons fade-on-scroll">
+                <a href="store.html" class="btn-luxury btn-primary-gold">
+                    <i class="fas fa-store"></i> Kembali Berbelanja
+                </a>
+                <a href="checkout.html" class="btn-luxury btn-secondary-outline">
+                    <i class="fas fa-redo-alt"></i> Coba Bayar Lagi
+                </a>
+            </div>
 
-        <div class="footer-text">
-            &copy; 2024 <a href="#">Aurorra Parfumerie</a>. All rights reserved.
+            <!-- Mini Footer -->
+            <div class="mini-footer fade-on-scroll">
+                <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
+            </div>
         </div>
     </div>
 
+    <!-- SCRIPT SCROLL ANIMATION & LOGIC -->
     <script>
-        // 1. Ambil parameter alasan dari URL (jika ada)
-        // Contoh URL: payment-failed.html?reason=Session%20Expired
-        const urlParams = new URLSearchParams(window.location.search);
-        const reason = urlParams.get('reason');
-        const errorDiv = document.getElementById('errorMessage');
-        const codeDiv = document.getElementById('errorCode');
+        // 1. Inisialisasi Animasi
+        window.onload = function() {
+            window.scrollTo(0, 0);
+            initScrollAnimations();
+            handleErrorMessage();
+        };
 
-        if (reason) {
-            // Mapping error code yang mungkin terjadi
-            let message = "Terjadi kesalahan pada pembayaran.";
-            
-            if (reason === 'Session Expired') {
-                message = "Sesi login Anda telah habis silakan login ulang.";
-            } else if (reason === 'Insufficient Funds') {
-                message = "Saldo atau limit kartu Anda tidak mencukupi.";
-            } else if (reason === 'Cancelled') {
-                message = "Anda membatalkan pembayaran ini.";
-            } else {
-                // Tampilkan raw reason jika tidak dikenali (ganti %20 dengan spasi)
-                message = reason.replace(/%20/g, " ");
-            }
+        // 2. Intersection Observer untuk Animasi Fade In
+        function initScrollAnimations() {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
 
-            errorDiv.innerText = message;
-            codeDiv.style.display = 'inline-block';
-            codeDiv.innerText = `CODE: ${reason}`;
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            const fadeElements = document.querySelectorAll('.fade-on-scroll');
+            fadeElements.forEach(el => observer.observe(el));
         }
 
-        // 2. Auto Redirect setelah 10 detik (Optional UX)
-        let secondsLeft = 10;
-        const countdownInterval = setInterval(() => {
-            secondsLeft--;
-            if (secondsLeft <= 0) {
-                clearInterval(countdownInterval);
-                console.log("Auto redirecting to store...");
-                window.location.href = 'store.html';
-            }
-        }, 1000);
+        // 3. Logika Menampilkan Error
+        function handleErrorMessage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reason = urlParams.get('reason');
+            const errorDiv = document.getElementById('errorMessage');
+            const codeDiv = document.getElementById('errorCode');
 
+            if (reason) {
+                let message = "Terjadi kesalahan pada pembayaran.";
+                
+                if (reason === 'Session Expired') {
+                    message = "Sesi pembayaran Anda telah berakhir. Silakan kembali ke toko dan lakukan checkout ulang.";
+                } else if (reason === 'Insufficient Funds') {
+                    message = "Transaksi gagal. Saldo atau limit kartu Anda tidak mencukupi.";
+                } else if (reason === 'Cancelled') {
+                    message = "Anda telah membatalkan proses pembayaran ini.";
+                } else {
+                    message = decodeURIComponent(reason);
+                }
+
+                errorDiv.innerText = message;
+                codeDiv.style.display = 'inline-block';
+                codeDiv.innerText = `Detail: ${reason}`;
+            }
+        }
     </script>
+
 </body>
 </html>
