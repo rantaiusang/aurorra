@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Exclusive Voucher - Aurorra Store</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Tambahkan Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        /* CSS SAMA SEPERTI SEBELUMNYA (SINGKAT UNTUK HEMAT RUANG) */
         :root { --luxury-gold: #d4af37; --dark-bg: #0f0c15; --dark-card: #161216; --text-gray: #a0a0a0; --text-white: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: var(--dark-bg); color: var(--text-white); font-family: 'Poppins', sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -17,17 +19,26 @@
         .card-box { background: rgba(22, 18, 22, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 20px; padding: 30px; margin-bottom: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .step-label { display: inline-block; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); color: #000; font-weight: 700; font-size: 0.75rem; padding: 5px 15px; border-radius: 20px; margin-bottom: 20px; text-transform: uppercase; }
         .step-desc { color: #ccc; font-size: 0.9rem; margin-bottom: 25px; }
+        
         .btn-gold { display: block; padding: 14px 35px; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); color: #000; text-decoration: none; font-weight: 700; border-radius: 8px; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); width: 100%; border: none; cursor: pointer; font-size: 1rem; margin-bottom: 15px; }
         .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4); }
+        
         .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 5px; display: flex; gap: 10px; margin-top: 20px; }
-        .input-code { flex: 1; background: transparent; border: none; padding: 12px 15px; color: #fff; font-family: 'Poppins', sans-serif; letter-spacing: 2px; outline: none; text-align: center; }
-        .btn-verify { background: var(--luxury-gold); color: #000; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .notification { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; }
+        .input-code { flex: 1; background: transparent; border: none; padding: 12px 15px; color: #fff; font-family: 'Poppins', sans-serif; letter-spacing: 2px; outline: none; text-align: center; text-transform: uppercase; }
+        .input-code::placeholder { text-transform: none; letter-spacing: normal; color: #555; }
+        
+        .btn-verify { background: var(--luxury-gold); color: #000; border: none; padding: 0 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-verify:active { transform: scale(0.95); }
+        
+        .notification { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; font-size: 0.9rem; animation: fadeIn 0.3s; }
         .notif-success { background: rgba(39, 174, 96, 0.15); border: 1px solid rgba(39, 174, 96, 0.3); color: #2ecc71; }
         .notif-error { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: #e74c3c; }
-        .btn-shop-now { display: none; margin-top: 20px; background: #fff; color: #000; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--luxury-gold); transition: 0.3s; }
+        
+        .btn-shop-now { display: none; margin-top: 20px; background: #fff; color: #000; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--luxury-gold); transition: 0.3s; width: 100%; }
         .btn-shop-now:hover { background: var(--luxury-gold); color: #000; }
-        .small-note { font-size: 0.75rem; color: #555; margin-top: 15px; }
+        
+        .small-note { font-size: 0.75rem; color: #555; margin-top: 15px; line-height: 1.4; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -49,11 +60,11 @@
         <!-- STEP 2 -->
         <div class="card-box">
             <div class="step-label">Langkah 2</div>
-            <p class="step-desc">Masukkan kode rahasia untuk mengaktifkan diskon.</p>
+            <p class="step-desc">Masukkan kode rahasia dari Admin untuk mengaktifkan diskon.</p>
             
             <div class="input-wrapper">
-                <input type="text" class="input-code" id="userCode" placeholder="Kode Rahasia..." maxlength="10">
-                <button class="btn-verify" onclick="activateVoucher()">Cek</button>
+                <input type="text" class="input-code" id="userCode" placeholder="Contoh: AUR-X9Z" maxlength="10">
+                <button class="btn-verify" onclick="verifyVoucher()">Cek</button>
             </div>
 
             <div id="notification" class="notification"></div>
@@ -61,47 +72,107 @@
             <!-- Tombol ini akan muncul setelah kode benar -->
             <a href="store.html" class="btn-shop-now" id="btnShop">🛒 Belanja Sekarang</a>
 
-            <p class="small-note">*Hubungi admin via WA untuk mendapatkan kode rahasia setelah review.</p>
+            <p class="small-note">*Screenshot bukti review Anda dan kirim ke Admin via WhatsApp untuk mendapatkan kode unik.</p>
         </div>
     </div>
 
     <script>
-        function activateVoucher() {
-            const codeInput = document.getElementById('userCode').value.toUpperCase();
+        // ==========================================
+        // 1. KONFIGURASI SUPABASE (Sama dengan Admin)
+        // ==========================================
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // 2. FUNGSI UTAMA VERIFIKASI
+        // ==========================================
+        async function verifyVoucher() {
+            const codeInput = document.getElementById('userCode').value.toUpperCase().trim();
             const notifElement = document.getElementById('notification');
             const btnShop = document.getElementById('btnShop');
-            
-            // Ganti 'AURORRA' dengan kode rahasia yang Anda inginkan
-            const correctCode = "AURORRA"; 
+            const btnVerify = document.querySelector('.btn-verify');
 
-            if (codeInput === correctCode) {
-                // 1. Tampilkan notifikasi sukses
+            // Reset tampilan
+            notifElement.style.display = "none";
+            btnShop.style.display = "none";
+
+            if (!codeInput) {
+                showError("⚠️ Silakan masukkan kode terlebih dahulu.");
+                return;
+            }
+
+            // Loading state
+            btnVerify.innerText = "Memeriksa...";
+            btnVerify.disabled = true;
+
+            try {
+                // 1. Cek ke Database: Apakah kode ada?
+                const { data, error } = await sb
+                    .from('vouchers')
+                    .select('*')
+                    .eq('code', codeInput)
+                    .single();
+
+                if (error || !data) {
+                    showError("❌ Kode tidak ditemukan di sistem.");
+                    resetButton();
+                    return;
+                }
+
+                // 2. Cek apakah sudah dipakai?
+                if (data.is_used === true) {
+                    showError("❌ Kode ini sudah pernah digunakan.");
+                    resetButton();
+                    return;
+                }
+
+                // 3. Jika Kode Valid & Belum Dipakai -> UPDATE STATUS TERPAKAI
+                const { error: updateError } = await sb
+                    .from('vouchers')
+                    .update({ is_used: true })
+                    .eq('code', codeInput);
+
+                if (updateError) {
+                    showError("Terjadi kesalahan sistem, coba lagi.");
+                    resetButton();
+                    return;
+                }
+
+                // 4. BERHASIL
                 notifElement.style.display = "block";
                 notifElement.className = "notification notif-success";
-                notifElement.innerHTML = "✅ Diskon Rp 10.000 AKTIF!<br><small style='color:#ccc'>Diskon akan otomatis terpotong saat checkout.</small>";
+                notifElement.innerHTML = "✅ <strong>Kode Valid!</strong><br>Diskon Rp 10.000 AKTIF!";
                 
-                // 2. Tampilkan tombol belanja
-                btnShop.style.display = "inline-block";
+                btnShop.style.display = "block";
 
-                // 3. SIMPAN STATUS KE LOCAL STORAGE (KUNCI UTAMA)
-                // Ini menyimpan data bahwa user berhak dapat diskon
+                // Simpan status ke Local Storage untuk halaman checkout
                 const voucherData = {
-                    code: "DISKON10K",
                     discount: 10000,
                     active: true,
-                    timestamp: new Date().getTime()
+                    time: new Date().getTime()
                 };
                 localStorage.setItem('aurorraVoucher', JSON.stringify(voucherData));
 
-            } else if (codeInput === "") {
-                notifElement.style.display = "block";
-                notifElement.className = "notification notif-error";
-                notifElement.innerHTML = "⚠️ Silakan masukkan kode terlebih dahulu.";
-            } else {
-                notifElement.style.display = "block";
-                notifElement.className = "notification notif-error";
-                notifElement.innerHTML = "❌ Kode salah. Coba lagi atau hubungi admin.";
+            } catch (err) {
+                console.error(err);
+                showError("Terjadi kesalahan koneksi.");
+            } finally {
+                resetButton();
             }
+        }
+
+        function showError(message) {
+            const notifElement = document.getElementById('notification');
+            notifElement.style.display = "block";
+            notifElement.className = "notification notif-error";
+            notifElement.innerHTML = message;
+        }
+
+        function resetButton() {
+            const btnVerify = document.querySelector('.btn-verify');
+            btnVerify.innerText = "Cek";
+            btnVerify.disabled = false;
         }
     </script>
 </body>
