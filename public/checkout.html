@@ -53,7 +53,15 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; text-align: center;
         }
         
-        .coin-visual { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); display: flex; justify-content: center; align-items: center; font-size: 2rem; color: white; font-weight: bold; }
+        /* GANTI: Logo Visual (Bukan Pi Network) */
+        .checkout-visual { 
+            width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; 
+            background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        .checkout-visual svg { width: 28px; height: 28px; stroke: white; stroke-width: 2; fill: none; }
+
         .payment-logo { width: 80px; height: 80px; margin: 0 auto 30px; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #FFD700, #FDB931); border-radius: 50%; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
         .payment-logo svg { width: 50%; height: 50%; fill: #000; }
 
@@ -75,8 +83,27 @@
         .custom-select-trigger::after { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--luxury-gold); margin-right: 5px; }
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
-        .search-box { padding: 10px; position: sticky; top: 0; background: #1e1e1e; z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .search-box input { width: 100%; padding: 8px 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white; box-sizing: border-box; }
+        
+        /* PERBAIKAN: Search Box Lebih Besar */
+        .search-box { 
+            padding: 15px; /* Padding container diperbesar */
+            position: sticky; 
+            top: 0; 
+            background: #1e1e1e; 
+            z-index: 1; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .search-box input { 
+            width: 100%; 
+            padding: 12px 15px; /* Padding input diperbesar */
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 6px; 
+            color: white; 
+            box-sizing: border-box; 
+            font-size: 1rem; /* Font size diperbesar agar mudah dibaca */
+        }
+
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
         .option:hover { background: rgba(212, 175, 55, 0.2); color: var(--luxury-gold); }
         .option.selected { color: var(--luxury-gold); font-weight: 600; background: rgba(212, 175, 55, 0.1); }
@@ -103,9 +130,7 @@
         .error-box { display:none; background:rgba(255, 77, 77, 0.1); border: 1px solid var(--danger-color); color:#ffcccc; padding:15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.85rem; }
         .hidden { display: none !important; }
 
-        /* ==========================================
-           SMART VOUCHER POPUP STYLES
-           ========================================== */
+        /* VOUCHER POPUP STYLES */
         .voucher-popup-overlay {
             position: fixed;
             inset: 0;
@@ -120,10 +145,7 @@
             visibility: hidden;
             transition: all 0.3s ease;
         }
-        .voucher-popup-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
+        .voucher-popup-overlay.show { opacity: 1; visibility: visible; }
         
         .voucher-popup-card {
             background: linear-gradient(145deg, #1a1620, #0f0c15);
@@ -136,12 +158,8 @@
             transform: scale(0.8);
             transition: transform 0.3s ease;
             box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
-            position: relative;
-            overflow: hidden;
         }
-        .voucher-popup-overlay.show .voucher-popup-card {
-            transform: scale(1);
-        }
+        .voucher-popup-overlay.show .voucher-popup-card { transform: scale(1); }
 
         .popup-badge {
             display: inline-block;
@@ -153,60 +171,18 @@
             font-weight: 700;
             margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
         
-        .popup-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite;
-        }
+        .popup-icon { font-size: 3rem; margin-bottom: 15px; animation: bounce 2s infinite; }
+        .popup-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #fff; margin-bottom: 10px; }
+        .popup-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 25px; line-height: 1.5; }
+        .popup-highlight { color: var(--luxury-gold); font-weight: 700; font-size: 1.1rem; }
+        .popup-actions { display: flex; flex-direction: column; gap: 10px; }
         
-        .popup-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-        
-        .popup-desc {
-            color: #aaa;
-            font-size: 0.9rem;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        
-        .popup-highlight {
-            color: var(--luxury-gold);
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .popup-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .btn-popup-primary {
-            background: var(--luxury-gold);
-            color: #000;
-            padding: 14px;
-            border-radius: 50px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: 0.2s;
-        }
+        .btn-popup-primary { background: var(--luxury-gold); color: #000; padding: 14px; border-radius: 50px; font-weight: 700; text-decoration: none; transition: 0.2s; }
         .btn-popup-primary:hover { background: #fff; }
         
-        .btn-popup-secondary {
-            background: transparent;
-            color: #888;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
+        .btn-popup-secondary { background: transparent; color: #888; border: none; padding: 10px; cursor: pointer; font-size: 0.9rem; }
         .btn-popup-secondary:hover { color: #fff; text-decoration: underline; }
 
         @keyframes bounce {
@@ -215,9 +191,7 @@
             60% {transform: translateY(-5px);}
         }
 
-        /* ==========================================
-           STATIC HELP BUTTON (NOT ANNOYING)
-           ========================================== */
+        /* STATIC HELP BUTTON */
         .help-footer {
             margin-top: 20px;
             text-align: center;
@@ -226,15 +200,8 @@
             border-top: 1px solid rgba(255,255,255,0.05);
             padding-top: 20px;
         }
-        .help-footer a {
-            color: #888;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .help-footer a:hover {
-            color: var(--luxury-gold);
-            text-decoration: underline;
-        }
+        .help-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
+        .help-footer a:hover { color: var(--luxury-gold); text-decoration: underline; }
 
         @media (max-width: 480px) {
             .payment-card { padding: 25px 20px; }
@@ -254,7 +221,14 @@
             
             <!-- VIEW 1: CHECKOUT FORM -->
             <div id="checkoutView">
-                <div class="coin-visual">π</div>
+                <!-- PERBAIKAN: Logo diganti Shopping Bag -->
+                <div class="checkout-visual">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </div>
                 <h2>Checkout Pesanan</h2>
                 <p class="sub-text">Lengkapi data alamat pengiriman.</p>
                 <div id="error-message" class="error-box"></div>
@@ -266,7 +240,7 @@
                         <div class="custom-select-wrapper" id="cityDropdown">
                             <div class="custom-select-trigger" id="cityTrigger">Pilih Kota</div>
                             <div class="custom-select-options">
-                                <div class="search-box"><input type="text" id="citySearch" placeholder="Cari kota..."></div>
+                                <div class="search-box"><input type="text" id="citySearch" placeholder="Ketik nama kota..."></div>
                                 <div class="options-list" id="cityOptionsList"><div class="option disabled" style="cursor:default; color:#666;">Memuat...</div></div>
                             </div>
                         </div>
@@ -278,7 +252,6 @@
                     <div class="total-display"><span>Total Tagihan</span><span class="total-amount" id="displayTotal">Rp 0</span></div>
                     <button type="submit" class="btn-pay" id="btnProceed" disabled>Lanjut ke Pembayaran</button>
                     
-                    <!-- STATIC HELP BUTTON -->
                     <div class="help-footer">
                         Butuh bantuan? <a href="https://wa.me/628133039866?text=Halo%20Admin%20Aurorra" target="_blank">Hubungi Admin</a>
                     </div>
@@ -331,7 +304,7 @@
         let currentUser = null;
         let selectedShippingData = null;
         let finalPayload = null; 
-        let isVoucherApplied = false; // Flag status voucher
+        let isVoucherApplied = false;
 
         // ==========================================
         // 2. HELPER FUNCTIONS
@@ -371,7 +344,6 @@
         }
 
         function updateFinalTotal() {
-            // Cek apakah ada voucher aktif di Local Storage
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
             if (savedVoucher) {
@@ -381,14 +353,11 @@
                 } catch(e) {}
             }
 
-            // Hitung total
             const finalTotal = (currentTotal + shippingCost) - discount;
             
-            // Update UI
             const displayTotalEl = document.getElementById('displayTotal');
             displayTotalEl.innerText = formatPrice(finalTotal);
 
-            // Tampilkan info diskon jika ada
             if (discount > 0) {
                 displayTotalEl.innerHTML = `<small style="display:block; font-size:0.7rem; color:#2ecc71; margin-bottom:5px;">(Potongan Rp 10.000)</small>${formatPrice(finalTotal)}`;
                 isVoucherApplied = true;
@@ -415,7 +384,7 @@
                 if (successLoad && parseFloat(currentTotal) > 0) { payBtn.disabled = false; payBtn.innerText = "Lanjut ke Pembayaran"; } 
                 else { payBtn.innerText = "Keranjang Kosong"; payBtn.disabled = true; }
 
-                updateFinalTotal(); // Update total dengan cek voucher
+                updateFinalTotal();
             } catch (err) { console.error("Init Error:", err); }
         }
 
@@ -437,7 +406,6 @@
         async function handleProceedToConfirm(event) {
             event.preventDefault();
             
-            // Validasi Form
             const fullName = document.getElementById('fullName').value.trim();
             const phone = document.getElementById('phoneNumber').value.trim();
             const address = document.getElementById('address').value.trim();
@@ -448,11 +416,9 @@
             if (address.length < 10) return showError("Alamat minimal 10 karakter.");
             if (!city) return showError("Pilih kota tujuan.");
 
-            // Pindah ke View Payment
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
 
-            // Hitung total akhir dengan diskon
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
             if (savedVoucher) { try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} }
@@ -467,10 +433,8 @@
                 items: cartItems, userId: currentUser.id, discount
             };
 
-            // Simpan sementara jika nanti butuh restore
             localStorage.setItem('aurora_pending_order', JSON.stringify({...finalPayload, status: 'pending'}));
 
-            // Render Summary di View Payment
             let summaryHtml = `
                 <div class="summary-row"><span>Order ID</span><span>#${invoiceNumber}</span></div>
                 <div class="summary-row"><span>Nama</span><span>${fullName}</span></div>
@@ -487,37 +451,29 @@
         function showError(msg) { const b = document.getElementById('error-message'); b.style.display='block'; b.innerText=msg; window.scrollTo({top:0}); }
 
         // ==========================================
-        // 6. SMART VOUCHER POPUP LOGIC (NEW)
+        // 6. SMART VOUCHER POPUP LOGIC
         // ==========================================
         const btnPay = document.getElementById('btnPay');
         const voucherPopup = document.getElementById('voucherPopupOverlay');
         const btnSkipVoucher = document.getElementById('btnSkipVoucher');
 
         btnPay.addEventListener('click', async function(e) {
-            // Cegah eksekusi bayar langsung
             e.preventDefault();
             e.stopPropagation();
 
-            // 1. Cek apakah user sudah klaim voucher
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             
-            // Jika belum klaim (tidak ada data sama sekali), munculkan popup
             if (!savedVoucher) {
                 voucherPopup.classList.add('show');
-                return; // Hentikan proses bayar, tunggu user pilih
+                return;
             }
 
-            // Jika sudah ada voucher (sudah klaim atau sudah skip), lanjut bayar
             proceedToPaymentGateway();
         });
 
-        // Jika user klik "Lewati"
         btnSkipVoucher.addEventListener('click', () => {
-            // Tandai bahwa user sudah melihat dan melewatkan voucher
-            // Kita set flag sederhana agar tidak mengganggu lagi di sesi ini
             localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, skipped: true})); 
             voucherPopup.classList.remove('show');
-            // Lanjut bayar
             proceedToPaymentGateway();
         });
 
@@ -550,7 +506,6 @@
                 const paymentUrl = result.payment?.url || result.paymentUrl;
                 if (!paymentUrl) throw new Error("URL Pembayaran tidak ditemukan.");
 
-                // Hapus pending order karena sudah dikirim ke gateway
                 localStorage.removeItem('aurora_pending_order');
 
                 if (typeof loadJokulCheckout === 'function') loadJokulCheckout(paymentUrl);
