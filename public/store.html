@@ -7,11 +7,10 @@
     <meta name="theme-color" content="#0f0c15">
     <title>Koleksi Aurorra - Store</title>
     
-    <!-- Fonts -->
+    <!-- Fonts & Supabase -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -43,7 +42,33 @@
         }
 
         /* ==========================================
-           LOYALTY & SPECIAL STYLES
+           [NEW] RATING STAR STYLES
+           ========================================== */
+        .product-rating {
+            margin: 8px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        .stars {
+            color: var(--luxury-gold); /* Warna emas */
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+        .rating-score {
+            font-size: 0.8rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+        .sold-count {
+            font-size: 0.75rem;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        /* ==========================================
+           EXISTING STYLES (Keep your existing CSS here)
            ========================================== */
         .points-badge {
             background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(0,0,0,0));
@@ -59,10 +84,7 @@
             gap: 4px;
         }
         
-        .vip-crown {
-            color: #ffd700;
-            font-size: 0.9rem;
-        }
+        .vip-crown { color: #ffd700; font-size: 0.9rem; }
 
         .checkout-points-preview {
             margin-top: 15px;
@@ -75,10 +97,6 @@
             text-align: center;
         }
 
-        /* ==========================================
-           COMPONENT STYLES
-           ========================================== */
-        
         /* Price Blur */
         .price-container { display: inline-block; transition: filter 0.3s ease; position: relative; }
         .price-blurred { filter: blur(5px); color: transparent; user-select: none; cursor: pointer; }
@@ -254,7 +272,6 @@
                 <div class="cart-items-scroll" id="sidebarCartList">
                     <p style="text-align:center; color:#555">Keranjang masih kosong.</p>
                 </div>
-                <!-- Area untuk estimasi poin -->
                 <div id="cartPointsPreview" style="display:none;"></div>
                 
                 <div class="cart-footer">
@@ -308,13 +325,13 @@
             SUPABASE_URL: 'https://dikapquhusbwjccbqcsb.supabase.co',
             SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA',
             IDLE_LIMIT: 12 * 60 * 60 * 1000,
-            POINT_RATE: 50000 // 1 point per 50k
+            POINT_RATE: 50000 
         },
 
         state: {
             products: [],
             currentUser: null,
-            dbUser: null, // Holds loyalty_points from table
+            dbUser: null, 
             isLoggedIn: false,
             currentCategory: 'all',
             currentSearch: '',
@@ -334,7 +351,7 @@
             await this.auth.checkSession();
             await this.products.fetch();
             
-            this.cart.render(); // Initial render
+            this.cart.render(); 
         },
 
         utils: {
@@ -363,6 +380,23 @@
             },
             calculatePoints(amount) {
                 return Math.floor(AuroraStore.utils.cleanPrice(amount) / AuroraStore.config.POINT_RATE);
+            },
+            /* [NEW] Function to generate Star Icons */
+            generateStars(rating) {
+                let stars = '';
+                const fullStars = Math.floor(rating);
+                const halfStar = rating % 1 >= 0.5;
+                
+                for (let i = 0; i < fullStars; i++) {
+                    stars += '★'; // Full Star
+                }
+                if (halfStar) {
+                    stars += '⯨'; // Half Star (or use ☆ with CSS masking)
+                }
+                // Optional: Fill rest with empty stars if you want 5 total always
+                // for(let i=stars.length; i<5; i++) stars += '☆';
+                
+                return stars;
             }
         },
 
@@ -408,16 +442,14 @@
 
             async syncToDB(user) {
                 try {
-                    // Check if user exists
                     const { data, error } = await AuroraStore.supabase.from('ngebelusers').select('*').eq('id', user.uid).maybeSingle();
                     if (error) return false;
                     
                     if (data) { 
-                        AuroraStore.state.dbUser = data; // Update state with DB data (includes points)
+                        AuroraStore.state.dbUser = data; 
                         return true;
                     }
                     
-                    // Insert new user with 0 points
                     const { data: newUser, error: insertError } = await AuroraStore.supabase.from('ngebelusers').insert([{
                         id: user.uid, 
                         email: user.email || null, 
@@ -479,21 +511,18 @@
                             AuroraStore.ui.showToast(`Order #${payload.new.order_id} diperbarui: ${newStatus.toUpperCase()}`, 'success');
                         }
                         
-                        // Refresh history modal if open
                         if (document.getElementById('historyModal').classList.contains('show')) {
                             AuroraStore.ui.openHistoryModal();
                         }
 
-                        // If paid, refresh user data to get new points!
                         if (newStatus === 'paid' || newStatus === 'lunas') {
                             localStorage.removeItem("aurora_cart");
                             AuroraStore.cart.render();
                             AuroraStore.ui.showToast("🎁 Transaksi sukses! Poin telah ditambahkan.", "success");
                             
-                            // Re-sync user data to fetch updated loyalty_points
                             if(AuroraStore.state.currentUser) {
                                 await AuroraStore.auth.syncToDB(AuroraStore.state.currentUser);
-                                AuroraStore.ui.renderHeader(); // Update header with new points
+                                AuroraStore.ui.renderHeader(); 
                             }
                         }
                     })
@@ -503,7 +532,6 @@
 
         products: {
             async fetch() {
-                // Cache logic omitted for brevity, assume fresh fetch for security
                 try {
                     const { data, error } = await AuroraStore.supabase.from('products').select('*').order('created_at', { ascending: false });
                     if (error) throw error;
@@ -558,6 +586,11 @@
                     const isOutOfStock = stock <= 0;
                     const price = AuroraStore.utils.formatPrice(product.price);
                     const points = AuroraStore.utils.calculatePoints(product.price);
+                    
+                    /* [NEW] Get Rating Data */
+                    const rating = product.rating || 5.0; // Default 5 if null
+                    const reviews = product.reviews_count || 0; 
+                    const starsDisplay = AuroraStore.utils.generateStars(rating);
 
                     card.innerHTML = `
                         <div class="category-badge">${cat}</div>
@@ -565,6 +598,14 @@
                         <div class="product-info">
                             <div>
                                 <h3 class="product-name">${name}</h3>
+                                
+                                <!-- [NEW] Rating Display -->
+                                <div class="product-rating">
+                                    <span class="stars">${starsDisplay}</span>
+                                    <span class="rating-score">${rating.toFixed(1)}</span>
+                                    <span class="sold-count">(${reviews})</span>
+                                </div>
+
                                 <span class="product-price price-container">${price}</span>
                                 ${points > 0 ? `<div style="font-size:0.7rem;color:#4CAF50; margin-top:4px;">🎁 +${points} poin</div>` : ''}
                                 <div style="font-size:0.75rem;color:#666;margin-top:5px;">${isOutOfStock ? '<span style="color:#ff6b6b">Habis</span>' : `Stok: ${stock}`}</div>
@@ -654,7 +695,6 @@
                 countSpan.innerText = totalItems;
                 floatCart.style.display = 'flex';
 
-                // Render Points Preview
                 const estimatedPoints = AuroraStore.utils.calculatePoints(totalPrice);
                 previewContainer.innerHTML = `
                     <div class="checkout-points-preview">
@@ -687,7 +727,7 @@
 
             resumePayment() {
                 if (AuroraStore.state.resumePaymentUrl) {
-                    window.location.href = AuroraStore.state.resumePaymentUrl;
+                    window.location.href = AuroraStore.state.state.resumePaymentUrl;
                 }
             }
         },
