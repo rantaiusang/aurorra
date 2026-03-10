@@ -3,182 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Koleksi Aurorra - Toko Parfum Eksklusif">
     <title>Koleksi Aurorra - Store</title>
     
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        /* ==========================================
+           CSS VARIABLES & RESET
+           ========================================== */
         :root {
             --luxury-gold: #d4af37;
+            --luxury-gold-light: #f1d77b;
             --dark-bg: #0f0c15;
-            --card-bg: #161216;
+            --card-bg: rgba(255, 255, 255, 0.03);
             --panel-bg: #1a1620;
+            --success: #4CAF50;
             --glass-border: rgba(255, 255, 255, 0.08);
         }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; }
+
         body {
             background-color: var(--dark-bg);
             color: #f0f0f0;
             font-family: 'Poppins', sans-serif;
             margin: 0;
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- HEADER --- */
+        /* ==========================================
+           LOYALTY & SPECIAL STYLES
+           ========================================== */
+        .points-badge {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(0,0,0,0));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--luxury-gold-light);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .vip-crown { color: #ffd700; font-size: 0.9rem; }
+
+        .checkout-points-preview {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px dashed rgba(76, 175, 80, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        /* Price Blur */
+        .price-container { display: inline-block; transition: filter 0.3s ease; position: relative; }
+        .price-blurred { filter: blur(5px); color: transparent; user-select: none; cursor: pointer; }
+        .price-blurred::after { content: '🔒 Login'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 0.65rem; color: var(--luxury-gold); white-space: nowrap; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; }
+
+        /* Header */
         header {
-            background: rgba(15, 12, 21, 0.98); 
-            border-bottom: 1px solid var(--glass-border);
-            padding: 15px 4%; 
-            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(15, 12, 21, 0.98); border-bottom: 1px solid var(--glass-border);
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
         }
-        .back-link { color: #fff; text-decoration: none; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .back-link { color: #fff; text-decoration: none; font-size: 0.95rem; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: color 0.3s; }
         .back-link:hover { color: var(--luxury-gold); }
+        .store-nav { display: flex; gap: 30px; align-items: center; }
+        
+        /* User Menu */
         .user-menu-container { position: relative; }
-        .user-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; border-radius: 20px; background: rgba(255,255,255,0.03); }
-        .user-avatar { width: 30px; height: 30px; background: var(--luxury-gold); color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.8rem; }
-        .dropdown-menu { position: absolute; top: 120%; right: 0; width: 200px; background: #222; border: 1px solid var(--glass-border); border-radius: 8px; display: none; flex-direction: column; overflow: hidden; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .dropdown-menu.show { display: flex; }
-        .dropdown-item { padding: 12px 20px; color: #ccc; font-size: 0.9rem; cursor: pointer; }
+        .user-btn { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 20px; transition: background 0.3s; }
+        .user-btn:hover { background: rgba(255,255,255,0.05); }
+        .user-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, var(--luxury-gold), #aa8a2e); color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .dropdown-menu { position: absolute; top: 120%; right: 0; width: 220px; background: #222; border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; z-index: 10; }
+        .dropdown-menu.show { display: flex; animation: fadeIn 0.2s ease; }
+        .dropdown-item { padding: 12px 20px; color: #ccc; text-decoration: none; font-size: 0.9rem; transition: 0.2s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .dropdown-item:hover { background: var(--luxury-gold); color: #000; }
         .dropdown-item.logout { color: #ff6b6b; }
         .dropdown-item.logout:hover { background: #ff6b6b; color: #fff; }
 
-        /* --- LAYOUT --- */
-        .main-layout { padding: 20px 4%; max-width: 1400px; margin: 0 auto; }
-        
-        /* --- CATALOG --- */
-        .store-header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
-        .store-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--luxury-gold); margin: 0; }
-        
-        .controls-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .search-input { width: 100%; max-width: 400px; padding: 10px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 20px; color: #fff; font-size: 0.9rem; outline: none; }
-        .search-input:focus { border-color: var(--luxury-gold); }
-        
-        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; width: 100%; justify-content: center; }
-        .filter-btn { padding: 6px 16px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #aaa; border-radius: 20px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: 0.2s; }
-        .filter-btn.active { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); }
+        /* Main Layout */
+        .main-layout { display: flex; gap: 40px; padding: 40px 5%; max-width: 1600px; margin: 0 auto; width: 100%; }
+        .catalog-section { flex: 3; padding-right: 20px; }
 
-        /* --- PRODUCT GRID CONFIGURATION --- */
+        .store-header { text-align: center; margin-bottom: 40px; }
+        .store-header h1 { font-family: 'Playfair Display', serif; font-size: 3.2rem; color: var(--luxury-gold); margin: 0 0 10px 0; font-weight: 700; letter-spacing: -0.5px; }
+        .store-header p { color: #888; font-style: italic; line-height: 1.6; letter-spacing: 0.5px; }
+
+        .promo-banner { background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.2); padding: 12px; text-align: center; border-radius: 8px; margin-bottom: 25px; color: var(--luxury-gold-light); font-size: 0.9rem; }
+
+        .search-container { max-width: 500px; margin: 0 auto 40px auto; position: relative; }
+        .search-input { width: 100%; padding: 14px 20px 14px 45px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; transition: all 0.3s; }
+        .search-input:focus { outline: none; border-color: var(--luxury-gold); background: rgba(255, 255, 255, 0.07); }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; }
+
+        .filter-bar { display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 22px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #aaa; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; }
+        .filter-btn:hover, .filter-btn.active { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
+
+        /* ==========================================
+           PRODUCT GRID CONFIGURATION
+           ========================================== */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr); /* Desktop: 4 kolom */
-            gap: 15px;
+            gap: 28px;
         }
 
-        /* RESPONSIVE: Mobile 2 Kolom (Perbaikan Utama) */
-        @media (max-width: 768px) {
-            .product-grid { 
-                grid-template-columns: repeat(2, 1fr); /* Mobile: 2 kolom */
-                gap: 10px; 
-            }
-            /* Penyesuaian ukuran untuk mobile */
+        /* Responsive: Mobile 2 Grid */
+        @media (max-width: 1024px) {
+            .main-layout { flex-direction: column-reverse; padding: 20px 5%; }
+            .cart-sidebar { position: static; margin-bottom: 30px; max-height: 400px; }
+            .catalog-section { padding-right: 0; }
+            
+            /* Tablet: 2 kolom */
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .product-img-wrapper { height: 200px; }
+        }
+
+        @media (max-width: 600px) {
+            .store-header h1 { font-size: 2rem; }
+            .product-grid { gap: 10px; }
             .product-info { padding: 10px; }
-            .product-name { font-size: 0.85rem; }
-            .product-price { font-size: 0.9rem; }
-            .product-img-wrapper { height: 140px; } /* Gambar lebih ringkas */
-            .btn-buy { padding: 6px; font-size: 0.65rem; }
-            /* Sembunyikan rating di grid mobile untuk hemat ruang */
-            .product-rating { display: none; } 
+            .product-name { font-size: 0.9rem; }
+            .product-desc { display: none; } /* Sembunyikan desc di grid mobile */
         }
 
-        /* --- PRODUCT CARD --- */
-        .product-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            cursor: pointer;
-        }
-        .product-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-color: rgba(212, 175, 55, 0.3); }
+        .product-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); cursor: pointer; }
+        .product-card.show { opacity: 1; transform: translateY(0); }
+        .product-card:hover { transform: translateY(-8px); border-color: rgba(212, 175, 55, 0.4); box-shadow: 0 15px 40px rgba(0,0,0, 0.6); }
         
-        .category-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 3px 8px; font-size: 0.6rem; border-radius: 4px; z-index: 2; backdrop-filter: blur(4px); }
-        
-        .product-img-wrapper { width: 100%; height: 180px; background: #000; overflow: hidden; position: relative; }
-        .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; opacity: 0.9; }
-        .product-card:hover .product-img { transform: scale(1.05); }
+        .product-img-wrapper { width: 100%; height: 260px; overflow: hidden; position: relative; background: #000; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; display: block; opacity: 0.9; }
+        .product-card:hover .product-img { transform: scale(1.08); opacity: 1; }
 
-        .product-info { padding: 12px; display: flex; flex-direction: column; flex: 1; }
-        .product-name { font-family: 'Playfair Display', serif; font-size: 1rem; color: #fff; margin-bottom: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .product-info { padding: 20px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #fff; margin-bottom: 5px; font-weight: 600; }
+        .product-desc { font-size: 0.8rem; color: #888; margin-bottom: 8px; height: 35px; overflow: hidden; }
+        .product-size { font-size: 0.8rem; color: #aaa; margin-bottom: 8px; font-style: italic; }
+        .product-price { font-size: 1.05rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 5px; display: block; }
         
-        .product-rating { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; font-size: 0.75rem; }
-        .stars { color: var(--luxury-gold); letter-spacing: 1px; }
-        .rating-score { color: #aaa; }
-        .sold-count { color: #666; margin-left: auto; }
-
-        .product-price { font-size: 0.95rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 8px; display: block; }
-        
-        .btn-buy {
-            width: 100%; padding: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.2);
-            color: #fff; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 500;
-            transition: 0.2s; text-transform: uppercase; margin-top: auto;
-        }
+        .btn-buy { width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 500; cursor: pointer; transition: all 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; border-radius: 5px; }
         .btn-buy:hover:not(:disabled) { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); }
-        .btn-buy:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-buy:disabled { border-color: #333; color: #444; cursor: not-allowed; }
+        
+        .category-badge { position: absolute; top: 12px; left: 12px; background: rgba(0, 0, 0, 0.7); color: #fff; padding: 5px 12px; font-size: 0.65rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; z-index: 2; }
 
-        /* Price Blur */
-        .price-blurred { filter: blur(4px); user-select: none; pointer-events: none; }
+        /* Cart Sidebar */
+        .cart-section { flex: 1; min-width: 320px; position: relative; }
+        .cart-sidebar { background: var(--panel-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; position: sticky; top: 100px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-height: calc(100vh - 140px); display: flex; flex-direction: column; }
+        .sidebar-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; flex-shrink: 0; }
+        .cart-items-scroll { overflow-y: auto; margin-bottom: 15px; padding-right: 5px; flex: 1; min-height: 0; }
+        .sidebar-cart-item { display: flex; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 10px; transition: 0.3s; }
+        .sidebar-cart-item:hover { background: rgba(255,255,255,0.04); }
+        .sidebar-item-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 1px solid #333; }
+        .sidebar-item-details { flex: 1; }
+        .sidebar-item-name { font-size: 0.9rem; font-weight: 500; color: #fff; margin-bottom: 4px; }
+        .sidebar-item-meta { font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; }
+        .sidebar-remove-btn { background: none; border: none; color: #555; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .sidebar-remove-btn:hover { color: #ff6b6b; transform: scale(1.2); }
+        
+        /* Floating Cart */
+        #floating-cart { display: none; align-items: center; gap: 12px; position: fixed; bottom: 30px; right: 30px; background: var(--luxury-gold); color: #000; padding: 14px 28px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; z-index: 999; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+        #floating-cart:hover { background: #fff; transform: translateY(-2px); }
 
-        /* --- QUICK VIEW MODAL --- */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 10px; backdrop-filter: blur(5px); }
+        /* ==========================================
+           QUICK VIEW MODAL (POP UP DESKRIPSI)
+           ========================================== */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); padding: 15px; }
         .modal-overlay.show { display: flex; }
         
-        .quick-view-content {
-            background: var(--panel-bg); width: 100%; max-width: 450px;
-            border-radius: 12px; border: 1px solid var(--glass-border);
-            overflow: hidden; display: flex; flex-direction: column;
-            max-height: 90vh; animation: slideUp 0.3s ease-out; position: relative;
-        }
-        
+        /* Style khusus untuk Quick View */
+        .quick-view-content { background: var(--panel-bg); width: 100%; max-width: 500px; border-radius: 12px; border: 1px solid var(--glass-border); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; animation: slideUpFade 0.3s ease-out; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .quick-view-img { width: 100%; height: 250px; object-fit: cover; }
-        .quick-view-body { padding: 20px; overflow-y: auto; text-align: left; }
-        .quick-view-title { font-family: 'Playfair Display'; font-size: 1.4rem; color: #fff; margin-bottom: 5px; }
-        .quick-view-desc { font-size: 0.9rem; color: #aaa; line-height: 1.6; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+        .quick-view-body { padding: 25px; overflow-y: auto; text-align: left; }
+        .quick-view-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--luxury-gold); margin-bottom: 10px; }
+        .quick-view-desc { font-size: 0.9rem; color: #aaa; line-height: 1.6; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
         .quick-view-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
         .meta-item span { display: block; font-size: 0.7rem; color: #666; }
         .meta-item strong { font-size: 1rem; color: #fff; }
+
+        /* Modal umum (Profile, History) */
+        .modal-content { background: #1a1a1a; border: 1px solid rgba(212, 175, 55, 0.3); padding: 30px; width: 90%; max-width: 600px; border-radius: 12px; color: #fff; position: relative; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .modal-header { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.2s; z-index: 10; background: none; border: none; }
+        .close-modal:hover { color: #fff; }
+
+        .profile-detail-row { margin-bottom: 15px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+        .profile-value { font-weight: 600; color: #fff; text-align: right; }
+        .profile-value.points { color: var(--success); font-size: 1.1rem; font-weight: 700; }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2000; pointer-events: none; }
+        .toast { background: #222; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 25px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); min-width: 250px; animation: slideUpFade 0.4s ease-out forwards; display: flex; align-items: center; justify-content: center; gap: 10px; backdrop-filter: blur(10px); font-size: 0.9rem; }
+        .toast.success { border: 1px solid var(--luxury-gold); color: var(--luxury-gold); }
+
+        /* Resume Payment */
+        #resumePaymentPopup { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; }
+        .resume-modal-content { background: #1a1a1a; border: 1px solid var(--luxury-gold); padding: 40px; border-radius: 16px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .resume-title { font-family: 'Playfair Display', serif; color: var(--luxury-gold); font-size: 1.5rem; margin: 0 0 10px 0; }
+        .resume-actions { display: flex; gap: 12px; justify-content: center; margin-top: 25px; }
+        .btn-resume-pay { background: var(--luxury-gold); color: #000; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; flex: 1; }
+        .btn-resume-pay:hover { background: #fff; }
+        .btn-resume-later { background: transparent; color: #aaa; border: 1px solid #444; padding: 12px 24px; border-radius: 8px; cursor: pointer; flex: 1; }
         
-        .close-modal-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; }
+        /* History */
+        .history-container { overflow-y: auto; flex: 1; padding-right: 10px; }
+        .order-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+        .order-id { font-weight: bold; color: var(--luxury-gold); font-size: 0.9rem; }
+        .order-status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .status-paid { background: rgba(76, 175, 80, 0.15); color: var(--success); }
+        .btn-pay { display: block; width: 100%; text-align: center; background: var(--luxury-gold); color: #000; padding: 10px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-top: 10px; font-size: 0.85rem; }
 
-        /* --- FLOATING CART --- */
-        #floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--luxury-gold); color: #000; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 999; display: none; align-items: center; gap: 8px; transition: transform 0.2s; }
-        #floating-cart:hover { transform: scale(1.05); }
-
-        /* --- UTILS --- */
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 2000; }
-        .toast { background: #222; border: 1px solid var(--luxury-gold); color: #fff; padding: 10px 20px; border-radius: 8px; margin-bottom: 10px; animation: slideUp 0.3s; font-size: 0.85rem; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity:1; } }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html" class="back-link">← Back</a>
-        <nav id="navContainer">
-            <div class="user-btn" onclick="window.location='login.html'">
-                <div class="user-avatar">G</div>
-                <span>Guest</span>
-            </div>
-        </nav>
+        <a href="index.html" class="back-link"><span>&larr;</span>Back</a>
+        <nav class="store-nav" id="navContainer">
+            <span style="color:#666;">Loading...</span>
+        </nav> 
     </header>
 
     <main class="main-layout">
         <section class="catalog-section">
             <div class="store-header">
                 <h1>Exklusive Collection</h1>
+                <p>Aroma yang mendefinisikan karakter Anda.</p>
             </div>
 
-            <div class="controls-bar">
+            <div class="promo-banner">
+                🎁 Dapatkan 1 poin setiap belanja Rp50.000
+            </div>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
                 <input type="text" id="searchInput" class="search-input" placeholder="Cari parfum...">
             </div>
+
             <div class="filter-bar">
                 <button class="filter-btn active" data-category="all">Semua</button>
                 <button class="filter-btn" data-category="women">Women</button>
@@ -187,242 +269,669 @@
             </div>
 
             <div class="product-grid" id="productGrid">
-                <p style="text-align:center; grid-column:1/-1; color:#555;">Memuat...</p>
+                <p style="text-align:center; width:100%; grid-column: 1/-1; color: #555;">Memuat koleksi...</p>
             </div>
         </section>
+
+        <aside class="cart-section">
+            <div class="cart-sidebar">
+                <div class="sidebar-title">Keranjang</div>
+                <div class="cart-items-scroll" id="sidebarCartList">
+                    <p style="text-align:center; color:#555">Keranjang masih kosong.</p>
+                </div>
+                <div id="cartPointsPreview" style="display:none;"></div>
+                
+                <div class="cart-footer">
+                    <p style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 10px;">Gunakan tombol melayang di bawah untuk Checkout.</p>
+                </div>
+            </div>
+        </aside>
     </main>
 
-    <!-- QUICK VIEW MODAL -->
+    <!-- Modals -->
+    
+    <!-- Quick View Modal (Baru) -->
     <div class="modal-overlay" id="quickViewModal">
         <div class="quick-view-content">
-            <button class="close-modal-btn" onclick="closeQuickView()">&times;</button>
-            <img src="" id="qvImage" class="quick-view-img" alt="Product Image">
+            <button class="close-modal" onclick="AuroraStore.ui.closeModal('quickViewModal')">&times;</button>
+            <img src="" id="qvImg" class="quick-view-img" alt="Product Image">
             <div class="quick-view-body">
                 <h2 class="quick-view-title" id="qvName">Product Name</h2>
-                <div class="product-rating" style="margin-bottom:15px;">
-                    <span class="stars" id="qvStars">★★★★★</span>
-                    <span class="rating-score" id="qvRating">5.0</span>
-                    <span class="sold-count" id="qvSold">(Terjual 10)</span>
-                </div>
                 <div class="quick-view-desc" id="qvDesc">Deskripsi produk...</div>
-                
                 <div class="quick-view-meta">
                     <div class="meta-item">
                         <span>Harga</span>
-                        <strong id="qvPrice" style="color:var(--luxury-gold); font-size:1.2rem;">Rp 0</strong>
+                        <strong id="qvPrice" style="color:var(--luxury-gold);">Rp 0</strong>
                     </div>
                     <div class="meta-item">
-                        <span>Stok Tersedia</span>
+                        <span>Stok</span>
                         <strong id="qvStock">0</strong>
                     </div>
                 </div>
-
-                <button class="btn-buy" id="qvBuyBtn" style="margin-top:0; width:100%;">Beli Sekarang</button>
+                <button class="btn-buy" id="qvBuyBtn" style="margin-top:0;">Beli Sekarang</button>
             </div>
         </div>
     </div>
 
-    <div id="floating-cart" onclick="StoreApp.cart.checkout()">
-        🛒 <span id="cart-count-float">0</span>
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="AuroraStore.ui.closeModal('profileModal')">&times;</button>
+            <div class="modal-header">Profil Saya</div>
+            <div id="profileContent">Loading data...</div>
+        </div>
     </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="AuroraStore.ui.closeModal('historyModal')">&times;</button>
+            <div class="modal-header">Riwayat Pesanan</div>
+            <div id="historyContent" class="history-container"><p style="text-align:center; color:#555">Memuat...</p></div>
+        </div>
+    </div>
+
+    <div id="resumePaymentPopup">
+        <div class="resume-modal-content">
+            <div class="resume-icon" style="font-size:3rem;">💳</div>
+            <h3 class="resume-title">Pembayaran Belum Selesai</h3>
+            <p style="color:#aaa; font-size:0.95rem;">Kami mendeteksi transaksi yang masih pending. Selesaikan sekarang?</p>
+            <div class="resume-actions">
+                <button onclick="AuroraStore.cart.resumePayment()" class="btn-resume-pay">Bayar</button>
+                <button onclick="AuroraStore.ui.closeResumePopup()" class="btn-resume-later">Nanti</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="floating-cart" onclick="AuroraStore.cart.proceedToCheckout()">
+        🛒 <span id="cart-count-float">0</span> Item - Check Out
+    </div>
+
     <div id="toast-container"></div>
 
     <script>
-        const APP = {
+    /* ==========================================
+       MAIN APPLICATION LOGIC (AuroraStore)
+       ========================================== */
+    const AuroraStore = {
+        config: {
             SUPABASE_URL: 'https://dikapquhusbwjccbqcsb.supabase.co',
             SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA',
-            sb: null,
-            state: { products: [], user: null, cart: [] },
+            IDLE_LIMIT: 12 * 60 * 60 * 1000,
+            POINT_RATE: 50000
+        },
 
-            async init() {
-                this.sb = supabase.createClient(this.SUPABASE_URL, this.SUPABASE_KEY);
-                this.loadCart();
-                await this.checkAuth();
-                await this.loadProducts();
-                this.listenEvents();
+        state: {
+            products: [],
+            currentUser: null,
+            dbUser: null,
+            isLoggedIn: false,
+            currentCategory: 'all',
+            currentSearch: '',
+            resumePaymentUrl: null,
+            searchTimer: null,
+            activityTimer: null,
+            ordersChannel: null
+        },
+
+        supabase: null,
+
+        async init() {
+            this.supabase = supabase.createClient(this.config.SUPABASE_URL, this.config.SUPABASE_KEY);
+            this.setupEventListeners();
+            this.startActivityMonitor();
+            
+            await this.auth.checkSession();
+            await this.products.fetch();
+            
+            this.cart.render();
+        },
+
+        utils: {
+            cleanPrice(priceInput) {
+                if (priceInput === null || priceInput === undefined) return 0;
+                let p = String(priceInput).replace(/[^\d]/g, "");
+                if (p.length === 0) return 0;
+                let val = parseFloat(p);
+                return isNaN(val) || val < 0 ? 0 : val;
+            },
+            formatPrice(price) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(this.cleanPrice(price));
+            },
+            getSafeValue(obj, key1, key2, fallback) {
+                if (obj && obj[key1]) return obj[key1];
+                if (obj && obj[key2]) return obj[key2];
+                return fallback || '';
+            },
+            debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), wait);
+                };
+            },
+            calculatePoints(amount) {
+                return Math.floor(AuroraStore.utils.cleanPrice(amount) / AuroraStore.config.POINT_RATE);
+            }
+        },
+
+        activity: {
+            reset() { localStorage.setItem('aurora_last_activity', Date.now()); },
+            check() {
+                const lastActivity = localStorage.getItem('aurora_last_activity');
+                if (lastActivity && (Date.now() - parseInt(lastActivity) > AuroraStore.config.IDLE_LIMIT)) {
+                    AuroraStore.auth.forceLogout();
+                }
+            },
+            startMonitor() {
+                ['click', 'keydown', 'scroll', 'touchstart'].forEach(evt => { window.addEventListener(evt, this.reset); });
+                this.reset();
+                AuroraStore.state.activityTimer = setInterval(this.check, 10000);
+            }
+        },
+
+        auth: {
+            async checkSession() {
+                try {
+                    const { data: { user } } = await AuroraStore.supabase.auth.getUser();
+                    if (user) {
+                        AuroraStore.state.currentUser = {
+                            uid: user.id,
+                            username: user.user_metadata?.name || user.email,
+                            full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+                            email: user.email
+                        };
+                        await this.syncToDB(AuroraStore.state.currentUser);
+                        AuroraStore.realtime.setup(AuroraStore.state.dbUser?.id || user.id);
+                        await this.checkResumePayment(user.id);
+                    } else {
+                        const localUserStr = localStorage.getItem('ngebelusers');
+                        if (localUserStr) {
+                            AuroraStore.state.currentUser = JSON.parse(localUserStr);
+                            await this.syncToDB(AuroraStore.state.currentUser);
+                        }
+                    }
+                } catch (e) { console.error("Auth Error:", e); }
+                AuroraStore.ui.renderHeader();
             },
 
-            async checkAuth() {
-                const { data: { user } } = await this.sb.auth.getUser();
-                this.state.user = user;
-                this.renderNav();
+            async syncToDB(user) {
+                try {
+                    const { data, error } = await AuroraStore.supabase.from('ngebelusers').select('*').eq('id', user.uid).maybeSingle();
+                    if (error) return false;
+                    
+                    if (data) { 
+                        AuroraStore.state.dbUser = data;
+                        return true;
+                    }
+                    
+                    const { data: newUser, error: insertError } = await AuroraStore.supabase.from('ngebelusers').insert([{
+                        id: user.uid, 
+                        email: user.email || null, 
+                        full_name: user.full_name || user.username || null, 
+                        phone: null, 
+                        role: 'user', 
+                        is_admin: false, 
+                        loyalty_points: 0
+                    }]).select().single();
+                    
+                    if (insertError) return false;
+                    AuroraStore.state.dbUser = newUser;
+                    return true;
+                } catch (err) { return false; }
             },
 
-            renderNav() {
-                const nav = document.getElementById('navContainer');
-                if (this.state.user) {
-                    const name = this.state.user.user_metadata?.full_name || this.state.user.email.split('@')[0];
-                    nav.innerHTML = `
-                        <div class="user-menu-container">
-                            <div class="user-btn" onclick="toggleMenu()">
-                                <div class="user-avatar">${name.charAt(0).toUpperCase()}</div>
-                                <span>${name}</span>
-                                <span style="font-size:0.6rem; color:#888;">▼</span>
-                            </div>
-                            <div class="dropdown-menu" id="dropMenu">
-                                <div class="dropdown-item" onclick="window.location='rewards.html'">Rewards</div>
-                                <div class="dropdown-item logout" onclick="APP.logout()">Logout</div>
-                            </div>
-                        </div>`;
-                } else {
-                    nav.innerHTML = `<div class="user-btn" onclick="window.location='login.html'"><div class="user-avatar" style="background:#333">G</div><span>Guest</span></div>`;
+            async checkResumePayment(userId) {
+                const now = new Date().toISOString();
+                const { data } = await AuroraStore.supabase
+                    .from("orders")
+                    .select("*")
+                    .eq("user_id", userId)
+                    .eq("status", "pending")
+                    .gt("expired_at", now)
+                    .order("created_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                
+                if (data && data.payment_url) {
+                    AuroraStore.state.resumePaymentUrl = data.payment_url;
+                    AuroraStore.ui.showResumePopup();
                 }
             },
 
-            async loadProducts() {
-                const { data, error } = await this.sb.from('products').select('*').order('id', { ascending: false });
-                if (error) return console.error(error);
-                this.state.products = data || [];
-                this.renderGrid();
+            async forceLogout() {
+                if (AuroraStore.state.ordersChannel) AuroraStore.supabase.removeChannel(AuroraStore.state.ordersChannel);
+                try { await AuroraStore.supabase.auth.signOut(); } catch (e) {}
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
             },
 
-            renderGrid() {
+            handleLogout() {
+                if(confirm("Yakin ingin keluar?")) this.forceLogout();
+            }
+        },
+
+        realtime: {
+            setup(userId) {
+                if (!userId) return;
+                if (AuroraStore.state.ordersChannel) AuroraStore.supabase.removeChannel(AuroraStore.state.ordersChannel);
+
+                AuroraStore.state.ordersChannel = AuroraStore.supabase
+                    .channel(`public:orders:user_id=eq.${userId}`)
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `user_id=eq.${userId}` },
+                    async (payload) => {
+                        const newStatus = payload.new.status;
+                        if (payload.old.status !== newStatus) {
+                            AuroraStore.ui.showToast(`Order #${payload.new.order_id} diperbarui: ${newStatus.toUpperCase()}`, 'success');
+                        }
+                        
+                        if (document.getElementById('historyModal').classList.contains('show')) {
+                            AuroraStore.ui.openHistoryModal();
+                        }
+
+                        if (newStatus === 'paid' || newStatus === 'lunas') {
+                            localStorage.removeItem("aurora_cart");
+                            AuroraStore.cart.render();
+                            AuroraStore.ui.showToast("🎁 Transaksi sukses! Poin telah ditambahkan.", "success");
+                            
+                            if(AuroraStore.state.currentUser) {
+                                await AuroraStore.auth.syncToDB(AuroraStore.state.currentUser);
+                                AuroraStore.ui.renderHeader();
+                            }
+                        }
+                    })
+                    .subscribe();
+            }
+        },
+
+        products: {
+            async fetch() {
+                try {
+                    const { data, error } = await AuroraStore.supabase.from('products').select('*').order('created_at', { ascending: false });
+                    if (error) throw error;
+                    AuroraStore.state.products = data || [];
+                    this.render();
+                } catch (e) {
+                    document.getElementById('productGrid').innerHTML = `<p style="text-align:center; width:100%; color:#ff6b6b;">Gagal memuat produk.</p>`;
+                }
+            },
+
+            filter(category) {
+                AuroraStore.state.currentCategory = category;
+                this.render();
+            },
+
+            search(keyword) {
+                AuroraStore.state.currentSearch = keyword.toLowerCase();
+                this.render();
+            },
+
+            render() {
                 const grid = document.getElementById('productGrid');
-                const search = document.getElementById('searchInput').value.toLowerCase();
-                const catBtn = document.querySelector('.filter-btn.active');
-                const cat = catBtn ? catBtn.dataset.category : 'all';
-
-                const filtered = this.state.products.filter(p => {
-                    const matchCat = (cat === 'all' || p.category === cat);
-                    const matchSearch = (p.name.toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search));
-                    return matchCat && matchSearch;
-                });
-
                 grid.innerHTML = '';
                 
+                const { products, currentCategory, currentSearch } = AuroraStore.state;
+                
+                let categoryKey = 'category';
+                if (products.length > 0 && products[0].kategori) categoryKey = 'kategori';
+
+                const filtered = products.filter(p => {
+                    const catMatch = currentCategory === 'all' || (p[categoryKey] && p[categoryKey].toLowerCase() === currentCategory);
+                    const searchMatch = !currentSearch || 
+                        AuroraStore.utils.getSafeValue(p, 'name', 'product_name', '').toLowerCase().includes(currentSearch) ||
+                        AuroraStore.utils.getSafeValue(p, 'description', 'desc', '').toLowerCase().includes(currentSearch);
+                    return catMatch && searchMatch;
+                });
+
                 if (filtered.length === 0) {
-                    grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:#666;">Tidak ada produk.</p>';
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#666;">Tidak ada produk.</p>';
                     return;
                 }
 
-                filtered.forEach(p => {
-                    const rating = (Math.random() * (5 - 4.5) + 4.5).toFixed(1); // Dummy rating
-                    const sold = Math.floor(Math.random() * 50) + 5; // Dummy sold
-                    const isBlur = !this.state.user;
-
+                filtered.forEach((product, index) => {
                     const card = document.createElement('div');
                     card.className = 'product-card';
-                    card.onclick = () => this.openQuickView(p);
                     
+                    // Trigger animation
+                    setTimeout(() => { card.classList.add('show'); }, 50 * index);
+
+                    const name = AuroraStore.utils.getSafeValue(product, 'name', 'product_name', 'Tanpa Nama');
+                    const img = AuroraStore.utils.getSafeValue(product, 'image_url', 'img', 'https://via.placeholder.com/250');
+                    const cat = product[categoryKey] || "General";
+                    const stock = parseInt(product.stock) || 0;
+                    const isOutOfStock = stock <= 0;
+                    const price = AuroraStore.utils.formatPrice(product.price);
+                    const points = AuroraStore.utils.calculatePoints(product.price);
+
                     card.innerHTML = `
-                        <div class="category-badge">${p.category || 'General'}</div>
-                        <div class="product-img-wrapper">
-                            <img src="${p.image_url || 'https://via.placeholder.com/300'}" class="product-img" alt="${p.name}">
-                        </div>
+                        <div class="category-badge">${cat}</div>
+                        <div class="product-img-wrapper"><img src="${img}" class="product-img" onerror="this.src='https://via.placeholder.com/250'"></div>
                         <div class="product-info">
                             <div>
-                                <h3 class="product-name">${p.name}</h3>
-                                <div class="product-rating">
-                                    <span class="stars">★★★★★</span>
-                                    <span class="rating-score">${rating}</span>
-                                    <span class="sold-count">Terjual ${sold}</span>
-                                </div>
-                                <div class="product-price ${isBlur ? 'price-blurred' : ''}">
-                                    ${isBlur ? 'Login' : this.formatPrice(p.price)}
-                                </div>
+                                <h3 class="product-name">${name}</h3>
+                                <span class="product-price price-container">${price}</span>
+                                ${points > 0 ? `<div style="font-size:0.7rem;color:#4CAF50; margin-top:4px;">🎁 +${points} poin</div>` : ''}
+                                <div style="font-size:0.75rem;color:#666;margin-top:5px;">${isOutOfStock ? '<span style="color:#ff6b6b">Habis</span>' : `Stok: ${stock}`}</div>
                             </div>
-                            <button class="btn-buy" onclick="event.stopPropagation(); APP.addToCart('${p.id}')">
-                                ${p.stock > 0 ? 'Beli' : 'Habis'}
+                            <button class="btn-buy" data-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+                                ${isOutOfStock ? 'Habis' : 'Beli'}
                             </button>
                         </div>`;
+                    
+                    // Event: Klik kartu (bukan tombol) -> Buka Quick View
+                    card.addEventListener('click', (e) => {
+                        // Jika yang diklik tombol beli, jangan buka modal (biar handle add to cart)
+                        if(e.target.classList.contains('btn-buy')) return;
+                        AuroraStore.ui.openQuickView(product);
+                    });
+
                     grid.appendChild(card);
                 });
+                AuroraStore.ui.updatePriceVisibility();
+            }
+        },
+
+        cart: {
+            add(productId) {
+                if (!AuroraStore.state.isLoggedIn) {
+                    AuroraStore.ui.showToast("Silakan Login untuk berbelanja", "info");
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+                    return;
+                }
+
+                const product = AuroraStore.state.products.find(p => String(p.id) === String(productId));
+                if (!product) return;
+                if (parseInt(product.stock) <= 0) return AuroraStore.ui.showToast("Stok habis.", "info");
+
+                let cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
+                const existing = cart.find(item => String(item.id) === String(productId));
+
+                if (existing) {
+                    if (existing.qty + 1 > parseInt(product.stock)) return AuroraStore.ui.showToast("Stok terbatas.", "info");
+                    existing.qty++;
+                } else {
+                    cart.push({ ...product, qty: 1, price: AuroraStore.utils.cleanPrice(product.price) });
+                }
+
+                localStorage.setItem('aurora_cart', JSON.stringify(cart));
+                this.render();
+                AuroraStore.ui.showToast("Ditambahkan ke keranjang", "success");
+            },
+
+            remove(productId) {
+                let cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
+                cart = cart.filter(item => String(item.id) !== String(productId));
+                localStorage.setItem('aurora_cart', JSON.stringify(cart));
+                this.render();
+            },
+
+            render() {
+                const container = document.getElementById('sidebarCartList');
+                const previewContainer = document.getElementById('cartPointsPreview');
+                const floatCart = document.getElementById('floating-cart');
+                const countSpan = document.getElementById('cart-count-float');
+                const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
+
+                if (cart.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#555">Keranjang masih kosong.</p>';
+                    floatCart.style.display = 'none';
+                    previewContainer.style.display = 'none';
+                    return;
+                }
+
+                let html = '';
+                let totalPrice = 0;
+                let totalItems = 0;
+
+                cart.forEach(item => {
+                    totalItems += item.qty;
+                    totalPrice += (item.price * item.qty);
+                    const img = AuroraStore.utils.getSafeValue(item, 'image_url', 'img', '');
+                    const name = AuroraStore.utils.getSafeValue(item, 'name', 'product_name', 'Produk');
+                    
+                    html += `
+                        <div class="sidebar-cart-item">
+                            <img src="${img}" class="sidebar-item-img" onerror="this.src='https://via.placeholder.com/50'">
+                            <div class="sidebar-item-details">
+                                <div class="sidebar-item-name">${name}</div>
+                                <div class="sidebar-item-meta">
+                                    <span>${item.qty} x ${AuroraStore.utils.formatPrice(item.price)}</span>
+                                </div>
+                            </div>
+                            <button class="sidebar-remove-btn" data-remove-id="${item.id}">&times;</button>
+                        </div>`;
+                });
+
+                container.innerHTML = html;
+                countSpan.innerText = totalItems;
+                floatCart.style.display = 'flex';
+
+                const estimatedPoints = AuroraStore.utils.calculatePoints(totalPrice);
+                previewContainer.innerHTML = `
+                    <div class="checkout-points-preview">
+                        Total: <strong style="color:#fff;">${AuroraStore.utils.formatPrice(totalPrice)}</strong><br>
+                        Anda akan mendapat <strong style="color:var(--luxury-gold)">${estimatedPoints} Poin</strong>
+                    </div>
+                `;
+                previewContainer.style.display = 'block';
+            },
+
+            async proceedToCheckout() {
+                const { data: { user } } = await AuroraStore.supabase.auth.getUser();
+                if (!user) {
+                    AuroraStore.ui.showToast("Harus login dulu", "info");
+                    setTimeout(() => window.location.href = "login.html", 800);
+                    return;
+                }
+
+                const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
+                if (cart.length === 0) return AuroraStore.ui.showToast("Keranjang kosong", "info");
+
+                let total = cart.reduce((sum, item) => sum + (AuroraStore.utils.cleanPrice(item.price) * (item.qty || 1)), 0);
+                
+                localStorage.setItem('aurora_checkout', JSON.stringify({
+                    items: cart, total: total, currency: 'IDR'
+                }));
+
+                window.location.href = 'checkout.html';
+            },
+
+            resumePayment() {
+                if (AuroraStore.state.resumePaymentUrl) {
+                    window.location.href = AuroraStore.state.resumePaymentUrl;
+                }
+            }
+        },
+
+        ui: {
+            renderHeader() {
+                const nav = document.getElementById('navContainer');
+                const { dbUser, currentUser } = AuroraStore.state;
+                AuroraStore.state.isLoggedIn = !!(dbUser || currentUser);
+
+                if (AuroraStore.state.isLoggedIn) {
+                    const name = dbUser?.full_name || currentUser?.full_name || currentUser?.username || "User";
+                    const points = dbUser?.loyalty_points || 0;
+                    const avatar = name.charAt(0).toUpperCase();
+
+                    nav.innerHTML = `
+                        <div class="user-menu-container">
+                            <div class="user-btn" onclick="AuroraStore.ui.toggleDropdown()">
+                                <div class="user-avatar">${avatar}</div>
+                                <span style="color: #fff; font-size: 0.9rem;">${name}</span>
+                                ${points > 0 ? `<span class="points-badge">👑 ${points} pts</span>` : ''}
+                                <span style="color: #666; font-size:0.8rem;">▼</span>
+                            </div>
+                            <div class="dropdown-menu" id="dropdownMenu">
+                                <div class="dropdown-item" onclick="AuroraStore.ui.openProfileModal()">Profil Saya</div>
+                                <div class="dropdown-item" onclick="AuroraStore.ui.openHistoryModal()">Riwayat Pesanan</div>
+                                <div class="dropdown-item logout" onclick="AuroraStore.auth.handleLogout()">Logout</div>
+                            </div>
+                        </div>`;
+                } else {
+                    nav.innerHTML = `
+                        <div class="user-menu-container">
+                            <div class="user-btn" onclick="window.location.href='login.html'">
+                                <div class="user-avatar" style="background:#333; color:#fff;">G</div>
+                                <span style="color: #fff; font-size: 0.9rem;">Guest</span>
+                                <span style="color: var(--luxury-gold); font-size:0.8rem; margin-left:5px;">Login</span>
+                            </div>
+                        </div>`;
+                }
+                this.updatePriceVisibility();
+            },
+
+            updatePriceVisibility() {
+                document.querySelectorAll('.product-price').forEach(el => {
+                    if (AuroraStore.state.isLoggedIn) {
+                        el.classList.remove('price-blurred');
+                    } else {
+                        el.classList.add('price-blurred');
+                        el.onclick = (e) => {
+                             e.stopPropagation(); // Hindari buka modal
+                             AuroraStore.ui.showToast("Login untuk melihat harga", "info");
+                             setTimeout(() => window.location.href='login.html', 800);
+                        };
+                    }
+                });
+            },
+
+            toggleDropdown() {
+                const menu = document.getElementById('dropdownMenu');
+                if(menu) menu.classList.toggle('show');
+            },
+
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `<span>${message}</span>`;
+                container.appendChild(toast);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+            },
+
+            showResumePopup() { document.getElementById("resumePaymentPopup").style.display = "flex"; },
+            closeResumePopup() { document.getElementById("resumePaymentPopup").style.display = "none"; },
+            
+            closeModal(id) { 
+                document.getElementById(id).classList.remove('show'); 
             },
 
             openQuickView(product) {
                 const modal = document.getElementById('quickViewModal');
-                const isBlur = !this.state.user;
-                
-                document.getElementById('qvImage').src = product.image_url || 'https://via.placeholder.com/300';
-                document.getElementById('qvName').innerText = product.name;
-                document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi.';
-                document.getElementById('qvPrice').innerText = isBlur ? 'Login untuk harga' : this.formatPrice(product.price);
+                const isBlur = !AuroraStore.state.isLoggedIn;
+
+                document.getElementById('qvImg').src = product.image_url || 'https://via.placeholder.com/400';
+                document.getElementById('qvName').innerText = product.name || 'Produk';
+                document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi tersedia.';
+                document.getElementById('qvPrice').innerText = isBlur ? 'Login untuk lihat harga' : AuroraStore.utils.formatPrice(product.price);
+                document.getElementById('qvPrice').style.filter = isBlur ? 'blur(5px)' : 'none';
                 document.getElementById('qvStock').innerText = product.stock || 0;
-                document.getElementById('qvPrice').style.filter = isBlur ? 'blur(4px)' : 'none';
-                
+
                 const buyBtn = document.getElementById('qvBuyBtn');
                 buyBtn.disabled = product.stock <= 0;
                 buyBtn.innerText = product.stock > 0 ? 'Beli Sekarang' : 'Stok Habis';
-                buyBtn.onclick = (e) => { e.stopPropagation(); this.addToCart(product.id); closeQuickView(); };
+                
+                // Handle klik tombol beli di dalam modal
+                buyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    AuroraStore.cart.add(product.id);
+                    AuroraStore.ui.closeModal('quickViewModal');
+                };
 
                 modal.classList.add('show');
             },
 
-            addToCart(id) {
-                if(!this.state.user) {
-                    this.toast("Silakan login dulu");
-                    setTimeout(() => window.location.href='login.html', 800);
+            openProfileModal() {
+                const user = AuroraStore.state.dbUser || AuroraStore.state.currentUser;
+                if(!user) return;
+                const content = document.getElementById('profileContent');
+                document.getElementById('profileModal').classList.add('show');
+                
+                content.innerHTML = `
+                    <div class="profile-detail-row"><span class="profile-label">Nama</span><span class="profile-value">${user.full_name || user.username || '-'}</span></div>
+                    <div class="profile-detail-row"><span class="profile-label">Email</span><span class="profile-value">${user.email || '-'}</span></div>
+                    <div class="profile-detail-row"><span class="profile-label">Loyalty Poin</span><span class="profile-value points">${user.loyalty_points || 0} Poin</span></div>
+                `;
+            },
+
+            async openHistoryModal() {
+                const content = document.getElementById('historyContent');
+                document.getElementById('historyModal').classList.add('show');
+                content.innerHTML = '<p style="text-align:center; color:#555">Memuat...</p>';
+
+                const userId = AuroraStore.state.dbUser?.id || AuroraStore.state.currentUser?.uid;
+                const { data, error } = await AuroraStore.supabase
+                    .from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+
+                if (error || !data.length) {
+                    content.innerHTML = '<p style="text-align:center; color:#555">Belum ada riwayat.</p>';
                     return;
                 }
-                const product = this.state.products.find(p => p.id == id);
-                if(!product || product.stock <= 0) return;
 
-                let cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
-                const idx = cart.findIndex(i => i.id == id);
-                if(idx >= 0) {
-                    if(cart[idx].qty + 1 > product.stock) return this.toast("Stok tidak cukup");
-                    cart[idx].qty++;
-                } else {
-                    cart.push({ id: product.id, name: product.name, price: product.price, image_url: product.image_url, qty: 1 });
+                let html = '';
+                data.forEach(order => {
+                    html += `<div class="order-card">
+                        <div class="order-header">
+                            <span class="order-id">#${order.order_id}</span>
+                            <span class="order-date">${new Date(order.created_at).toLocaleDateString('id-ID')}</span>
+                        </div>
+                        <div class="order-status-badge ${order.status === 'paid' || order.status === 'lunas' ? 'status-paid' : 'status-pending'}">${order.status}</div>
+                        <div style="margin-top:10px; font-size:0.9rem; color:#ccc;">Total: ${AuroraStore.utils.formatPrice(order.total_amount)}</div>
+                        ${order.status === 'pending' && order.payment_url ? `<a href="${order.payment_url}" class="btn-pay">Bayar Sekarang</a>` : ''}
+                    </div>`;
+                });
+                content.innerHTML = html;
+            }
+        },
+
+        setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', AuroraStore.utils.debounce((e) => {
+                AuroraStore.products.search(e.target.value);
+            }, 300));
+
+            document.querySelector('.filter-bar').addEventListener('click', (e) => {
+                if (e.target.classList.contains('filter-btn')) {
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    AuroraStore.products.filter(e.target.dataset.category);
                 }
-                localStorage.setItem('aurora_cart', JSON.stringify(cart));
-                this.loadCart();
-                this.toast("Ditambahkan ke keranjang");
-            },
+            });
 
-            loadCart() {
-                const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
-                const count = cart.reduce((sum, i) => sum + i.qty, 0);
-                document.getElementById('cart-count-float').innerText = count;
-                const floatCart = document.getElementById('floating-cart');
-                floatCart.style.display = count > 0 ? 'flex' : 'none';
-            },
-
-            cart: {
-                checkout() {
-                    if(!APP.state.user) return window.location.href='login.html';
-                    const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
-                    if(cart.length == 0) return APP.toast("Keranjang kosong");
-                    
-                    let total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-                    localStorage.setItem('aurora_checkout', JSON.stringify({ items: cart, total: total }));
-                    window.location.href = 'checkout.html';
+            // Event listener untuk tombol beli di grid (fallback jika user tidak klik kartu)
+            document.getElementById('productGrid').addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-buy');
+                if (btn && !btn.disabled) {
+                    e.stopPropagation(); // Mencegah buka modal
+                    AuroraStore.cart.add(btn.dataset.id);
                 }
-            },
+            });
 
-            logout() {
-                this.sb.auth.signOut();
-                localStorage.clear();
-                window.location.reload();
-            },
-
-            toast(msg) {
-                const c = document.getElementById('toast-container');
-                const t = document.createElement('div');
-                t.className = 'toast'; t.innerText = msg;
-                c.appendChild(t);
-                setTimeout(() => t.remove(), 2000);
-            },
-
-            listenEvents() {
-                document.getElementById('searchInput').oninput = () => this.renderGrid();
-                document.querySelector('.filter-bar').onclick = (e) => {
-                    if(e.target.classList.contains('filter-btn')) {
-                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                        e.target.classList.add('active');
-                        this.renderGrid();
-                    }
+            document.getElementById('sidebarCartList').addEventListener('click', (e) => {
+                if (e.target.classList.contains('sidebar-remove-btn')) {
+                    AuroraStore.cart.remove(e.target.dataset.removeId);
                 }
-            },
-            
-            formatPrice(n) { return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', minimumFractionDigits:0}).format(n); }
-        };
+            });
 
-        function toggleMenu() { document.getElementById('dropMenu').classList.toggle('show'); }
-        function closeQuickView() { document.getElementById('quickViewModal').classList.remove('show'); }
-        document.getElementById('quickViewModal').onclick = function(e) { if(e.target === this) closeQuickView(); }
+            window.addEventListener('click', (e) => {
+                // Tutup dropdown user
+                if (!e.target.closest('.user-menu-container')) {
+                    const menu = document.getElementById('dropdownMenu');
+                    if(menu) menu.classList.remove('show');
+                }
+                // Tutup modal jika klik overlay (area gelap di luar konten)
+                if (e.target.classList.contains('modal-overlay')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        },
 
-        window.onload = () => APP.init();
+        startActivityMonitor() { this.activity.startMonitor(); }
+    };
+
+    window.addEventListener('load', () => { AuroraStore.init(); });
     </script>
 </body>
 </html>
