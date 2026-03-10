@@ -55,6 +55,26 @@
             padding: 100px 20px 50px;
         }
 
+        /* TOMBOL KEMBALI (BARU) */
+        .back-button-wrapper {
+            margin-bottom: 25px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+        .back-link:hover {
+            color: var(--luxury-gold);
+        }
+
         /* BANNER ATAS */
         .hero-rewards {
             text-align: center;
@@ -87,21 +107,18 @@
         .points-display-box {
             background: #fff;
             color: #000;
-            display: inline-flex;
+            display: none; /* Hidden by default */
             align-items: center;
             padding: 10px 30px;
             border-radius: 50px;
             margin-top: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            display: none; /* Default hidden */
         }
         .p-val { font-size: 1.8rem; font-weight: 700; margin-right: 10px; }
-        .p-lbl { font-size: 0.8rem; line-height: 1.2; }
+        .p-lbl { font-size: 0.8rem; line-height: 1.2; text-align: left; }
 
         /* GRID HADIAH */
-        .catalog-section {
-            margin-top: 20px;
-        }
+        .catalog-section { margin-top: 20px; }
         .section-title {
             font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
@@ -136,7 +153,7 @@
             width: 100%;
             height: 200px;
             object-fit: cover;
-            background-color: #222; /* Placeholder bg */
+            background-color: #222; 
         }
 
         .gift-content {
@@ -154,7 +171,7 @@
             font-size: 0.85rem;
             color: #888;
             margin-bottom: 15px;
-            height: 40px; /* Limit height */
+            height: 40px;
         }
 
         .gift-points {
@@ -205,6 +222,12 @@
             padding-top: 30px;
         }
 
+        /* ANIMASI */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* RESPONSIVE */
         @media (max-width: 600px) {
             .hero-rewards h1 { font-size: 1.8rem; }
@@ -224,13 +247,20 @@
     <!-- CONTENT -->
     <div class="rewards-container">
         
+        <!-- TOMBOL KEMBALI (BARU) -->
+        <div class="back-button-wrapper">
+            <a href="index.html" class="back-link">
+                <span>&larr;</span> Beranda
+            </a>
+        </div>
+
         <!-- Hero Section -->
         <div class="hero-rewards">
             <span class="badge-title">Program Loyalty</span>
             <h1>Aurorra Rewards</h1>
             <p>Kumpulkan poin dari setiap pembelian parfum Anda.</p>
             
-            <!-- Box Poin User (Dinamis) -->
+            <!-- Box Poin User -->
             <div class="points-display-box" id="userBox">
                 <div class="p-val" id="poinUser">0</div>
                 <div class="p-lbl">Total<br>Poin</div>
@@ -242,11 +272,9 @@
             <h2 class="section-title">Katalog Hadiah Eksklusif</h2>
             
             <div class="gift-grid">
-
-                <!-- Hadiah 1: Kipas Angin -->
+                <!-- Hadiah 1 -->
                 <div class="gift-card">
                     <div class="ribbon">Segera Hadir</div>
-                    <!-- Gambar Kipas Angin -->
                     <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="gift-image" alt="Kipas Angin">
                     <div class="gift-content">
                         <h3 class="gift-name">Kipas Angin Portable</h3>
@@ -256,10 +284,9 @@
                     </div>
                 </div>
 
-                <!-- Hadiah 2: Tumbler -->
+                <!-- Hadiah 2 -->
                 <div class="gift-card">
                     <div class="ribbon">Segera Hadir</div>
-                    <!-- Gambar Tumbler -->
                     <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="gift-image" alt="Tumbler">
                     <div class="gift-content">
                         <h3 class="gift-name">Tumbler Premium</h3>
@@ -269,10 +296,9 @@
                     </div>
                 </div>
 
-                <!-- Hadiah 3: Voucher -->
+                <!-- Hadiah 3 -->
                 <div class="gift-card">
                     <div class="ribbon">Segera Hadir</div>
-                    <!-- Gambar Voucher/Gift Card -->
                     <img src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="gift-image" alt="Voucher">
                     <div class="gift-content">
                         <h3 class="gift-name">Voucher Belanja 500K</h3>
@@ -282,10 +308,9 @@
                     </div>
                 </div>
 
-                <!-- Hadiah 4: Speaker -->
+                <!-- Hadiah 4 -->
                 <div class="gift-card">
                     <div class="ribbon">Segera Hadir</div>
-                    <!-- Gambar Speaker -->
                     <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="gift-image" alt="Speaker">
                     <div class="gift-content">
                         <h3 class="gift-name">Mini Speaker Bluetooth</h3>
@@ -295,10 +320,9 @@
                     </div>
                 </div>
 
-                <!-- Hadiah 5: Parfum Gratis -->
+                <!-- Hadiah 5 -->
                 <div class="gift-card">
                     <div class="ribbon">Segera Hadir</div>
-                    <!-- Gambar Parfum -->
                     <img src="https://images.unsplash.com/photo-1541643600914-78b084683601?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="gift-image" alt="Parfum">
                     <div class="gift-content">
                         <h3 class="gift-name">Parfum Eksklusif 100ml</h3>
@@ -308,10 +332,9 @@
                     </div>
                 </div>
 
-                <!-- Hadiah 6: Tas Belanja -->
+                <!-- Hadiah 6 -->
                 <div class="gift-card">
                     <div class="ribbon">Segera Hadir</div>
-                    <!-- Gambar Tas -->
                     <img src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="gift-image" alt="Tas">
                     <div class="gift-content">
                         <h3 class="gift-name">Tas Belanja Eksklusif</h3>
@@ -320,7 +343,6 @@
                         <button class="btn-status">Tukar Hadiah (Segera)</button>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -360,6 +382,7 @@
             }
         }
 
+        // Jalankan saat halaman dimuat
         window.onload = checkPoints;
     </script>
 </body>
