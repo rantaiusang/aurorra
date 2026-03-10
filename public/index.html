@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aurorra Store - Exclusive Fragrances</title>
     
     <!-- Font Google -->
@@ -21,6 +21,7 @@
             --dark-card: #161216;
             --text-gray: #a0a0a0;
             --text-white: #ffffff;
+            --nav-height: 75px; /* Tinggi navigasi bawah */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,80 +38,142 @@
             font-family: 'Poppins', sans-serif;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            /* Penting: Tambah padding bawah agar konten tidak tertutup navigasi */
+            padding-bottom: calc(var(--nav-height) + 20px); 
         }
 
-        /* --- 2. HEADER --- */
+        /* --- 2. HEADER (MINIMALIS) --- */
         header {
             background: rgba(15, 12, 21, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding: 0 20px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* Pusatkan logo */
             align-items: center;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             width: 100%;
-            height: 70px;
+            height: 60px;
             z-index: 1000;
             box-sizing: border-box;
         }
 
         .logo {
             font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--text-white);
             text-decoration: none;
             letter-spacing: 1px;
             white-space: nowrap;
             text-shadow: 0 0 10px 1px rgba(212, 175, 55, 0.3);
+            text-align: center;
         }
 
-        .nav-links {
+        /* Header button dihapus dari tampilan desktop, dipindah ke nav bawah */
+        .nav-links { display: none; }
+
+        /* --- 3. BOTTOM NAVIGATION (SCROLLABLE) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 15px; /* Mengambang sedikit dari bawah */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 600px; /* Lebar maksimal di tablet/desktop */
+            height: var(--nav-height);
+            background: rgba(22, 18, 22, 0.95); /* Dark Card Color */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px; /* Bulat penuh */
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            
+            /* Pengaturan Scroll */
             display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
             align-items: center;
-            margin-left: auto;
+            justify-content: flex-start; /* Mulai dari kiri */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 9999;
+            padding: 0 10px;
         }
 
-        .btn-header {
-            padding: 8px 20px;
-            background: var(--luxury-gold);
-            color: #000;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: transform 0.3s, background 0.3s;
-            white-space: nowrap;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
+        /* Sembunyikan scrollbar */
+        .bottom-nav::-webkit-scrollbar { display: none; }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 10px 18px;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            min-width: 70px; /* Lebar minimum item */
+            flex: 0 0 auto; /* Jangan biarkan item mengecil */
+            cursor: pointer;
         }
 
-        .btn-header:hover {
-            transform: translateY(-2px);
-            background: #fff;
-            box-shadow: 0 0 15px 2px var(--luxury-gold-light);
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 4px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: all 0.3s;
         }
 
-        .btn-header.logged-in {
-            background: transparent;
-            border: 1px solid var(--luxury-gold);
+        .nav-item:hover {
+            color: var(--text-white);
+        }
+
+        .nav-item.active {
             color: var(--luxury-gold);
+            background: rgba(212, 175, 55, 0.1);
         }
 
-        /* --- 3. HERO SECTION --- */
+        .nav-item.active svg {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 5px var(--luxury-gold));
+        }
+
+        /* Style khusus untuk tombol Login di Nav */
+        .nav-item.nav-login {
+            color: #000;
+            background: linear-gradient(135deg, var(--luxury-gold), #b8860b);
+            border-radius: 25px;
+            padding: 8px 20px;
+            margin-left: 5px;
+            font-weight: 600;
+        }
+        .nav-item.nav-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        .nav-item.nav-login svg {
+            stroke: #000; /* Ikon hitam di tombol gold */
+        }
+
+        /* --- 4. HERO SECTION --- */
         .hero {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 100px 20px 80px;
+            padding: 80px 20px 40px; /* Sesuaikan padding top */
             position: relative;
             width: 100%;
         }
@@ -239,18 +302,16 @@
             box-shadow: 20px 20px 60px rgba(0,0,0,0.6);
         }
 
-        /* --- 4. BEST SELLER (GRID FIX) --- */
+        /* --- 5. BEST SELLER --- */
         .best-seller-section { padding: 80px 20px; background-color: var(--dark-bg); }
         .best-seller-grid {
             display: grid;
-            /* Fix: Gunakan 4 kolom tetap agar ukuran kartu sama persis di desktop */
             grid-template-columns: repeat(4, 1fr); 
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
         }
         
-        /* Responsif Best Seller */
         @media (max-width: 1100px) { .best-seller-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .best-seller-grid { grid-template-columns: 1fr; } }
 
@@ -294,7 +355,7 @@
         }
         .btn-card:hover { background: var(--luxury-gold); border-color: var(--luxury-gold); color: #000; }
 
-        /* --- 5. FEATURES --- */
+        /* --- 6. FEATURES --- */
         .features { padding: 80px 20px; background: linear-gradient(to bottom, var(--dark-bg), #120e12); }
         .section-header { text-align: center; margin-bottom: 60px; opacity: 0; transform: translateY(30px); transition: all 1s ease; }
         .section-header.visible { opacity: 1; transform: translateY(0); }
@@ -308,7 +369,7 @@
         .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 15px; color: #fff; }
         .feature-card p { color: var(--text-gray); font-size: 0.9rem; }
 
-        /* --- 6. TESTIMONIALS --- */
+        /* --- 7. TESTIMONIALS --- */
         .testimonials { padding: 80px 20px; background: var(--dark-bg); text-align: center; }
         .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
         .testi-card { background: var(--dark-card); padding: 40px 30px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.1); opacity: 0; transform: translateY(30px); transition: 0.8s ease; }
@@ -317,12 +378,10 @@
         .testi-text { font-style: italic; color: #ccc; margin-bottom: 20px; }
         .testi-author { color: var(--luxury-gold); font-weight: 600; }
 
-        /* --- 7. LOYALTY (FIXED CARD) --- */
+        /* --- 8. LOYALTY --- */
         .loyalty-section { padding: 60px 20px; background: linear-gradient(135deg, #1a151b, #0f0c15); text-align: center; }
         .loyalty-container { max-width: 800px; margin: 0 auto; opacity: 0; transform: translateY(20px); transition: 1s ease; }
         .loyalty-container.visible { opacity: 1; transform: translateY(0); }
-        
-        /* Kotak Loyalty Card */
         .loyalty-card {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(212, 175, 55, 0.2);
@@ -330,9 +389,8 @@
             padding: 40px 20px;
             display: inline-block;
             width: 100%;
-            max-width: 600px; /* Lebar tetap agar tidak terlalu lebar di desktop */
+            max-width: 600px;
         }
-
         .loyalty-icon { font-size: 2.5rem; margin-bottom: 15px; display: inline-block; animation: bounce 2s infinite; }
         .loyalty-section h3 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--luxury-gold); margin-bottom: 15px; }
         .loyalty-section p { color: var(--text-gray); margin-bottom: 25px; font-size: 1.1rem; }
@@ -366,7 +424,7 @@
             60% {transform: translateY(-5px);}
         }
 
-        /* --- 8. NEWSLETTER --- */
+        /* --- 9. NEWSLETTER --- */
         .newsletter { padding: 60px 20px; text-align: center; background: #0a080c; }
         .newsletter-content { max-width: 600px; margin: 0 auto; opacity: 0; transform: translateY(20px); transition: 1s ease; }
         .newsletter-content.visible { opacity: 1; transform: translateY(0); }
@@ -377,8 +435,8 @@
         .btn-subscribe { padding: 12px 20px; background: var(--luxury-gold); color: #000; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-subscribe:hover { background: #fff; }
 
-        /* --- 9. FOOTER --- */
-        footer { background: #050406; padding: 40px 20px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; opacity: 0; transform: translateY(20px); transition: opacity 1s ease, transform 1s ease; }
+        /* --- 10. FOOTER --- */
+        footer { background: #050406; padding: 40px 20px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; opacity: 0; transform: translateY(20px); transition: opacity 1s ease, transform 1s ease; margin-bottom: 20px; /* Spasi untuk nav */ }
         footer.visible { opacity: 1; transform: translateY(0); }
         footer p { color: #555; font-size: 0.9rem; }
         .footer-links a { color: #666; text-decoration: none; margin: 0 5px; font-size: 0.8rem; transition: 0.3s; display: inline-block; }
@@ -393,13 +451,9 @@
             .hero-container { grid-template-columns: 1fr; text-align: center; gap: 40px; }
             .hero-visual { animation: fadeInUp 1s ease forwards; transform: translateY(30px); }
             .hero-img { max-width: 320px; margin: 0 auto; }
-            header { padding: 0 15px; height: 65px; }
-            .logo { font-size: 1.3rem; }
         }
         @media (max-width: 600px) {
-            header { height: 60px; }
-            .btn-header { padding: 6px 12px; font-size: 0.75rem; }
-            .hero { padding-top: 80px; }
+            .hero { padding-top: 70px; }
             .hero h1 { font-size: 2rem; }
             .hero-buttons { flex-direction: column; width: 100%; }
             .btn-primary, .btn-outline, .btn-reward-action { width: 100%; padding: 12px; }
@@ -408,18 +462,56 @@
             .section-header h2, .newsletter h3, .loyalty-section h3 { font-size: 1.6rem; }
             .newsletter-form { flex-direction: column; align-items: center; }
             .loyalty-card { padding: 30px 15px; }
+            /* Perkecil nav item sedikit di mobile sangat kecil */
+            .nav-item { padding: 8px 15px; min-width: 60px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Header (Minimalis) -->
     <header>
         <a href="index.html" class="logo">Aurorra ⚡</a>
-        <nav class="nav-links">
-            <a href="login.html" class="btn-header" id="headerBtn">Login</a>
-        </nav>
     </header>
+
+    <!-- BOTTOM NAVIGATION (SCROLLABLE) -->
+    <nav class="bottom-nav" id="mainNav">
+        <!-- 1. Home -->
+        <a href="index.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Home</span>
+        </a>
+        <!-- 2. Koleksi -->
+        <a href="store.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span>Koleksi</span>
+        </a>
+        <!-- 3. Rewards -->
+        <a href="rewards.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            <span>Rewards</span>
+        </a>
+        <!-- 4. Contact -->
+        <a href="contact.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <span>Kontak</span>
+        </a>
+        <!-- 5. Terms -->
+        <a href="terms.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Syarat</span>
+        </a>
+        <!-- 6. Privacy -->
+        <a href="privacy.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>Privasi</span>
+        </a>
+        <!-- 7. Login (Dynamic) -->
+        <a href="login.html" class="nav-item nav-login" id="navLoginBtn">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Login</span>
+        </a>
+    </nav>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -478,40 +570,13 @@
         </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section class="testimonials">
-        <div class="section-header fade-on-scroll">
-            <h2>Kata Mereka</h2>
-            <p>Apa kata pelanggan setia kami.</p>
-        </div>
-        <div class="testi-grid">
-            <div class="testi-card fade-on-scroll">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testi-text">"Aromanya tahan lama dan elegan. Sangat cocok untuk acara malam. Packagingnya juga sangat rapi."</p>
-                <p class="testi-author">– Rina, Jakarta</p>
-            </div>
-            <div class="testi-card fade-on-scroll">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testi-text">"Packaging premium dan pengiriman cepat. Saya sudah repeat order 3 kali dan kualitasnya selalu konsisten."</p>
-                <p class="testi-author">– Dimas, Bandung</p>
-            </div>
-            <div class="testi-card fade-on-scroll">
-                <div class="stars">⭐⭐⭐⭐⭐</div>
-                <p class="testi-text">"Pelayanan ramah dan responsif. Parfumnya wangi banget tapi nggak bikin pusing. Recommended!"</p>
-                <p class="testi-author">– Sarah, Surabaya</p>
-            </div>
-        </div>
-    </section>
-
     <!-- Loyalty Program Section -->
     <section class="loyalty-section">
         <div class="loyalty-container fade-on-scroll">
-            <!-- DIBUNGKUS DENGAN KARTU -->
             <div class="loyalty-card">
                 <div class="loyalty-icon">🎁</div>
                 <h3>Aurorra Rewards</h3>
-                <p>🎁 Dapatkan 1 poin setiap belanja Rp50.000<br>Kumpulkan poin dan tukarkan dengan diskon eksklusif.</p>
-                
+                <p>Dapatkan 1 poin setiap belanja Rp50.000<br>Kumpulkan poin dan tukarkan dengan diskon eksklusif.</p>
                 <button id="rewardsBtn" class="btn-reward-action">Lihat Program Rewards</button>
             </div>
         </div>
@@ -689,24 +754,29 @@
         }
 
         // ==========================================
-        // 7. LOGIKA UPDATE HEADER & HARGA
+        // 7. LOGIKA UPDATE HEADER & HARGA (MODIFIKASI)
         // ==========================================
         async function updateUIBasedOnSession() {
-            const btnLogin = document.getElementById('headerBtn');
+            const navLoginBtn = document.getElementById('navLoginBtn');
             const prices = document.querySelectorAll('.price'); 
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session) {
-                    const userEmail = session.user.email;
-                    const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || userEmail.split('@')[0];
-                    const displayName = userName.length > 10 ? userName.substring(0, 10) + '...' : userName;
+                    // Jika LOGIN
+                    const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email.split('@')[0];
+                    const displayName = userName.length > 8 ? userName.substring(0, 8) + '..' : userName;
                     
-                    btnLogin.innerText = displayName;
-                    btnLogin.href = "#";
-                    btnLogin.classList.add('logged-in');
-
-                    btnLogin.onclick = async function(e) {
+                    // Ubah tombol nav bawah
+                    navLoginBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Logout</span>`;
+                    navLoginBtn.classList.remove('nav-login'); // Hilangkan style gold
+                    navLoginBtn.classList.add('active'); // Tandai aktif
+                    navLoginBtn.href = "#";
+                    
+                    // Tambahkan event logout
+                    navLoginBtn.onclick = async (e) => {
                         e.preventDefault();
                         if(confirm("Apakah Anda yakin ingin keluar?")) {
                             await supabaseClient.auth.signOut();
@@ -714,12 +784,11 @@
                         }
                     };
 
+                    // Tampilkan harga
                     prices.forEach(priceEl => priceEl.classList.remove('blurred'));
                 } else {
-                    btnLogin.innerText = "Login";
-                    btnLogin.href = "login.html";
-                    btnLogin.classList.remove('logged-in');
-                    btnLogin.onclick = null;
+                    // Jika LOGOUT (Default)
+                    // Biarkan tombol login default (Gold)
                     prices.forEach(priceEl => priceEl.classList.add('blurred'));
                 }
             } catch (error) {
