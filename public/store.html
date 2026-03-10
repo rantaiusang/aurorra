@@ -41,9 +41,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ==========================================
-           LOYALTY & SPECIAL STYLES
-           ========================================== */
+        /* Points Badge (Hanya di Header) */
         .points-badge {
             background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(0,0,0,0));
             border: 1px solid rgba(212, 175, 55, 0.3);
@@ -59,17 +57,6 @@
         }
         
         .vip-crown { color: #ffd700; font-size: 0.9rem; }
-
-        .checkout-points-preview {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px dashed rgba(76, 175, 80, 0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.8rem;
-            text-align: center;
-        }
 
         /* Price Blur */
         .price-container { display: inline-block; transition: filter 0.3s ease; position: relative; }
@@ -106,7 +93,7 @@
         .store-header h1 { font-family: 'Playfair Display', serif; font-size: 3.2rem; color: var(--luxury-gold); margin: 0 0 10px 0; font-weight: 700; letter-spacing: -0.5px; }
         .store-header p { color: #888; font-style: italic; line-height: 1.6; letter-spacing: 0.5px; }
 
-        .promo-banner { background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.2); padding: 12px; text-align: center; border-radius: 8px; margin-bottom: 25px; color: var(--luxury-gold-light); font-size: 0.9rem; }
+        /* Promo Banner DIHILANGKAN sesuai request */
 
         .search-container { max-width: 500px; margin: 0 auto 40px auto; position: relative; }
         .search-input { width: 100%; padding: 14px 20px 14px 45px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.95rem; transition: all 0.3s; }
@@ -142,7 +129,6 @@
             .product-grid { gap: 10px; }
             .product-info { padding: 10px; }
             .product-name { font-size: 0.9rem; }
-            .product-desc { display: none; } /* Sembunyikan desc di grid mobile */
         }
 
         .product-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); cursor: pointer; }
@@ -155,9 +141,9 @@
 
         .product-info { padding: 20px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .product-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #fff; margin-bottom: 5px; font-weight: 600; }
-        .product-desc { font-size: 0.8rem; color: #888; margin-bottom: 8px; height: 35px; overflow: hidden; }
-        .product-size { font-size: 0.8rem; color: #aaa; margin-bottom: 8px; font-style: italic; }
         .product-price { font-size: 1.05rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 5px; display: block; }
+        
+        /* Teks Poin DIHILANGKAN dari grid */
         
         .btn-buy { width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; font-weight: 500; cursor: pointer; transition: all 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; border-radius: 5px; }
         .btn-buy:hover:not(:disabled) { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); }
@@ -194,6 +180,19 @@
         .quick-view-img { width: 100%; height: 250px; object-fit: cover; }
         .quick-view-body { padding: 25px; overflow-y: auto; text-align: left; }
         .quick-view-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--luxury-gold); margin-bottom: 10px; }
+        
+        /* Info Size (mL) */
+        .quick-view-size { 
+            display: inline-block; 
+            background: rgba(212, 175, 55, 0.15); 
+            color: var(--luxury-gold-light); 
+            padding: 4px 10px; 
+            border-radius: 4px; 
+            font-size: 0.8rem; 
+            margin-bottom: 15px; 
+            font-weight: 600; 
+        }
+
         .quick-view-desc { font-size: 0.9rem; color: #aaa; line-height: 1.6; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
         .quick-view-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
         .meta-item span { display: block; font-size: 0.7rem; color: #666; }
@@ -252,10 +251,6 @@
                 <p>Aroma yang mendefinisikan karakter Anda.</p>
             </div>
 
-            <div class="promo-banner">
-                🎁 Dapatkan 1 poin setiap belanja Rp50.000
-            </div>
-
             <div class="search-container">
                 <span class="search-icon">🔍</span>
                 <input type="text" id="searchInput" class="search-input" placeholder="Cari parfum...">
@@ -279,7 +274,7 @@
                 <div class="cart-items-scroll" id="sidebarCartList">
                     <p style="text-align:center; color:#555">Keranjang masih kosong.</p>
                 </div>
-                <div id="cartPointsPreview" style="display:none;"></div>
+                <!-- Area Preview Poin DIHILANGKAN -->
                 
                 <div class="cart-footer">
                     <p style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 10px;">Gunakan tombol melayang di bawah untuk Checkout.</p>
@@ -290,13 +285,15 @@
 
     <!-- Modals -->
     
-    <!-- Quick View Modal (Baru) -->
+    <!-- Quick View Modal -->
     <div class="modal-overlay" id="quickViewModal">
         <div class="quick-view-content">
             <button class="close-modal" onclick="AuroraStore.ui.closeModal('quickViewModal')">&times;</button>
             <img src="" id="qvImg" class="quick-view-img" alt="Product Image">
             <div class="quick-view-body">
                 <h2 class="quick-view-title" id="qvName">Product Name</h2>
+                <!-- Tampilan Ukuran mL (Baru) -->
+                <div class="quick-view-size" id="qvSize">Ukuran: - mL</div>
                 <div class="quick-view-desc" id="qvDesc">Deskripsi produk...</div>
                 <div class="quick-view-meta">
                     <div class="meta-item">
@@ -594,7 +591,6 @@
                     const card = document.createElement('div');
                     card.className = 'product-card';
                     
-                    // Trigger animation
                     setTimeout(() => { card.classList.add('show'); }, 50 * index);
 
                     const name = AuroraStore.utils.getSafeValue(product, 'name', 'product_name', 'Tanpa Nama');
@@ -603,7 +599,8 @@
                     const stock = parseInt(product.stock) || 0;
                     const isOutOfStock = stock <= 0;
                     const price = AuroraStore.utils.formatPrice(product.price);
-                    const points = AuroraStore.utils.calculatePoints(product.price);
+                    
+                    // Teks poin dihapus dari sini
 
                     card.innerHTML = `
                         <div class="category-badge">${cat}</div>
@@ -612,7 +609,6 @@
                             <div>
                                 <h3 class="product-name">${name}</h3>
                                 <span class="product-price price-container">${price}</span>
-                                ${points > 0 ? `<div style="font-size:0.7rem;color:#4CAF50; margin-top:4px;">🎁 +${points} poin</div>` : ''}
                                 <div style="font-size:0.75rem;color:#666;margin-top:5px;">${isOutOfStock ? '<span style="color:#ff6b6b">Habis</span>' : `Stok: ${stock}`}</div>
                             </div>
                             <button class="btn-buy" data-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
@@ -620,9 +616,7 @@
                             </button>
                         </div>`;
                     
-                    // Event: Klik kartu (bukan tombol) -> Buka Quick View
                     card.addEventListener('click', (e) => {
-                        // Jika yang diklik tombol beli, jangan buka modal (biar handle add to cart)
                         if(e.target.classList.contains('btn-buy')) return;
                         AuroraStore.ui.openQuickView(product);
                     });
@@ -669,7 +663,6 @@
 
             render() {
                 const container = document.getElementById('sidebarCartList');
-                const previewContainer = document.getElementById('cartPointsPreview');
                 const floatCart = document.getElementById('floating-cart');
                 const countSpan = document.getElementById('cart-count-float');
                 const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
@@ -677,17 +670,14 @@
                 if (cart.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#555">Keranjang masih kosong.</p>';
                     floatCart.style.display = 'none';
-                    previewContainer.style.display = 'none';
                     return;
                 }
 
                 let html = '';
-                let totalPrice = 0;
                 let totalItems = 0;
 
                 cart.forEach(item => {
                     totalItems += item.qty;
-                    totalPrice += (item.price * item.qty);
                     const img = AuroraStore.utils.getSafeValue(item, 'image_url', 'img', '');
                     const name = AuroraStore.utils.getSafeValue(item, 'name', 'product_name', 'Produk');
                     
@@ -707,15 +697,6 @@
                 container.innerHTML = html;
                 countSpan.innerText = totalItems;
                 floatCart.style.display = 'flex';
-
-                const estimatedPoints = AuroraStore.utils.calculatePoints(totalPrice);
-                previewContainer.innerHTML = `
-                    <div class="checkout-points-preview">
-                        Total: <strong style="color:#fff;">${AuroraStore.utils.formatPrice(totalPrice)}</strong><br>
-                        Anda akan mendapat <strong style="color:var(--luxury-gold)">${estimatedPoints} Poin</strong>
-                    </div>
-                `;
-                previewContainer.style.display = 'block';
             },
 
             async proceedToCheckout() {
@@ -790,7 +771,7 @@
                     } else {
                         el.classList.add('price-blurred');
                         el.onclick = (e) => {
-                             e.stopPropagation(); // Hindari buka modal
+                             e.stopPropagation();
                              AuroraStore.ui.showToast("Login untuk melihat harga", "info");
                              setTimeout(() => window.location.href='login.html', 800);
                         };
@@ -826,6 +807,11 @@
                 document.getElementById('qvImg').src = product.image_url || 'https://via.placeholder.com/400';
                 document.getElementById('qvName').innerText = product.name || 'Produk';
                 document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi tersedia.';
+                
+                // Render Size mL (Baru)
+                const sizeML = product.size_ml ? `${product.size_ml} mL` : 'Ukuran tidak tersedia';
+                document.getElementById('qvSize').innerText = sizeML;
+
                 document.getElementById('qvPrice').innerText = isBlur ? 'Login untuk lihat harga' : AuroraStore.utils.formatPrice(product.price);
                 document.getElementById('qvPrice').style.filter = isBlur ? 'blur(5px)' : 'none';
                 document.getElementById('qvStock').innerText = product.stock || 0;
@@ -834,7 +820,6 @@
                 buyBtn.disabled = product.stock <= 0;
                 buyBtn.innerText = product.stock > 0 ? 'Beli Sekarang' : 'Stok Habis';
                 
-                // Handle klik tombol beli di dalam modal
                 buyBtn.onclick = (e) => {
                     e.stopPropagation();
                     AuroraStore.cart.add(product.id);
@@ -900,11 +885,10 @@
                 }
             });
 
-            // Event listener untuk tombol beli di grid (fallback jika user tidak klik kartu)
             document.getElementById('productGrid').addEventListener('click', (e) => {
                 const btn = e.target.closest('.btn-buy');
                 if (btn && !btn.disabled) {
-                    e.stopPropagation(); // Mencegah buka modal
+                    e.stopPropagation();
                     AuroraStore.cart.add(btn.dataset.id);
                 }
             });
@@ -916,12 +900,10 @@
             });
 
             window.addEventListener('click', (e) => {
-                // Tutup dropdown user
                 if (!e.target.closest('.user-menu-container')) {
                     const menu = document.getElementById('dropdownMenu');
                     if(menu) menu.classList.remove('show');
                 }
-                // Tutup modal jika klik overlay (area gelap di luar konten)
                 if (e.target.classList.contains('modal-overlay')) {
                     e.target.classList.remove('show');
                 }
