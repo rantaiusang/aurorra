@@ -196,6 +196,9 @@
             margin-top: 20px; transition: background 0.3s;
             display: flex; justify-content: center; align-items: center; gap: 10px;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            /* PERBAIKAN: Pastikan tombol bisa diklik (di atas elemen lain) */
+            position: relative;
+            z-index: 5;
         }
         .btn-pay:hover:not(:disabled), .btn-doku:hover:not(:disabled) { background: #ffed4a; transform: translateY(-2px); }
         .btn-pay:disabled, .btn-doku:disabled { background: #444; cursor: not-allowed; color: #888; transform: none; box-shadow: none; }
@@ -214,11 +217,17 @@
             position: fixed;
             bottom: 30px;
             left: 30px;
-            z-index: 9999; /* Pastikan di paling atas */
+            z-index: 9999;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            
+            /* PERBAIKAN KRITIS: 
+               Container utama tidak bisa menerima event klik (tembus pandang), 
+               sehingga tidak menghalangi tombol di bawahnya. 
+               Hanya elemen anak (tombol & chatbox) yang bisa diklik. */
+            pointer-events: none; 
         }
 
         .wa-chat-box {
@@ -232,7 +241,7 @@
             transform: translateY(20px) scale(0.9);
             transform-origin: bottom left;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            pointer-events: none;
+            pointer-events: none; /* Default non-klik */
             display: flex;
             flex-direction: column;
         }
@@ -240,12 +249,12 @@
         .wa-chat-box.open {
             opacity: 1;
             transform: translateY(0) scale(1);
-            pointer-events: auto;
+            pointer-events: auto; /* Hanya bisa diklik saat terbuka */
         }
 
         .wa-header {
             background: var(--wa-dark);
-            padding: 12px 15px; /* Padding sedikit dikurangi biar pas di mobile */
+            padding: 12px 15px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -253,7 +262,7 @@
         }
 
         .wa-header img {
-            width: 40px; /* Ukuran disesuaikan */
+            width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: contain;
@@ -273,7 +282,6 @@
             min-height: 80px;
             display: flex;
             align-items: center;
-            /* Flex wrap agar bubble tidak merusak layout jika panjang */
             flex-wrap: wrap; 
         }
 
@@ -284,7 +292,7 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             position: relative;
             line-height: 1.4;
-            word-wrap: break-word; /* Agar teks panjang pindah baris dengan rapi */
+            word-wrap: break-word;
             max-width: 100%;
         }
         .wa-bubble::after {
@@ -324,6 +332,9 @@
             box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
             transition: transform 0.3s, background 0.3s;
             position: relative;
+            
+            /* PERBAIKAN KRITIS: Tombol ini harus bisa diklik */
+            pointer-events: auto; 
         }
 
         .wa-toggle-btn:hover { transform: scale(1.1); background: var(--wa-dark); }
@@ -350,13 +361,18 @@
         /* PERBAIKAN KHUSUS MOBILE */
         @media (max-width: 480px) {
             .wa-widget-container {
-                left: 15px; /* Paksa ke kiri margin kecil */
+                left: 15px;
                 bottom: 20px;
             }
             .wa-chat-box {
-                width: calc(100vw - 40px); /* Lebarnya menyesuaikan layar (lebar layar dikurangi margin kiri kanan) */
-                left: 0; /* Reset posisi kiri agar relatif terhadap container */
-                max-width: 320px; /* Batas maks lebar biar tidak terlalu lebar di tablet kecil */
+                width: calc(100vw - 40px);
+                left: 0;
+                max-width: 320px;
+            }
+            
+            /* Perbaikan Tambahan: Pastikan card tidak tertutup widget */
+            .payment-card {
+                margin-bottom: 80px; /* Tambah ruang di bawah agar tidak tertimpa */
             }
         }
     </style>
@@ -381,7 +397,7 @@
 
                 <div id="error-message" class="error-box"></div>
 
-                <form id="paymentForm" onsubmit="handleProceedToConfirm(event)">
+                <form id="paymentForm">
                     <div class="form-group">
                         <label for="fullName">Nama Lengkap</label>
                         <input type="text" id="fullName" class="input-box" placeholder="Nama Penerima" required>
@@ -471,7 +487,7 @@
                     <p><span class="wa-status-dot"></span> Online</p>
                 </div>
                 <!-- Close icon inside header -->
-                <div style="margin-left:auto; cursor:pointer;" onclick="toggleWhatsApp()">✕</div>
+                <div style="margin-left:auto; cursor:pointer;" id="waCloseBtn">✕</div>
             </div>
             <div class="wa-body">
                 <div class="wa-bubble">
@@ -485,7 +501,7 @@
             </div>
         </div>
 
-        <div class="wa-toggle-btn" onclick="toggleWhatsApp()" title="Chat WhatsApp">
+        <div class="wa-toggle-btn" id="waToggleBtn" title="Chat WhatsApp">
             <div class="wa-badge"></div>
             <!-- WhatsApp SVG Icon -->
             <svg viewBox="0 0 32 32">
@@ -525,16 +541,30 @@
         }
 
         // ==========================================
-        // 3. WHATSAPP WIDGET FUNCTION
+        // 3. WHATSAPP WIDGET FUNCTION (REFACTORED)
         // ==========================================
-        function toggleWhatsApp() {
+        // Menggunakan Event Listener untuk menghindari inline JS blocking
+        function setupWhatsAppWidget() {
+            const toggleBtn = document.getElementById('waToggleBtn');
+            const closeBtn = document.getElementById('waCloseBtn');
             const chatBox = document.getElementById('waChatBox');
-            chatBox.classList.toggle('open');
-            
-            // Optional: Hapus badge saat dibuka pertama kali
             const badge = document.querySelector('.wa-badge');
-            if (badge && chatBox.classList.contains('open')) {
-                badge.style.display = 'none';
+
+            if(toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    chatBox.classList.toggle('open');
+                    if (badge && chatBox.classList.contains('open')) {
+                        badge.style.display = 'none';
+                    }
+                });
+            }
+
+            if(closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    chatBox.classList.remove('open');
+                });
             }
         }
 
@@ -544,7 +574,7 @@
         let cartItems = [];
         let currentUser = null;
         let selectedShippingData = null;
-        let finalPayload = null; // Menyimpan payload final
+        let finalPayload = null; 
 
         // --- 4. CUSTOM DROPDOWN LOGIC ---
         const cityDropdown = document.getElementById('cityDropdown');
@@ -633,14 +663,12 @@
 
                 console.log("Mengecek pending order untuk user:", user.id);
                 
-                // Cek LocalStorage dulu (cepat)
                 const localOrder = localStorage.getItem('aurora_pending_order');
                 if (localOrder) {
                     restoreOrderUI(JSON.parse(localOrder));
                     return;
                 }
 
-                // Jika tidak ada, cek Database
                 const { data, error } = await supabaseClient
                     .from("orders")
                     .select("*")
@@ -648,7 +676,7 @@
                     .eq("status", "pending")
                     .order("created_at", { ascending: false })
                     .limit(1)
-                    .maybeSingle(); // maybeSingle agar tidak error jika kosong
+                    .maybeSingle();
 
                 if (data) {
                     console.log("Ditemukan pending order di DB:", data);
@@ -661,27 +689,24 @@
         }
 
         function restoreOrderUI(order) {
-            // Sembunyikan form checkout
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
 
-            // Isi finalPayload agar tombol bayar berfungsi
             finalPayload = {
                 invoiceNumber: order.order_id,
                 amount: order.total_amount,
                 customerName: order.customer_name,
-                customerEmail: order.customer_email || currentUser?.email, // Fallback jika email tidak ada di DB
+                customerEmail: order.customer_email || currentUser?.email,
                 customerPhone: order.customer_phone,
                 customerAddress: order.customer_address,
                 shippingCost: order.shipping_cost,
                 ekspedisi: order.ekspedisi,
                 estimasi: order.estimasi,
                 kota: order.kota,
-                items: order.items, // Pastikan items terambil
+                items: order.items,
                 userId: order.user_id
             };
 
-            // Render Summary
             const summaryDiv = document.getElementById('orderSummary');
             const html = `
                 <div class="summary-row"><span>Order ID</span><span>#${order.order_id}</span></div>
@@ -698,6 +723,10 @@
         async function initCheckout() {
             const payBtn = document.getElementById('btnProceed');
             const errorBox = document.getElementById('error-message');
+            
+            // Inisialisasi Widget WA
+            setupWhatsAppWidget();
+            
             await loadCities();
             
             try {
@@ -707,7 +736,6 @@
                 }
                 currentUser = sessionData.session.user;
                 
-                // Cek Pending Order SEBELUM memuat cart biasa
                 await loadPendingOrder();
 
                 const successLoad = loadCartAndCalculateTotal();
@@ -762,7 +790,6 @@
             const invoiceNumber = `INV-${dateStr}-${randomStr}`;
             const finalBill = currentTotal + shippingCost;
 
-            // Simpan Payload Global
             finalPayload = {
                 invoiceNumber: invoiceNumber, amount: finalBill, customerName: fullName, customerEmail: user.email,
                 customerPhone: phoneNumber, customerAddress: `${address}, ${city}`, shippingCost: shippingCost,
@@ -770,7 +797,6 @@
                 items: cartItems, userId: user.id
             };
 
-            // SIMPAN KE LOCAL STORAGE UNTUK RESTORE
             localStorage.setItem('aurora_pending_order', JSON.stringify({
                 order_id: invoiceNumber,
                 total_amount: finalBill,
@@ -784,14 +810,12 @@
                 kota: city,
                 items: cartItems,
                 user_id: user.id,
-                status: 'pending' // manual flag
+                status: 'pending'
             }));
 
-            // GANTI TAMPILAN
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
             
-            // Render Summary di View Konfirmasi
             const summaryDiv = document.getElementById('orderSummary');
             let html = `
                 <div class="summary-row"><span>Order ID</span><span>#${invoiceNumber}</span></div>
@@ -803,6 +827,9 @@
             summaryDiv.innerHTML = html;
             document.getElementById('btnPay').disabled = false;
         }
+        
+        // Attach form submit listener
+        document.getElementById('paymentForm').addEventListener('submit', handleProceedToConfirm);
 
         function showError(msg) {
             const errBox = document.getElementById('error-message');
@@ -810,7 +837,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- 11. HANDLE PEMBAYARAN SEBENARNYA (FINAL FIX LENGKAP) ---
+        // --- 11. HANDLE PEMBAYARAN SEBENARNYA ---
         document.getElementById('btnPay').addEventListener("click", async () => {
             const btnPay = document.getElementById('btnPay');
             const errorBox = document.getElementById('error-message-payment');
@@ -822,12 +849,10 @@
             errorBox.style.display = 'none';
 
             try {
-                // 1. VALIDASI PAYLOAD
                 if (!finalPayload) {
                     throw new Error("Data pesanan tidak ditemukan (Session Expired). Silakan ulangi checkout dari keranjang.");
                 }
 
-                // 2. AMBIL SESSION
                 const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
                 
                 if (sessionError || !session) {
@@ -844,7 +869,6 @@
                     userToUse = refreshedSession.session.user;
                 }
 
-                // 3. Siapkan Request Body
                 const requestBody = {
                     amount: finalPayload.amount,
                     invoiceNumber: finalPayload.invoiceNumber,
@@ -860,7 +884,6 @@
                     kota: finalPayload.kota
                 };
 
-                // 4. Fetch Request
                 const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
                     method: "POST",
                     headers: { 
@@ -898,7 +921,6 @@
 
                 console.log("✅ Membuka Modal DOKU:", paymentUrl);
                 
-                // --- BERSIHKAN DATA PENDING ---
                 localStorage.removeItem('aurora_pending_order');
 
                 setTimeout(() => {
