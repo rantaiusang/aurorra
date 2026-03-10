@@ -63,29 +63,27 @@
         .filter-btn { padding: 6px 16px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #aaa; border-radius: 20px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: 0.2s; }
         .filter-btn.active { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); }
 
-        /* --- PRODUCT GRID --- */
+        /* --- PRODUCT GRID CONFIGURATION --- */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr); /* Desktop: 4 kolom */
             gap: 15px;
         }
 
-        /* --- RESPONSIVE: MOBILE 2 GRID (Ide Anda) --- */
+        /* RESPONSIVE: Mobile 2 Kolom (Perbaikan Utama) */
         @media (max-width: 768px) {
             .product-grid { 
                 grid-template-columns: repeat(2, 1fr); /* Mobile: 2 kolom */
                 gap: 10px; 
             }
-            /* Optimasi ruang untuk mobile */
+            /* Penyesuaian ukuran untuk mobile */
             .product-info { padding: 10px; }
             .product-name { font-size: 0.85rem; }
             .product-price { font-size: 0.9rem; }
-            .product-img-wrapper { height: 140px; } /* Sesuaikan tinggi gambar */
+            .product-img-wrapper { height: 140px; } /* Gambar lebih ringkas */
             .btn-buy { padding: 6px; font-size: 0.65rem; }
-            
-            /* Sembunyikan elemen kurang penting di grid mobile untuk hemat ruang */
-            .product-rating .rating-score, 
-            .product-rating .sold-count { display: none; }
+            /* Sembunyikan rating di grid mobile untuk hemat ruang */
+            .product-rating { display: none; } 
         }
 
         /* --- PRODUCT CARD --- */
@@ -98,7 +96,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            cursor: pointer; /* Menunjukkan bisa diklik */
+            cursor: pointer;
         }
         .product-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-color: rgba(212, 175, 55, 0.3); }
         
@@ -111,8 +109,7 @@
         .product-info { padding: 12px; display: flex; flex-direction: column; flex: 1; }
         .product-name { font-family: 'Playfair Display', serif; font-size: 1rem; color: #fff; margin-bottom: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* Rating Stars */
-        .product-rating { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; font-size: 0.7rem; }
+        .product-rating { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; font-size: 0.75rem; }
         .stars { color: var(--luxury-gold); letter-spacing: 1px; }
         .rating-score { color: #aaa; }
         .sold-count { color: #666; margin-left: auto; }
@@ -130,7 +127,7 @@
         /* Price Blur */
         .price-blurred { filter: blur(4px); user-select: none; pointer-events: none; }
 
-        /* --- QUICK VIEW MODAL (Pop Up Deskripsi) --- */
+        /* --- QUICK VIEW MODAL --- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 10px; backdrop-filter: blur(5px); }
         .modal-overlay.show { display: flex; }
         
@@ -152,13 +149,13 @@
         .close-modal-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; }
 
         /* --- FLOATING CART --- */
-        #floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--luxury-gold); color: #000; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 999; display: none; align-items: center; gap: 8px; }
-        
+        #floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--luxury-gold); color: #000; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 999; display: none; align-items: center; gap: 8px; transition: transform 0.2s; }
+        #floating-cart:hover { transform: scale(1.05); }
+
         /* --- UTILS --- */
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 2000; }
         .toast { background: #222; border: 1px solid var(--luxury-gold); color: #fff; padding: 10px 20px; border-radius: 8px; margin-bottom: 10px; animation: slideUp 0.3s; font-size: 0.85rem; }
-
     </style>
 </head>
 <body>
@@ -286,7 +283,7 @@
                 const cat = catBtn ? catBtn.dataset.category : 'all';
 
                 const filtered = this.state.products.filter(p => {
-                    const matchCat = (cat === 'all' || (p.category && p.category.toLowerCase() === cat));
+                    const matchCat = (cat === 'all' || p.category === cat);
                     const matchSearch = (p.name.toLowerCase().includes(search) || (p.description || '').toLowerCase().includes(search));
                     return matchCat && matchSearch;
                 });
@@ -299,13 +296,12 @@
                 }
 
                 filtered.forEach(p => {
-                    const rating = (Math.random() * (5 - 4.5) + 4.5).toFixed(1); 
-                    const sold = Math.floor(Math.random() * 50) + 5; 
+                    const rating = (Math.random() * (5 - 4.5) + 4.5).toFixed(1); // Dummy rating
+                    const sold = Math.floor(Math.random() * 50) + 5; // Dummy sold
                     const isBlur = !this.state.user;
 
                     const card = document.createElement('div');
                     card.className = 'product-card';
-                    // Klik card = buka modal
                     card.onclick = () => this.openQuickView(p);
                     
                     card.innerHTML = `
@@ -325,7 +321,7 @@
                                     ${isBlur ? 'Login' : this.formatPrice(p.price)}
                                 </div>
                             </div>
-                            <button class="btn-buy" onclick="event.stopPropagation(); APP.addToCart('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''}>
+                            <button class="btn-buy" onclick="event.stopPropagation(); APP.addToCart('${p.id}')">
                                 ${p.stock > 0 ? 'Beli' : 'Habis'}
                             </button>
                         </div>`;
@@ -333,14 +329,13 @@
                 });
             },
 
-            // Fungsi Buka Modal Deskripsi
             openQuickView(product) {
                 const modal = document.getElementById('quickViewModal');
                 const isBlur = !this.state.user;
                 
                 document.getElementById('qvImage').src = product.image_url || 'https://via.placeholder.com/300';
                 document.getElementById('qvName').innerText = product.name;
-                document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi tersedia.';
+                document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi.';
                 document.getElementById('qvPrice').innerText = isBlur ? 'Login untuk harga' : this.formatPrice(product.price);
                 document.getElementById('qvStock').innerText = product.stock || 0;
                 document.getElementById('qvPrice').style.filter = isBlur ? 'blur(4px)' : 'none';
@@ -379,7 +374,8 @@
                 const cart = JSON.parse(localStorage.getItem('aurora_cart')) || [];
                 const count = cart.reduce((sum, i) => sum + i.qty, 0);
                 document.getElementById('cart-count-float').innerText = count;
-                document.getElementById('floating-cart').style.display = count > 0 ? 'flex' : 'none';
+                const floatCart = document.getElementById('floating-cart');
+                floatCart.style.display = count > 0 ? 'flex' : 'none';
             },
 
             cart: {
