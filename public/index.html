@@ -56,8 +56,6 @@
             height: 70px;
             z-index: 1000;
             box-sizing: border-box;
-            flex-shrink: 0;
-            min-width: 320px;
         }
 
         .logo {
@@ -69,14 +67,12 @@
             letter-spacing: 1px;
             white-space: nowrap;
             text-shadow: 0 0 10px 1px rgba(212, 175, 55, 0.3);
-            z-index: 1001;
         }
 
         .nav-links {
             display: flex;
             align-items: center;
             margin-left: auto;
-            flex-shrink: 0;
         }
 
         .btn-header {
@@ -87,7 +83,7 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 0.85rem;
-            transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s, background 0.3s;
             white-space: nowrap;
             cursor: pointer;
             border: none;
@@ -243,15 +239,21 @@
             box-shadow: 20px 20px 60px rgba(0,0,0,0.6);
         }
 
-        /* --- 4. BEST SELLER --- */
+        /* --- 4. BEST SELLER (GRID FIX) --- */
         .best-seller-section { padding: 80px 20px; background-color: var(--dark-bg); }
         .best-seller-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
+            /* Fix: Gunakan 4 kolom tetap agar ukuran kartu sama persis di desktop */
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
         }
+        
+        /* Responsif Best Seller */
+        @media (max-width: 1100px) { .best-seller-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .best-seller-grid { grid-template-columns: 1fr; } }
+
         .product-card {
             background: var(--dark-card);
             border-radius: 12px;
@@ -260,12 +262,16 @@
             transition: 0.4s ease;
             opacity: 0;
             transform: translateY(40px);
+            display: flex;
+            flex-direction: column;
         }
         .product-card.visible { opacity: 1; transform: translateY(0); }
         .product-card:hover { transform: translateY(-10px); border-color: var(--luxury-gold); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15); }
-        .product-img-wrapper { width: 100%; height: 250px; overflow: hidden; background: #2a2a2a; }
+        
+        .product-img-wrapper { width: 100%; height: 220px; overflow: hidden; background: #2a2a2a; position: relative; }
         .product-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
         .product-card:hover .product-img-wrapper img { transform: scale(1.1); }
+        
         .badge {
             position: absolute;
             top: 10px; left: 10px;
@@ -274,15 +280,17 @@
             border-radius: 4px; text-transform: uppercase;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 2;
         }
-        .product-info { padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-info h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #fff; margin-bottom: 5px; }
-        .price { color: var(--luxury-gold); font-weight: 600; font-size: 1.1rem; margin-bottom: 15px; transition: filter 0.3s; }
+        
+        .product-info { padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
+        .product-info h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: #fff; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .price { color: var(--luxury-gold); font-weight: 600; font-size: 1rem; margin-bottom: 15px; transition: filter 0.3s; }
         .price.blurred { filter: blur(5px); user-select: none; cursor: pointer; }
         .btn-card {
             display: block; width: 100%; padding: 10px 0;
             background: transparent; border: 1px solid var(--text-gray);
             color: #fff; text-align: center; text-decoration: none;
             border-radius: 4px; font-size: 0.9rem; transition: 0.3s;
+            margin-top: auto;
         }
         .btn-card:hover { background: var(--luxury-gold); border-color: var(--luxury-gold); color: #000; }
 
@@ -309,15 +317,26 @@
         .testi-text { font-style: italic; color: #ccc; margin-bottom: 20px; }
         .testi-author { color: var(--luxury-gold); font-weight: 600; }
 
-        /* --- 7. LOYALTY --- */
+        /* --- 7. LOYALTY (FIXED CARD) --- */
         .loyalty-section { padding: 60px 20px; background: linear-gradient(135deg, #1a151b, #0f0c15); text-align: center; }
         .loyalty-container { max-width: 800px; margin: 0 auto; opacity: 0; transform: translateY(20px); transition: 1s ease; }
         .loyalty-container.visible { opacity: 1; transform: translateY(0); }
+        
+        /* Kotak Loyalty Card */
+        .loyalty-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 40px 20px;
+            display: inline-block;
+            width: 100%;
+            max-width: 600px; /* Lebar tetap agar tidak terlalu lebar di desktop */
+        }
+
         .loyalty-icon { font-size: 2.5rem; margin-bottom: 15px; display: inline-block; animation: bounce 2s infinite; }
         .loyalty-section h3 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--luxury-gold); margin-bottom: 15px; }
         .loyalty-section p { color: var(--text-gray); margin-bottom: 25px; font-size: 1.1rem; }
         
-        /* Style untuk tombol reward di section loyalty */
         .btn-reward-action {
             display: inline-block;
             min-width: 200px;
@@ -369,7 +388,7 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* --- RESPONSIVE --- */
+        /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 992px) {
             .hero-container { grid-template-columns: 1fr; text-align: center; gap: 40px; }
             .hero-visual { animation: fadeInUp 1s ease forwards; transform: translateY(30px); }
@@ -385,9 +404,10 @@
             .hero-buttons { flex-direction: column; width: 100%; }
             .btn-primary, .btn-outline, .btn-reward-action { width: 100%; padding: 12px; }
             .hero-img { max-width: 260px; }
-            .features-grid, .best-seller-grid, .testi-grid { grid-template-columns: 1fr; }
+            .features-grid, .testi-grid { grid-template-columns: 1fr; }
             .section-header h2, .newsletter h3, .loyalty-section h3 { font-size: 1.6rem; }
             .newsletter-form { flex-direction: column; align-items: center; }
+            .loyalty-card { padding: 30px 15px; }
         }
     </style>
 </head>
@@ -486,12 +506,14 @@
     <!-- Loyalty Program Section -->
     <section class="loyalty-section">
         <div class="loyalty-container fade-on-scroll">
-            <div class="loyalty-icon">🎁</div>
-            <h3>Aurorra Rewards</h3>
-            <p>🎁 Dapatkan 1 poin setiap belanja Rp50.000<br>Kumpulkan poin dan tukarkan dengan diskon eksklusif.</p>
-            
-            <!-- TOMBOL INI YANG DIPERBAIKI: MENJADI BUTTON DENGAN ID -->
-            <button id="rewardsBtn" class="btn-reward-action">Lihat Program Rewards</button>
+            <!-- DIBUNGKUS DENGAN KARTU -->
+            <div class="loyalty-card">
+                <div class="loyalty-icon">🎁</div>
+                <h3>Aurorra Rewards</h3>
+                <p>🎁 Dapatkan 1 poin setiap belanja Rp50.000<br>Kumpulkan poin dan tukarkan dengan diskon eksklusif.</p>
+                
+                <button id="rewardsBtn" class="btn-reward-action">Lihat Program Rewards</button>
+            </div>
         </div>
     </section>
 
@@ -528,47 +550,39 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA REWARDS BUTTON (FIXED)
+        // 2. LOGIKA REWARDS BUTTON
         // ==========================================
         const rewardsBtn = document.getElementById('rewardsBtn');
 
         if (rewardsBtn) {
             rewardsBtn.addEventListener('click', async function(e) {
-                e.preventDefault(); // Mencegah aksi default jika didalam form (tapi ini button biasa)
-                
-                // Cek apakah user sudah login
+                e.preventDefault();
                 const { data: { session } } = await supabaseClient.auth.getSession();
-
                 if (session) {
-                    // Jika SUDAH LOGIN -> Langsung ke Halaman Rewards
                     window.location.href = "rewards.html";
                 } else {
-                    // Jika BELUM LOGIN -> Munculkan alert
                     alert("Anda harus login terlebih dahulu untuk melihat Program Rewards.");
-                    window.location.href = "login.html"; // Opsional: langsung arahkan ke login
+                    window.location.href = "login.html";
                 }
             });
         }
 
         // ==========================================
-        // 3. AUTO LOGOUT 4 JAM (IDLE TIMER)
+        // 3. AUTO LOGOUT 4 JAM
         // ==========================================
         let inactivityTime = function () {
             let time;
             const logoutTime = 4 * 60 * 60 * 1000;
-
             window.onload = resetTimer;
             document.onmousemove = resetTimer;
             document.onkeypress = resetTimer;
             document.ontouchstart = resetTimer;
-            document.onclick = resetTimer;
 
             function logout() {
                 alert("Sesi Anda telah berakhir karena tidak aktif selama 4 jam.");
                 supabaseClient.auth.signOut();
                 window.location.href = "login.html";
             }
-
             function resetTimer() {
                 clearTimeout(time);
                 time = setTimeout(logout, logoutTime);
@@ -582,45 +596,24 @@
         function initNewsletter() {
             const form = document.querySelector('.newsletter-form');
             if (!form) return; 
-
             form.addEventListener('submit', async function(e) {
                 e.preventDefault(); 
                 const input = this.querySelector('input[type="email"]');
                 const button = this.querySelector('button[type="submit"]');
                 const email = input.value;
-                const originalBtnText = button.innerText;
-
-                if (!email) {
-                    alert("Mohon masukkan email Anda.");
-                    return;
-                }
-
                 button.innerText = "Memproses...";
                 button.disabled = true;
-                button.style.opacity = "0.7";
 
                 try {
-                    const { data, error } = await supabaseClient
-                        .from('subscribers')
-                        .insert([{ email: email, created_at: new Date() }]);
-
-                    if (error) {
-                        if (error.code === '23505') {
-                            alert("Email ini sudah terdaftar sebelumnya!");
-                        } else {
-                            throw error;
-                        }
-                    } else {
-                        alert("Terima kasih! Anda telah berhasil berlangganan.");
-                        form.reset(); 
-                    }
+                    const { data, error } = await supabaseClient.from('subscribers').insert([{ email: email, created_at: new Date() }]);
+                    if (error) throw error;
+                    alert("Terima kasih! Anda telah berhasil berlangganan.");
+                    form.reset(); 
                 } catch (err) {
-                    console.error("Gagal berlangganan:", err);
-                    alert("Maaf, terjadi kesalahan sistem.");
+                    alert("Email ini sudah terdaftar atau terjadi kesalahan.");
                 } finally {
-                    button.innerText = originalBtnText;
+                    button.innerText = "Langganan";
                     button.disabled = false;
-                    button.style.opacity = "1";
                 }
             });
         }
@@ -649,14 +642,8 @@
         // ==========================================
         async function loadProducts() {
             const productGrid = document.getElementById('productGrid');
-            
             try {
-                const { data: products, error } = await supabaseClient
-                    .from('products')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(50); 
-
+                const { data: products, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false }).limit(50); 
                 if (error) throw error;
 
                 if (products && products.length > 0) {
@@ -671,31 +658,21 @@
                     const selectedProducts = shuffledProducts.slice(0, 4);
                     
                     selectedProducts.forEach((product) => {
-                        const formattedPrice = new Intl.NumberFormat('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0
-                        }).format(product.price);
-
+                        const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
                         const cardHTML = `
                             <div class="product-card fade-on-scroll">
                                 <div class="badge">⭐ Best Seller</div>
                                 <div class="product-img-wrapper">
-                                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" 
-                                         alt="${product.name}" 
-                                         loading="lazy">
+                                    <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.name}" loading="lazy">
                                 </div>
                                 <div class="product-info">
                                     <div>
                                         <h3 title="${product.name}">${product.name}</h3>
-                                        <p class="price blurred" data-price="${formattedPrice}">
-                                            ${formattedPrice}
-                                        </p>
+                                        <p class="price blurred" data-price="${formattedPrice}">${formattedPrice}</p>
                                     </div>
                                     <a href="store.html" class="btn-card">Beli Sekarang</a>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                         productGrid.insertAdjacentHTML('beforeend', cardHTML);
                     });
 
@@ -720,13 +697,9 @@
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
-
                 if (session) {
                     const userEmail = session.user.email;
-                    const userName = session.user.user_metadata?.full_name || 
-                                      session.user.user_metadata?.name || 
-                                      userEmail.split('@')[0];
-                    
+                    const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || userEmail.split('@')[0];
                     const displayName = userName.length > 10 ? userName.substring(0, 10) + '...' : userName;
                     
                     btnLogin.innerText = displayName;
@@ -741,19 +714,13 @@
                         }
                     };
 
-                    prices.forEach(priceEl => {
-                        priceEl.classList.remove('blurred');
-                    });
-
+                    prices.forEach(priceEl => priceEl.classList.remove('blurred'));
                 } else {
                     btnLogin.innerText = "Login";
                     btnLogin.href = "login.html";
                     btnLogin.classList.remove('logged-in');
                     btnLogin.onclick = null;
-
-                    prices.forEach(priceEl => {
-                        priceEl.classList.add('blurred');
-                    });
+                    prices.forEach(priceEl => priceEl.classList.add('blurred'));
                 }
             } catch (error) {
                 console.error("Error checking session:", error);
@@ -768,37 +735,19 @@
             loadProducts();
         });
 
-        window.onload = function() {
-            window.scrollTo(0, 0);
-        };
-
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                updateUIBasedOnSession();
-                window.scrollTo(0, 0);
-            }
-        });
+        window.onload = function() { window.scrollTo(0, 0); };
 
         // ==========================================
         // 9. SCROLL ANIMATIONS
         // ==========================================
         function initScrollAnimations() {
-            const observerOptions = {
-                root: null, 
-                rootMargin: '0px',
-                threshold: 0.1 
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
                 });
-            }, observerOptions);
+            }, { threshold: 0.1 });
 
-            const fadeElements = document.querySelectorAll('.fade-on-scroll');
-            fadeElements.forEach(el => observer.observe(el));
+            document.querySelectorAll('.fade-on-scroll').forEach(el => observer.observe(el));
         }
     </script>
 </body>
