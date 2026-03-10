@@ -2,103 +2,389 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pembayaran Sukses - Aurora Store</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Pembayaran - Aurorra Store</title>
     
     <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        :root { --luxury-gold: #d4af37; --dark-bg: #0f0c15; --card-bg: #1a1620; }
-        body { background-color: var(--dark-bg); color: #ffffff; font-family: 'Poppins', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* --- VARIABLES --- */
+        :root {
+            --luxury-gold: #d4af37;
+            --luxury-gold-light: #f3e5ab;
+            --dark-bg: #0f0c15;
+            --dark-card: #161216;
+            --text-gray: #a0a0a0;
+            --text-white: #ffffff;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: rgba(15, 12, 21, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 15px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-white);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .logo:hover { color: var(--luxury-gold); }
+
+        /* --- CONTAINER --- */
+        .page-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 140px 20px 80px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease, color 0.3s;
+        }
         
-        .success-card { text-align: center; padding: 40px; max-width: 400px; width: 90%; }
-        .checkmark { width: 80px; height: 80px; background: #2ecc71; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
+        .back-link.visible { opacity: 1; transform: translateY(0); }
+        .back-link:hover { color: var(--luxury-gold); }
+
+        /* --- CARD --- */
+        .content-card {
+            background: var(--dark-card);
+            padding: 50px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        /* --- ANIMATIONS --- */
+        .fade-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-on-scroll.visible { opacity: 1; transform: translateY(0); }
+
+        /* --- STATUS STYLES --- */
+        .status-header { margin-bottom: 40px; }
+
+        .icon-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 3rem;
+            transition: all 0.5s ease;
+        }
+
+        /* Loading State */
+        .icon-box.loading {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: var(--luxury-gold);
+            animation: spin 2s infinite linear;
+        }
+        /* Success State */
+        .icon-box.success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+            animation: pulse-gentle 3s infinite;
+        }
+        /* Error/Pending State */
+        .icon-box.error, .icon-box.pending {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+            color: var(--danger-color);
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.2);
+        }
+
+        .status-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+        .status-title.success { color: var(--success-color); }
+        .status-title.error, .status-title.pending { color: var(--danger-color); }
+        .status-title.loading { color: var(--luxury-gold); }
+
+        .status-desc {
+            color: var(--text-gray);
+            font-size: 1.05rem;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .order-details {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .order-id-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .order-id-value {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: var(--text-white);
+            font-size: 1.1rem;
+        }
+
+        /* --- BUTTON --- */
+        .action-buttons { margin-top: 40px; display: flex; flex-direction: column; gap: 15px; }
         
-        h2 { font-family: 'Playfair Display', serif; color: var(--luxury-gold); margin-bottom: 10px; font-size: 2rem; }
-        p { color: #aaa; margin-bottom: 30px; }
-        
-        .order-id { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 30px; font-family: monospace; color: var(--luxury-gold); border: 1px solid rgba(212, 175, 55, 0.2); }
-        
-        .btn-home { padding: 15px 30px; background: var(--luxury-gold); color: #000; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block; transition: transform 0.2s; }
-        .btn-home:hover { transform: scale(1.05); background: #ffed4a; }
+        .btn-luxury {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary-gold {
+            background: linear-gradient(135deg, var(--luxury-gold), #b8960be6);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+        .btn-primary-gold:hover {
+            background: #ffed4a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+        }
+
+        .mini-footer { margin-top: 60px; text-align: center; font-size: 0.85rem; color: #555; }
+
+        /* KEYFRAMES */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse-gentle { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.3); } 50% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+
+        @media (max-width: 768px) {
+            header { padding: 15px 5%; }
+            .page-wrapper { padding: 120px 20px 60px; }
+            .content-card { padding: 40px 25px; }
+            .status-title { font-size: 1.8rem; }
+            .icon-box { width: 80px; height: 80px; font-size: 2.5rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="success-card">
-        <div class="checkmark">✓</div>
-        <h2 id="statusTitle">Memverifikasi...</h2>
-        <p id="statusMessage">Sedang mengecek status pembayaran Anda.</p>
-        
-        <div class="order-id">
-            ID Order: <span id="displayOrderId">Memuat...</span>
-        </div>
+    <header>
+        <div style="width: 20px;"></div>
+        <a href="index.html" class="logo">Aurorra ⚡</a>
+        <div style="width: 20px;"></div>
+    </header>
 
-        <a href="store.html" class="btn-home">Kembali</a>
+    <div class="page-wrapper">
+        <a href="store.html" class="back-link fade-on-scroll">
+            <span>&larr;</span> Kembali ke Toko
+        </a>
+
+        <div class="content-card">
+            <div class="status-header fade-on-scroll">
+                <div id="statusIcon" class="icon-box loading">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <h1 id="statusTitle" class="status-title loading">Memverifikasi...</h1>
+                <p id="statusMessage" class="status-desc">
+                    Sedang mengecek status pembayaran Anda, mohon tunggu sebentar.
+                </p>
+                
+                <div class="order-details fade-on-scroll">
+                    <div class="order-id-label">ID Pesanan</div>
+                    <div id="displayOrderId" class="order-id-value">Memuat...</div>
+                </div>
+            </div>
+
+            <div class="action-buttons fade-on-scroll">
+                <a href="store.html" class="btn-luxury btn-primary-gold">
+                    <i class="fas fa-shopping-bag"></i> Kembali Berbelanja
+                </a>
+            </div>
+
+            <div class="mini-footer fade-on-scroll">
+                <p>&copy; 2024 Aurorra Store. All rights reserved.</p>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Konfigurasi URL Function Supabase Kamu
+        // KONFIGURASI
         const SUPABASE_URL = "https://dikapquhusbwjccbqcsb.supabase.co";
-        const CHECK_FUNCTION = "/functions/v1/check-doku-payment";
+        // Menggunakan endpoint check-payment yang sudah benar
+        const CHECK_ENDPOINT = "/functions/v1/check-payment";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Ambil Order ID dari LocalStorage (disimpan saat tombol bayar diklik)
-            const orderId = localStorage.getItem('temp_order_id');
-            
-            if (orderId) {
-                document.getElementById('displayOrderId').innerText = orderId;
-                verifyPayment(orderId);
-            } else {
-                updateUI(false, "Tidak Ditemukan", "ID Pesanan tidak valid atau kadaluarsa.");
+        // 1. Inisialisasi
+        window.onload = function() {
+            window.scrollTo(0, 0);
+            initAnimations();
+            initiateVerification();
+        };
+
+        // 2. Animasi Scroll
+        function initAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
+                });
+            }, { threshold: 0.15 });
+            document.querySelectorAll('.fade-on-scroll').forEach(el => observer.observe(el));
+        }
+
+        // 3. Logika Utama Verifikasi
+        async function initiateVerification() {
+            // A. Coba ambil Order ID dari URL Parameter (Dari DOKU Redirect callback)
+            // DOKU biasanya mengirim parameter invoice number sebagai reference
+            const urlParams = new URLSearchParams(window.location.search);
+            let orderId = urlParams.get('order_id') || urlParams.get('invoice') || urlParams.get('client_id');
+
+            // B. Jika tidak ada di URL, coba ambil dari Local Storage (data sementara saat checkout)
+            if (!orderId) {
+                orderId = localStorage.getItem('temp_order_id');
             }
-        });
-
-        async function verifyPayment(invoiceNumber) {
-            try {
-                // 2. Panggil Function check-doku-payment
-                const response = await fetch(`${SUPABASE_URL}${CHECK_FUNCTION}?invoice=${invoiceNumber}`);
-                const data = await response.json();
-
-                console.log("Status Pembayaran DOKU:", data);
-
-                // 3. Cek apakah respons sukses dan statusnya 'PAYMENT_SUCCESS'
-                if (response.ok && data.transaction && data.transaction.status === 'PAYMENT_SUCCESS') {
-                    updateUI(true, "Pembayaran Sukses!", "Terima kasih. Pembayaran telah berhasil dikonfirmasi.");
-                    // Di sini kamu bisa tambahkan kode untuk update database Supabase jika perlu
-                } else {
-                    // Handle jika statusnya masih PENDING, FAILED, atau CANCELLED
-                    const status = data.transaction ? data.transaction.status : "Tidak Diketahui";
-                    updateUI(false, "Pembayaran Belum Selesai", `Status saat ini: ${status}. Silakan coba lagi nanti.`);
+            
+            // C. Jika masih tidak ada, coba ambil dari pending order data
+            if (!orderId) {
+                const pendingData = localStorage.getItem('aurora_pending_order');
+                if (pendingData) {
+                    try {
+                        const parsed = JSON.parse(pendingData);
+                        orderId = parsed.order_id;
+                    } catch (e) { console.error("Parse error", e); }
                 }
+            }
 
-            } catch (error) {
-                console.error("Gagal cek status:", error);
-                updateUI(false, "Error Koneksi", "Gagal menghubungi server pembayaran.");
+            const orderIdDisplay = document.getElementById('displayOrderId');
+
+            if (orderId) {
+                orderIdDisplay.innerText = orderId;
+                await verifyWithBackend(orderId);
+            } else {
+                // Jika benar-benar tidak ada ID
+                updateUI('error', "Tidak Ditemukan", "Tidak ada ID pesanan yang terdeteksi. Silakan cek email atau riwayat pesanan Anda.");
             }
         }
 
-        // Fungsi kecil untuk mengubah teks UI
-        function updateUI(isSuccess, title, message) {
+        // 4. Hubungi Backend
+        async function verifyWithBackend(invoiceNumber) {
+            try {
+                // Panggil Supabase Function check-payment
+                const response = await fetch(`${SUPABASE_URL}${CHECK_ENDPOINT}?invoice=${invoiceNumber}`);
+                
+                // Handle jika response tidak ok (misal 404 atau 500)
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Respon Server:", data);
+
+                // Asumsi response dari backend memiliki struktur:
+                // { status: 'success', transaction: { status: 'PAYMENT_SUCCESS' } }
+                // Sesuaikan dengan response sebenarnya dari function Anda
+                
+                if (data.transaction && data.transaction.status === 'PAYMENT_SUCCESS') {
+                    // Jika Sukses
+                    updateUI('success', "Pembayaran Sukses!", "Terima kasih! Pembayaran Anda telah dikonfirmasi. Pesanan akan segera diproses.");
+                    
+                    // Hapus data pending lokal karena sudah sukses
+                    localStorage.removeItem('aurora_pending_order');
+                    localStorage.removeItem('temp_order_id');
+                } else {
+                    // Jika Status lain (Pending, Failed, Expired)
+                    const currentStatus = data.transaction ? data.transaction.status : "PENDING";
+                    updateUI('pending', "Menunggu Pembayaran", `Status: ${currentStatus}. Jika sudah bayar, coba refresh halaman ini.`);
+                }
+
+            } catch (error) {
+                console.error("Error verifikasi:", error);
+                updateUI('error', "Kesalahan Sistem", "Gagal menghubungi server verifikasi. Silakan coba lagi nanti.");
+            }
+        }
+
+        // 5. Update Tampilan UI
+        function updateUI(state, title, message) {
+            const iconEl = document.getElementById('statusIcon');
             const titleEl = document.getElementById('statusTitle');
             const msgEl = document.getElementById('statusMessage');
-            const iconEl = document.querySelector('.checkmark');
+
+            // Reset class
+            iconEl.className = 'icon-box fade-on-scroll visible';
+            titleEl.className = 'status-title fade-on-scroll visible';
 
             titleEl.innerText = title;
             msgEl.innerText = message;
 
-            if (!isSuccess) {
-                // Ubah jadi merah jika gagal
-                iconEl.style.background = "#e74c3c";
-                iconEl.style.boxShadow = "0 0 20px rgba(231, 76, 60, 0.4)";
-                iconEl.innerText = "!";
-                titleEl.style.color = "#e74c3c";
+            if (state === 'success') {
+                iconEl.classList.add('success');
+                iconEl.innerHTML = '<i class="fas fa-check"></i>';
+                titleEl.classList.add('success');
+            } else if (state === 'pending') {
+                iconEl.classList.add('pending'); // Bisa disamakan dengan error style atau buat kuning
+                iconEl.innerHTML = '<i class="fas fa-clock"></i>'; // Ikon jam
+                titleEl.classList.add('loading'); // Warna kuning
             } else {
-                // Pastikan warna hijau jika sukses
-                iconEl.style.background = "#2ecc71";
-                iconEl.innerText = "✓";
-                titleEl.style.color = "var(--luxury-gold)";
+                iconEl.classList.add('error');
+                iconEl.innerHTML = '<i class="fas fa-times"></i>';
+                titleEl.classList.add('error');
             }
         }
     </script>
