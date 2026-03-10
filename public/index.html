@@ -71,7 +71,7 @@
 
         .nav-links { display: none; }
 
-        /* --- 3. BOTTOM NAVIGATION (AUTO SCROLL & HIDE) --- */
+        /* --- 3. BOTTOM NAVIGATION (STYLE TETAP, LOGIKA JS YANG DIUBAH) --- */
         .bottom-nav {
             position: fixed;
             bottom: 15px;
@@ -87,7 +87,6 @@
             border: 1px solid rgba(212, 175, 55, 0.1);
             display: flex;
             overflow-x: auto;
-            scroll-behavior: auto; /* Ubah ke auto untuk kontrol JS yang smooth */
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             align-items: center;
@@ -102,7 +101,7 @@
 
         /* Class untuk menyembunyikan navigasi */
         .bottom-nav.hidden-nav {
-            transform: translate(-50%, 100px); /* Geser ke bawah */
+            transform: translate(-50%, 100px);
             opacity: 0;
             pointer-events: none;
         }
@@ -443,7 +442,7 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* --- RESPONSIVE MOBILE (MODIFIKASI) --- */
+        /* --- RESPONSIVE MOBILE --- */
         @media (max-width: 1100px) { 
             .best-seller-grid { grid-template-columns: repeat(2, 1fr); } 
         }
@@ -480,7 +479,7 @@
         <a href="index.html" class="logo">Aurorra ⚡</a>
     </header>
 
-    <!-- BOTTOM NAVIGATION (SCROLLABLE) -->
+    <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav" id="mainNav">
         <!-- 1. Home -->
         <a href="index.html" class="nav-item active">
@@ -621,77 +620,87 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA NAVIGASI (AUTO SCROLL & HIDE)
+        // 2. LOGIKA NAVIGASI (FIXED: SMOOTH & SLOW)
         // ==========================================
         const navElement = document.getElementById('mainNav');
         let autoScrollInterval;
-        let scrollDirection = 1; // 1: Kanan ke Kiri, -1: Kiri ke Kanan
+        let scrollDirection = 1; // 1: Kiri ke Kanan, -1: Kanan ke Kiri
         let isUserInteracting = false;
         let lastScrollTop = 0;
         let scrollTimeout;
+        let pauseTimeout;
 
-        // Fungsi untuk menjalankan auto-scroll
         function startAutoScroll() {
             if (autoScrollInterval) clearInterval(autoScrollInterval);
             
-            // Kecepatan (semakin kecil angkanya, semakin lambat)
-            const speed = 0.5; 
+            // PENGATURAN KECEPATAN (Rubah angka di bawah untuk efek lambat/cepat)
+            // Semakin kecil nilainya, semakin lambat.
+            // 0.3 = Sangat Lambat & Elegan
+            // 0.7 = Normal
+            // 1.0 = Cepat
+            const speed = 0.4; 
             
             autoScrollInterval = setInterval(() => {
-                if (isUserInteracting) return; // Jangan scroll jika user pegang
+                if (isUserInteracting) return;
                 
-                // Logika Scroll Loop (Kanan ke Kiri)
                 navElement.scrollLeft += speed * scrollDirection;
                 
-                // Jika sudah mencapai ujung kanan
-                if (navElement.scrollLeft >= navElement.scrollWidth - navElement.clientWidth) {
-                    scrollDirection = -1; // Balik ke kiri
+                // Jika mencapai ujung KANAN
+                if (navElement.scrollLeft >= navElement.scrollWidth - navElement.clientWidth - 5) {
+                    // HENTI dulu 3 detik di ujung, lalu balik
+                    clearInterval(autoScrollInterval);
+                    pauseTimeout = setTimeout(() => {
+                        scrollDirection = -1;
+                        startAutoScroll();
+                    }, 3000);
                 } 
-                // Jika sudah mencapai ujung kiri
-                else if (navElement.scrollLeft <= 0) {
-                    scrollDirection = 1; // Balik ke kanan
+                // Jika mencapai ujung KIRI
+                else if (navElement.scrollLeft <= 5) {
+                    // HENTI dulu 3 detik di ujung, lalu balik
+                    clearInterval(autoScrollInterval);
+                    pauseTimeout = setTimeout(() => {
+                        scrollDirection = 1;
+                        startAutoScroll();
+                    }, 3000);
                 }
-            }, 16); // 60fps
+            }, 16); // 60fps (smooth rendering)
         }
 
-        // Deteksi Interaksi User (Sentuh/Geser)
-        navElement.addEventListener('touchstart', () => { isUserInteracting = true; });
-        navElement.addEventListener('touchend', () => { 
-            // Lanjutkan auto scroll setelah 3 detik diam
-            setTimeout(() => { isUserInteracting = false; }, 3000); 
+        // Deteksi Interaksi User
+        navElement.addEventListener('touchstart', () => { 
+            isUserInteracting = true; 
+            clearTimeout(pauseTimeout); // Batalkan jeda jika disentuh
         });
-        navElement.addEventListener('mousedown', () => { isUserInteracting = true; });
+        navElement.addEventListener('touchend', () => { 
+            // Lanjutkan scroll setelah user diam 2 detik
+            setTimeout(() => { isUserInteracting = false; }, 2000); 
+        });
+        navElement.addEventListener('mousedown', () => { 
+            isUserInteracting = true; 
+            clearTimeout(pauseTimeout);
+        });
         navElement.addEventListener('mouseup', () => { 
-            setTimeout(() => { isUserInteracting = false; }, 3000); 
+            setTimeout(() => { isUserInteracting = false; }, 2000); 
         });
 
-        // Fungsi Hide/Show saat Scroll Halaman Utama
+        // Hide/Show saat Scroll Halaman
         window.addEventListener('scroll', function() {
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-            // Clear timeout sebelumnya (reset timer)
             if (scrollTimeout) clearTimeout(scrollTimeout);
 
-            // Logika Hide: Jika scroll ke bawah
             if (scrollTop > lastScrollTop && scrollTop > 100) {
                 navElement.classList.add('hidden-nav');
-            } 
-            // Logika Show: Jika scroll ke atas
-            else {
+            } else {
                 navElement.classList.remove('hidden-nav');
             }
-
             lastScrollTop = scrollTop;
 
-            // SHOW kembali setelah berhenti scroll selama 500ms
             scrollTimeout = setTimeout(() => {
                 navElement.classList.remove('hidden-nav');
             }, 500);
         });
 
-        // Jalankan Auto Scroll saat halaman load
         startAutoScroll();
-
 
         // ==========================================
         // 3. LOGIKA REWARDS BUTTON
@@ -832,7 +841,7 @@
         }
 
         // ==========================================
-        // 8. LOGIKA UPDATE HEADER & HARGA (MODIFIKASI)
+        // 8. LOGIKA UPDATE HEADER & HARGA
         // ==========================================
         async function updateUIBasedOnSession() {
             const navLoginBtn = document.getElementById('navLoginBtn');
