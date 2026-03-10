@@ -27,7 +27,7 @@
 
         html, body {
             width: 100%;
-            overflow-x: hidden; /* Mencegah scroll horizontal di mobile */
+            overflow-x: hidden;
             scroll-behavior: smooth;
         }
 
@@ -36,10 +36,10 @@
             color: var(--text-white);
             font-family: 'Poppins', sans-serif;
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased; /* Font lebih halus di mobile */
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- 2. HEADER (FIXED & RESPONSIF) --- */
+        /* --- 2. HEADER --- */
         header {
             background: rgba(15, 12, 21, 0.95);
             backdrop-filter: blur(10px);
@@ -70,9 +70,6 @@
             white-space: nowrap;
             text-shadow: 0 0 10px 1px rgba(212, 175, 55, 0.3);
             z-index: 1001;
-            max-width: 150px; 
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .nav-links {
@@ -97,10 +94,6 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 80px;
-            max-width: 180px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .btn-header:hover {
@@ -114,13 +107,6 @@
             border: 1px solid var(--luxury-gold);
             color: var(--luxury-gold);
         }
-        
-        .btn-header.logged-in:hover {
-            background: rgba(212, 175, 55, 0.1);
-            color: #fff;
-            box-shadow: none;
-            border-color: #fff;
-        }
 
         /* --- 3. HERO SECTION --- */
         .hero {
@@ -128,10 +114,9 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 100px 20px 80px; /* Padding samping 20px aman untuk mobile */
+            padding: 100px 20px 80px;
             position: relative;
             width: 100%;
-            max-width: 100%;
         }
 
         .hero-container {
@@ -143,9 +128,6 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-
-        .hero-text-col { grid-column: 1; display: flex; flex-direction: column; }
-        .hero-visual { grid-column: 2; position: relative; display: flex; justify-content: center; align-items: center; }
 
         .glow-bg {
             position: absolute;
@@ -175,7 +157,6 @@
             padding: 4px 10px;
             border: 1px solid rgba(138, 28, 28, 0.3);
             border-radius: 4px;
-            width: fit-content;
         }
 
         .hero h1 {
@@ -193,7 +174,6 @@
             color: var(--text-gray);
             margin-bottom: 30px;
             font-weight: 300;
-            width: 100%;
         }
 
         .hero-buttons {
@@ -203,7 +183,6 @@
             opacity: 0;
             transform: translateY(30px);
             animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
-            width: 100%;
         }
 
         .btn-primary {
@@ -219,19 +198,19 @@
             box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
             display: inline-block;
             text-align: center;
-            flex: 1 1 auto;
-            min-width: 150px;
+            border: none;
+            cursor: pointer;
         }
 
         .btn-primary:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4);
-            background: linear-gradient(135deg, var(--luxury-gold-light), var(--luxury-gold));
         }
 
         .btn-outline {
             padding: 14px 30px;
             border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
             color: #fff;
             text-decoration: none;
             font-weight: 600;
@@ -241,356 +220,125 @@
             transition: all 0.3s ease;
             display: inline-block;
             text-align: center;
-            flex: 1 1 auto;
-            min-width: 150px;
         }
 
         .btn-outline:hover {
             transform: translateY(-5px);
             border-color: var(--luxury-gold);
             color: var(--luxury-gold);
-            background: rgba(212, 175, 55, 0.05);
         }
 
         .hero-visual {
             opacity: 0;
             transform: translateX(30px);
             animation: fadeInRight 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
+            text-align: center;
         }
 
         .hero-img {
-            width: 100%;
             max-width: 450px;
+            width: 100%;
             height: auto;
             border-radius: 20px;
             box-shadow: 20px 20px 60px rgba(0,0,0,0.6);
-            transition: 0.5s;
-            display: block;
         }
 
-        /* --- 4. BEST SELLER SECTION (DYNAMIC) --- */
-        .best-seller-section {
-            padding: 80px 20px;
-            background-color: var(--dark-bg);
-        }
-
+        /* --- 4. BEST SELLER --- */
+        .best-seller-section { padding: 80px 20px; background-color: var(--dark-bg); }
         .best-seller-grid {
             display: grid;
-            /* Mobile Friendly: minmax 250px, auto-fit membuat kolom turun otomatis di layar kecil */
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
             max-width: 1200px;
             margin: 0 auto;
         }
-
         .product-card {
             background: var(--dark-card);
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.05);
             transition: 0.4s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
             opacity: 0;
             transform: translateY(40px);
         }
-
-        .product-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .product-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--luxury-gold);
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
-        }
-
-        .product-img-wrapper {
-            position: relative;
-            width: 100%;
-            height: 250px; /* Tinggi tetap agar rapi */
-            overflow: hidden;
-            background: #2a2a2a; /* Placeholder bg saat loading */
-        }
-
-        .product-img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Gambar tidak gepeng */
-            transition: transform 0.5s ease;
-        }
-
-        .product-card:hover .product-img-wrapper img {
-            transform: scale(1.1);
-        }
-
+        .product-card.visible { opacity: 1; transform: translateY(0); }
+        .product-card:hover { transform: translateY(-10px); border-color: var(--luxury-gold); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15); }
+        .product-img-wrapper { width: 100%; height: 250px; overflow: hidden; background: #2a2a2a; }
+        .product-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .product-card:hover .product-img-wrapper img { transform: scale(1.1); }
         .badge {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: var(--luxury-gold);
-            color: #000;
-            padding: 4px 10px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            border-radius: 4px;
-            text-transform: uppercase;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            z-index: 2;
+            top: 10px; left: 10px;
+            background: var(--luxury-gold); color: #000;
+            padding: 4px 10px; font-size: 0.7rem; font-weight: 700;
+            border-radius: 4px; text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 2;
         }
-
-        .product-info {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            justify-content: space-between;
-        }
-
-        .product-info h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            color: #fff;
-            margin-bottom: 5px;
-            /* Mencegah teks panjang merusak layout */
-            white-space: nowrap; 
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* --- STYLE HARGA BLUR / HIDDEN --- */
-        .price {
-            color: var(--luxury-gold);
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            transition: filter 0.3s ease, color 0.3s ease;
-            position: relative;
-            cursor: pointer;
-        }
-
-        /* Harga saat belum login */
-        .price.blurred {
-            color: transparent;
-            text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
-            user-select: none;
-        }
-        
-        /* Teks "Login untuk melihat" muncul saat hover */
-        .price.blurred:hover::after {
-            content: "Login untuk melihat harga";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #fff;
-            font-size: 0.8rem;
-            width: 150px;
-            text-align: center;
-            text-shadow: none;
-            background: rgba(0,0,0,0.8);
-            padding: 5px;
-            border-radius: 4px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
+        .product-info { padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-info h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #fff; margin-bottom: 5px; }
+        .price { color: var(--luxury-gold); font-weight: 600; font-size: 1.1rem; margin-bottom: 15px; transition: filter 0.3s; }
+        .price.blurred { filter: blur(5px); user-select: none; cursor: pointer; }
         .btn-card {
-            display: block;
-            width: 100%;
-            padding: 10px 0;
-            background: transparent;
-            border: 1px solid var(--text-gray);
-            color: #fff;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            transition: 0.3s;
+            display: block; width: 100%; padding: 10px 0;
+            background: transparent; border: 1px solid var(--text-gray);
+            color: #fff; text-align: center; text-decoration: none;
+            border-radius: 4px; font-size: 0.9rem; transition: 0.3s;
         }
+        .btn-card:hover { background: var(--luxury-gold); border-color: var(--luxury-gold); color: #000; }
 
-        .btn-card:hover {
-            background: var(--luxury-gold);
-            border-color: var(--luxury-gold);
-            color: #000;
-        }
+        /* --- 5. FEATURES --- */
+        .features { padding: 80px 20px; background: linear-gradient(to bottom, var(--dark-bg), #120e12); }
+        .section-header { text-align: center; margin-bottom: 60px; opacity: 0; transform: translateY(30px); transition: all 1s ease; }
+        .section-header.visible { opacity: 1; transform: translateY(0); }
+        .section-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--luxury-gold); margin-bottom: 15px; }
+        .section-header p { color: var(--text-gray); font-style: italic; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .feature-card { background: var(--dark-card); padding: 30px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; opacity: 0; transform: translateY(40px); transition: 0.8s ease; }
+        .feature-card.visible { opacity: 1; transform: translateY(0); }
+        .feature-card:hover { transform: translateY(-10px); border-color: rgba(212, 175, 55, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .feature-icon { font-size: 2rem; margin-bottom: 20px; display: inline-block; }
+        .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 15px; color: #fff; }
+        .feature-card p { color: var(--text-gray); font-size: 0.9rem; }
 
-        /* --- 5. FEATURES SECTION --- */
-        .features {
-            padding: 80px 20px;
-            background: linear-gradient(to bottom, var(--dark-bg), #120e12);
-            position: relative;
-        }
+        /* --- 6. TESTIMONIALS --- */
+        .testimonials { padding: 80px 20px; background: var(--dark-bg); text-align: center; }
+        .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .testi-card { background: var(--dark-card); padding: 40px 30px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.1); opacity: 0; transform: translateY(30px); transition: 0.8s ease; }
+        .testi-card.visible { opacity: 1; transform: translateY(0); }
+        .stars { color: var(--luxury-gold); font-size: 1.2rem; margin-bottom: 15px; }
+        .testi-text { font-style: italic; color: #ccc; margin-bottom: 20px; }
+        .testi-author { color: var(--luxury-gold); font-weight: 600; }
 
-        .section-header {
-            text-align: center;
-            margin-bottom: 60px;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 1s ease;
-        }
-
-        .section-header.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .section-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.2rem;
-            color: var(--luxury-gold);
-            margin-bottom: 15px;
-        }
-
-        .section-header p {
-            color: var(--text-gray);
-            font-style: italic;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .feature-card {
-            background: var(--dark-card);
-            padding: 30px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.4s ease;
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-            text-align: center;
-        }
-
-        .feature-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            border-color: rgba(212, 175, 55, 0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            background: -webkit-linear-gradient(var(--luxury-gold), #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }
-
-        .feature-card h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-
-        .feature-card p {
-            color: var(--text-gray);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        /* --- 6. TESTIMONIALS SECTION --- */
-        .testimonials {
-            padding: 80px 20px;
-            background: var(--dark-bg);
-            text-align: center;
-        }
-
-        .testi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .testi-card {
-            background: var(--dark-card);
-            padding: 40px 30px;
-            border-radius: 12px;
-            border: 1px solid rgba(212, 175, 55, 0.1);
-            opacity: 0;
-            transform: translateY(30px);
-            transition: 0.8s ease;
-        }
+        /* --- 7. LOYALTY --- */
+        .loyalty-section { padding: 60px 20px; background: linear-gradient(135deg, #1a151b, #0f0c15); text-align: center; }
+        .loyalty-container { max-width: 800px; margin: 0 auto; opacity: 0; transform: translateY(20px); transition: 1s ease; }
+        .loyalty-container.visible { opacity: 1; transform: translateY(0); }
+        .loyalty-icon { font-size: 2.5rem; margin-bottom: 15px; display: inline-block; animation: bounce 2s infinite; }
+        .loyalty-section h3 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--luxury-gold); margin-bottom: 15px; }
+        .loyalty-section p { color: var(--text-gray); margin-bottom: 25px; font-size: 1.1rem; }
         
-        .testi-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .stars {
-            color: var(--luxury-gold);
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-        }
-
-        .testi-text {
-            font-style: italic;
-            color: #ccc;
-            margin-bottom: 20px;
-            font-size: 1.05rem;
-        }
-
-        .testi-author {
-            color: var(--luxury-gold);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        /* --- 7. LOYALTY PROGRAM --- */
-        .loyalty-section {
-            padding: 60px 20px;
-            background: linear-gradient(135deg, #1a151b, #0f0c15);
-            border-top: 1px solid rgba(212, 175, 55, 0.1);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-            text-align: center;
-        }
-
-        .loyalty-container {
-            max-width: 800px;
-            margin: 0 auto;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: 1s ease;
-        }
-
-        .loyalty-container.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .loyalty-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
+        /* Style untuk tombol reward di section loyalty */
+        .btn-reward-action {
             display: inline-block;
-            animation: bounce 2s infinite;
+            min-width: 200px;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, var(--luxury-gold), #b8860b);
+            color: #000;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
         }
-
-        .loyalty-section h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            color: var(--luxury-gold);
-            margin-bottom: 15px;
-        }
-
-        .loyalty-section p {
-            color: var(--text-gray);
-            margin-bottom: 25px;
-            font-size: 1.1rem;
+        .btn-reward-action:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4);
+            background: #fff;
         }
 
         @keyframes bounce {
@@ -600,206 +348,54 @@
         }
 
         /* --- 8. NEWSLETTER --- */
-        .newsletter {
-            padding: 60px 20px;
-            text-align: center;
-            background: #0a080c;
-        }
-
-        .newsletter-content {
-            max-width: 600px;
-            margin: 0 auto;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: 1s ease;
-        }
-
-        .newsletter-content.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .newsletter h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
-        .newsletter p {
-            color: var(--text-gray);
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .newsletter-form {
-            display: flex;
-            gap: 10px;
-            max-width: 450px;
-            margin: 0 auto;
-        }
-
-        .newsletter-input {
-            flex: 1;
-            padding: 12px 15px;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: #161216;
-            color: #fff;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .newsletter-input:focus {
-            border-color: var(--luxury-gold);
-        }
-
-        .btn-subscribe {
-            padding: 12px 20px;
-            background: var(--luxury-gold);
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-subscribe:hover {
-            background: #fff;
-        }
+        .newsletter { padding: 60px 20px; text-align: center; background: #0a080c; }
+        .newsletter-content { max-width: 600px; margin: 0 auto; opacity: 0; transform: translateY(20px); transition: 1s ease; }
+        .newsletter-content.visible { opacity: 1; transform: translateY(0); }
+        .newsletter h3 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: #fff; margin-bottom: 10px; }
+        .newsletter p { color: var(--text-gray); margin-bottom: 20px; font-size: 0.9rem; }
+        .newsletter-form { display: flex; gap: 10px; max-width: 450px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+        .newsletter-input { flex: 1; min-width: 200px; padding: 12px 15px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); background: #161216; color: #fff; outline: none; font-family: 'Poppins', sans-serif; }
+        .btn-subscribe { padding: 12px 20px; background: var(--luxury-gold); color: #000; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-subscribe:hover { background: #fff; }
 
         /* --- 9. FOOTER --- */
-        footer {
-            background: #050406;
-            padding: 40px 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            text-align: center;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        footer.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+        footer { background: #050406; padding: 40px 20px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; opacity: 0; transform: translateY(20px); transition: opacity 1s ease, transform 1s ease; }
+        footer.visible { opacity: 1; transform: translateY(0); }
         footer p { color: #555; font-size: 0.9rem; }
-        
-        .footer-links a {
-            color: #666;
-            text-decoration: none;
-            margin: 0 5px;
-            font-size: 0.8rem;
-            transition: 0.3s;
-            display: inline-block;
-        }
+        .footer-links a { color: #666; text-decoration: none; margin: 0 5px; font-size: 0.8rem; transition: 0.3s; display: inline-block; }
+        .footer-links a:hover { color: var(--luxury-gold); text-decoration: underline; }
 
-        .footer-links a:hover {
-            color: var(--luxury-gold);
-            text-decoration: underline;
-        }
+        /* --- ANIMATIONS --- */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* --- 10. ANIMATIONS --- */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        /* --- 11. RESPONSIVE MEDIA QUERIES (MOBILE OPTIMIZED) --- */
-        
-        /* Tablet & Mobile Landscape */
+        /* --- RESPONSIVE --- */
         @media (max-width: 992px) {
-            .hero-container {
-                grid-template-columns: 1fr;
-                text-align: center;
-                gap: 40px;
-            }
-            /* Urutan mobile: Teks dulu, gambar kedua */
-            .hero-text-col { grid-column: 1; order: 1; }
-            .hero-visual { grid-column: 1; order: 2; }
-
-            .hero h1 { font-size: 2.8rem; }
-            .hero p { margin: 0 auto 25px; max-width: 500px; }
-            .hero-buttons { justify-content: center; }
-            
-            .hero-visual {
-                animation: fadeInUp 1s ease forwards; 
-                transform: translateY(30px);
-            }
-            
+            .hero-container { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+            .hero-visual { animation: fadeInUp 1s ease forwards; transform: translateY(30px); }
             .hero-img { max-width: 320px; margin: 0 auto; }
             header { padding: 0 15px; height: 65px; }
             .logo { font-size: 1.3rem; }
         }
-
-        /* Mobile Portrait (HP Kecil) */
         @media (max-width: 600px) {
-            header { height: 60px; padding: 0 15px; }
-            
-            .logo { font-size: 1.1rem; max-width: 120px; }
-
-            .btn-header {
-                padding: 6px 12px;
-                font-size: 0.75rem;
-                min-width: 60px; 
-            }
-
+            header { height: 60px; }
+            .btn-header { padding: 6px 12px; font-size: 0.75rem; }
             .hero { padding-top: 80px; }
-            
-            .hero h1 {
-                font-size: 2rem; 
-                line-height: 1.2;
-                margin-bottom: 15px;
-            }
-            
-            .hero p {
-                font-size: 0.9rem;
-                margin-bottom: 20px;
-            }
-
-            .hero-buttons {
-                flex-direction: column; /* Tombol vertikal agar muat */
-                gap: 10px;
-                width: 100%;
-            }
-            
-            .btn-primary, .btn-outline {
-                width: 100%;
-                padding: 12px;
-                font-size: 0.9rem;
-            }
-
+            .hero h1 { font-size: 2rem; }
+            .hero-buttons { flex-direction: column; width: 100%; }
+            .btn-primary, .btn-outline, .btn-reward-action { width: 100%; padding: 12px; }
             .hero-img { max-width: 260px; }
-            
-            /* Grid jadi 1 kolom di HP */
-            .features-grid, .best-seller-grid, .testi-grid { 
-                grid-template-columns: 1fr; 
-            }
-            
+            .features-grid, .best-seller-grid, .testi-grid { grid-template-columns: 1fr; }
             .section-header h2, .newsletter h3, .loyalty-section h3 { font-size: 1.6rem; }
-            
-            .newsletter-form { flex-direction: column; }
-        }
-
-        /* Super Small Mobile (iPhone SE, dll) */
-        @media (max-width: 360px) {
-            .logo { font-size: 1rem; }
-            .btn-header { font-size: 0.7rem; padding: 5px 10px; }
-            .hero h1 { font-size: 1.8rem; }
+            .newsletter-form { flex-direction: column; align-items: center; }
         }
     </style>
 </head>
 <body>
+
     <!-- Header -->
     <header>
-        <a href="#" class="logo">Aurorra ⚡</a>
+        <a href="index.html" class="logo">Aurorra ⚡</a>
         <nav class="nav-links">
             <a href="login.html" class="btn-header" id="headerBtn">Login</a>
         </nav>
@@ -809,42 +405,31 @@
     <section class="hero">
         <div class="glow-bg"></div>
         <div class="hero-container">
-            <!-- Kiri: Teks & Tombol -->
             <div class="hero-text-col">
                 <div class="hero-text">
                     <span class="hero-tag">Koleksi Eksklusif</span>
                     <h1>Esensi Kemewahan<br>Abadi</h1>
-                    <p>
-                        Temukan aroma yang mendefinisikan karakter. Dari Baccarat Rouge hingga Black Opium, kami hadirkan kualitas parfum dunia dengan pembayaran modern.
-                    </p>
+                    <p>Temukan aroma yang mendefinisikan karakter. Dari Baccarat Rouge hingga Black Opium, kami hadirkan kualitas parfum dunia dengan pembayaran modern.</p>
                 </div>
-                    
                 <div class="hero-buttons">
                     <a href="store.html" class="btn-primary">Lihat Koleksi</a>
                     <a href="about.html" class="btn-outline">Tentang Kami</a>
                 </div>
             </div>
-
-            <!-- Kanan: Visual -->
             <div class="hero-visual">
                 <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Luxury Perfume" class="hero-img" loading="lazy">
             </div>
         </div>
     </section>
 
-    <!-- Best Seller Section (DYNAMIC: Diisi oleh JavaScript) -->
+    <!-- Best Seller Section -->
     <section class="best-seller-section">
         <div class="section-header fade-on-scroll">
             <h2>Parfum Terpopuler</h2>
             <p>Pilihan favorit pelanggan kami bulan ini.</p>
         </div>
-
-        <!-- Container ini akan diisi produk dari Supabase -->
         <div class="best-seller-grid" id="productGrid">
-            <!-- Skeleton Loading atau Spinner bisa ditambahkan disini jika perlu -->
-            <div style="grid-column: 1/-1; text-align: center; color: var(--text-gray);">
-                Memuat produk...
-            </div>
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-gray);">Memuat produk...</div>
         </div>
     </section>
 
@@ -854,23 +439,17 @@
             <h2>Standar Aurorra</h2>
             <p>Mengapa kami berbeda dari yang lain.</p>
         </div>
-
         <div class="features-grid">
-            <!-- Card 1 -->
             <div class="feature-card fade-on-scroll">
                 <div class="feature-icon">💎</div>
                 <h3>Originalitas Terjamin</h3>
                 <p>Setiap botol yang Anda terima adalah produk asli 100%. Kami bekerja sama dengan distributor resmi internasional.</p>
             </div>
-
-            <!-- Card 2 -->
             <div class="feature-card fade-on-scroll">
                 <div class="feature-icon">🌙</div>
                 <h3>Aroma Tahan Lama</h3>
                 <p>Konsentrat essence tinggi (Eau De Parfum) yang dirancang untuk bertahan hingga 12 jam pada kulit Anda.</p>
             </div>
-
-            <!-- Card 3 -->
             <div class="feature-card fade-on-scroll">
                 <div class="feature-icon">🔒</div>
                 <h3>Transaksi Aman</h3>
@@ -910,7 +489,9 @@
             <div class="loyalty-icon">🎁</div>
             <h3>Aurorra Rewards</h3>
             <p>🎁 Dapatkan 1 poin setiap belanja Rp50.000<br>Kumpulkan poin dan tukarkan dengan diskon eksklusif.</p>
-            <a href="#" class="btn-primary" style="display: inline-block; min-width: 200px;">Lihat Program Rewards</a>
+            
+            <!-- TOMBOL INI YANG DIPERBAIKI: MENJADI BUTTON DENGAN ID -->
+            <button id="rewardsBtn" class="btn-reward-action">Lihat Program Rewards</button>
         </div>
     </section>
 
@@ -929,17 +510,15 @@
     <!-- Footer -->
     <footer class="fade-on-scroll">
         <p style="font-family: 'Playfair Display'; font-size: 1.2rem; color: var(--luxury-gold); margin-bottom: 20px;">Aurorra Parfumerie</p>
-        
         <div class="footer-links" style="margin-bottom: 20px;">
             <a href="privacy.html">Privacy Policy</a> |     
             <a href="terms.html">Terms & Conditions</a> |     
             <a href="contact.html">Hubungi Kami</a>
         </div>
-        
         <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
     </footer>
-      <!-- SCRIPT -->
-          <!-- SCRIPT -->
+
+    <!-- SCRIPT -->
     <script>
         // ==========================================
         // 1. CONFIG SUPABASE
@@ -949,14 +528,13 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA REWARDS BUTTON (BARU)
+        // 2. LOGIKA REWARDS BUTTON (FIXED)
         // ==========================================
         const rewardsBtn = document.getElementById('rewardsBtn');
-        const loginModal = document.getElementById('loginModal');
 
         if (rewardsBtn) {
             rewardsBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
+                e.preventDefault(); // Mencegah aksi default jika didalam form (tapi ini button biasa)
                 
                 // Cek apakah user sudah login
                 const { data: { session } } = await supabaseClient.auth.getSession();
@@ -965,22 +543,9 @@
                     // Jika SUDAH LOGIN -> Langsung ke Halaman Rewards
                     window.location.href = "rewards.html";
                 } else {
-                    // Jika BELUM LOGIN -> Tampilkan Modal Pop-up
-                    loginModal.classList.add('active');
-                }
-            });
-        }
-
-        // Fungsi Tutup Modal
-        function closeModal() {
-            loginModal.classList.remove('active');
-        }
-
-        // Tutup modal jika klik di luar kotak
-        if (loginModal) {
-            loginModal.addEventListener('click', function(e) {
-                if (e.target === loginModal) {
-                    closeModal();
+                    // Jika BELUM LOGIN -> Munculkan alert
+                    alert("Anda harus login terlebih dahulu untuk melihat Program Rewards.");
+                    window.location.href = "login.html"; // Opsional: langsung arahkan ke login
                 }
             });
         }
@@ -1236,13 +801,5 @@
             fadeElements.forEach(el => observer.observe(el));
         }
     </script>
-    
-</body>
-</html>
-    
-</body>
-</html>
-    
-    
 </body>
 </html>
