@@ -20,8 +20,6 @@
             --card-bg: #1a1620; 
             --danger-color: #ff4d4d; 
             --info-color: #3498db; 
-            --wa-green: #25D366;
-            --wa-dark: #128C7E;
             --success-color: #2ecc71;
         }
         body { 
@@ -78,7 +76,7 @@
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
         .search-box { padding: 10px; position: sticky; top: 0; background: #1e1e1e; z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .search-box input { width: 100%; padding: 8px 10px; background: rgba(255,255,255, 0.1); border: 1px solid rgba(255,255,255, 0.2); border-radius: 4px; color: white; box-sizing: border-box; }
+        .search-box input { width: 100%; padding: 8px 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white; box-sizing: border-box; }
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
         .option:hover { background: rgba(212, 175, 55, 0.2); color: var(--luxury-gold); }
         .option.selected { color: var(--luxury-gold); font-weight: 600; background: rgba(212, 175, 55, 0.1); }
@@ -106,7 +104,7 @@
         .hidden { display: none !important; }
 
         /* ==========================================
-           NEW: SMART VOUCHER POPUP STYLES
+           SMART VOUCHER POPUP STYLES
            ========================================== */
         .voucher-popup-overlay {
             position: fixed;
@@ -217,27 +215,29 @@
             60% {transform: translateY(-5px);}
         }
 
-        /* WhatsApp Widget Styles (Keep existing) */
-        .wa-widget-container { position: fixed; bottom: 30px; left: 30px; z-index: 999; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: flex-start; pointer-events: none; }
-        .wa-chat-box { background: #fff; width: 300px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); overflow: hidden; margin-bottom: 15px; opacity: 0; transform: translateY(20px) scale(0.9); transform-origin: bottom left; transition: all 0.3s; pointer-events: none; display: flex; flex-direction: column; }
-        .wa-chat-box.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        .wa-header { background: var(--wa-dark); padding: 12px 15px; display: flex; align-items: center; gap: 12px; color: #fff; }
-        .wa-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #fff; border: 2px solid #fff; }
-        .wa-header-info h4 { margin: 0; font-size: 0.95rem; font-weight: 600; line-height: 1.2; }
-        .wa-header-info p { margin: 2px 0 0 0; font-size: 0.7rem; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
-        .wa-status-dot { width: 7px; height: 7px; background: #25D366; border-radius: 50%; display: inline-block; }
-        .wa-body { padding: 15px; background: #e5ddd5; color: #333; font-size: 0.9rem; min-height: 80px; display: flex; align-items: center; }
-        .wa-bubble { background: #fff; padding: 10px 15px; border-radius: 8px 8px 8px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; line-height: 1.4; word-wrap: break-word; max-width: 100%; }
-        .wa-footer { padding: 10px; background: #f0f0f0; text-align: center; }
-        .wa-btn-start { display: block; width: 100%; background: var(--wa-green); color: #fff; text-decoration: none; padding: 10px; border-radius: 25px; font-weight: 600; font-size: 0.9rem; }
-        .wa-toggle-btn { width: 60px; height: 60px; background: var(--wa-green); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: transform 0.3s; pointer-events: auto; position: relative; }
-        .wa-toggle-btn svg { width: 35px; height: 35px; fill: #fff; }
-        .wa-badge { position: absolute; top: 0; right: 0; background: #ff3b30; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; animation: pulse-badge 2s infinite; }
+        /* ==========================================
+           STATIC HELP BUTTON (NOT ANNOYING)
+           ========================================== */
+        .help-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 20px;
+        }
+        .help-footer a {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .help-footer a:hover {
+            color: var(--luxury-gold);
+            text-decoration: underline;
+        }
 
         @media (max-width: 480px) {
-            .wa-widget-container { left: 15px; bottom: 20px; }
-            .wa-chat-box { width: calc(100vw - 40px); left: 0; max-width: 320px; }
-            .payment-card { margin-bottom: 80px; }
+            .payment-card { padding: 25px 20px; }
             .voucher-popup-card { padding: 20px; }
         }
     </style>
@@ -277,6 +277,11 @@
                     <div class="item-summary"><div id="summaryList"><div style="text-align:center; color:#888;">Memuat...</div></div></div>
                     <div class="total-display"><span>Total Tagihan</span><span class="total-amount" id="displayTotal">Rp 0</span></div>
                     <button type="submit" class="btn-pay" id="btnProceed" disabled>Lanjut ke Pembayaran</button>
+                    
+                    <!-- STATIC HELP BUTTON -->
+                    <div class="help-footer">
+                        Butuh bantuan? <a href="https://wa.me/628133039866?text=Halo%20Admin%20Aurorra" target="_blank">Hubungi Admin</a>
+                    </div>
                 </form>
             </div>
 
@@ -310,23 +315,6 @@
         </div>
     </div>
 
-    <!-- WHATSAPP WIDGET -->
-    <div class="wa-widget-container">
-        <div class="wa-chat-box" id="waChatBox">
-            <div class="wa-header">
-                <img src="https://dikapquhusbwjccbqcsb.supabase.co/storage/v1/object/public/images/logo.png" alt="Aurorra Logo">
-                <div class="wa-header-info"><h4>Customer Service</h4><p><span class="wa-status-dot"></span> Online</p></div>
-                <div style="margin-left:auto; cursor:pointer;" id="waCloseBtn">✕</div>
-            </div>
-            <div class="wa-body"><div class="wa-bubble">Halo! Ada yang bisa kami bantu?</div></div>
-            <div class="wa-footer"><a href="https://wa.me/628133039866?text=Halo%20Admin" target="_blank" class="wa-btn-start">Mulai Chat</a></div>
-        </div>
-        <div class="wa-toggle-btn" id="waToggleBtn" title="Chat WhatsApp">
-            <div class="wa-badge"></div>
-            <svg viewBox="0 0 32 32"><path d="M16,2A13,13,0,0,0,5.32,22.8L2,30l7.35-2.14A12.94,12.94,0,1,0,16,2M16,25.67a10.59,10.59,0,0,1-5.07-1.3l-.36-.21-3.76,1.1,1-3.67-.23-.38A10.6,10.6,0,1,1,16,25.67Z"/></svg>
-        </div>
-    </div>
-
     <script>
         // ==========================================
         // 1. KONFIGURASI & SETUP
@@ -356,21 +344,8 @@
         }
 
         // ==========================================
-        // 3. WHATSAPP WIDGET SETUP
+        // 3. LOGIC: DROPDOWN, CITY, SHIPPING
         // ==========================================
-        function setupWhatsAppWidget() {
-            const toggleBtn = document.getElementById('waToggleBtn');
-            const closeBtn = document.getElementById('waCloseBtn');
-            const chatBox = document.getElementById('waChatBox');
-            const badge = document.querySelector('.wa-badge');
-            if(toggleBtn) toggleBtn.addEventListener('click', () => { chatBox.classList.toggle('open'); if(badge) badge.style.display = 'none'; });
-            if(closeBtn) closeBtn.addEventListener('click', () => chatBox.classList.remove('open'));
-        }
-
-        // ==========================================
-        // 4. LOGIC: DROPDOWN, CITY, SHIPPING
-        // ==========================================
-        // (Logika dropdown kota dan ongkir sama seperti sebelumnya, disingkat untuk hemat ruang)
         const cityDropdown = document.getElementById('cityDropdown');
         const cityTrigger = document.getElementById('cityTrigger');
         const cityOptions = document.querySelector('.custom-select-options');
@@ -423,10 +398,9 @@
         }
 
         // ==========================================
-        // 5. MAIN INITIALIZATION
+        // 4. MAIN INITIALIZATION
         // ==========================================
         async function initCheckout() {
-            setupWhatsAppWidget();
             await loadCities();
             
             const payBtn = document.getElementById('btnProceed');
@@ -458,7 +432,7 @@
         }
 
         // ==========================================
-        // 6. HANDLE PROCEED TO CONFIRM
+        // 5. HANDLE PROCEED TO CONFIRM
         // ==========================================
         async function handleProceedToConfirm(event) {
             event.preventDefault();
@@ -513,7 +487,7 @@
         function showError(msg) { const b = document.getElementById('error-message'); b.style.display='block'; b.innerText=msg; window.scrollTo({top:0}); }
 
         // ==========================================
-        // 7. SMART VOUCHER POPUP LOGIC (NEW)
+        // 6. SMART VOUCHER POPUP LOGIC (NEW)
         // ==========================================
         const btnPay = document.getElementById('btnPay');
         const voucherPopup = document.getElementById('voucherPopupOverlay');
@@ -578,8 +552,6 @@
 
                 // Hapus pending order karena sudah dikirim ke gateway
                 localStorage.removeItem('aurora_pending_order');
-                // Hapus flag voucher skip agar bersih (opsional)
-                // localStorage.removeItem('aurorraVoucher'); 
 
                 if (typeof loadJokulCheckout === 'function') loadJokulCheckout(paymentUrl);
                 else window.location.href = paymentUrl;
@@ -589,8 +561,8 @@
                 const errBox = document.getElementById('error-message-payment');
                 errBox.style.display = "block"; 
                 errBox.innerText = err.message;
-                btnPay.disabled = false; 
                 if(btnSpan) btnSpan.innerText = originalText;
+                btnPay.disabled = false;
             }
         }
 
