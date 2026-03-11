@@ -91,7 +91,21 @@
         .user-info { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: 15px; }
         .user-avatar { width: 100%; display: flex; align-items: center; gap: 10px; }
         .avatar-circle { width: 35px; height: 35px; background: var(--luxury-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; font-size: 0.8rem; }
-        .logout-btn { width: 100%; margin-top: 10px; padding: 10px; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); color: var(--danger); border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        
+        /* Tombol Logout Styling */
+        .logout-btn { 
+            width: 100%; 
+            margin-top: 10px; 
+            padding: 10px; 
+            background: rgba(231, 76, 60, 0.1); 
+            border: 1px solid rgba(231, 76, 60, 0.3); 
+            color: var(--danger); 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+        }
         .logout-btn:hover { background: var(--danger); color: #fff; }
 
         /* --- MAIN CONTENT --- */
@@ -213,6 +227,7 @@
                 <div class="avatar-circle">A</div>
                 <span style="font-size: 0.9rem;">Admin</span>
             </div>
+            <!-- PERUBAHAN: Menambahkan onclick langsung di tombol -->
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
     </aside>
@@ -254,7 +269,7 @@
         // ==========================================
         window.onload = async () => {
             const { data: { session } } = await sb.auth.getSession();
-            // Jika ingin aman, uncomment baris di bawah dan hapus baris init()
+            // Uncomment baris di bawah untuk mengaktifkan proteksi halaman
             // if (!session) return window.location.href = 'login.html';
             init();
         };
@@ -574,7 +589,7 @@
             const { data: o } = await sb.from('orders').select('*').eq('id', id).single();
             if(!o) return;
 
-            openModel('Detail Pesanan #' + String(o.id).slice(0,6), `
+            openModal('Detail Pesanan #' + String(o.id).slice(0,6), `
                 <div style="font-size:0.9rem;">
                     <p><b>Pelanggan:</b> ${o.customer_name}</p>
                     <p><b>Alamat:</b> ${o.customer_address}</p>
@@ -626,9 +641,20 @@
             renderOngkir();
         }
 
-        function handleLogout() {
-            if(confirm("Logout sekarang?")) {
-                sb.auth.signOut();
+        // ==========================================
+        // 5. LOGOUT FUNCTION (PERBAIKAN)
+        // ==========================================
+        async function handleLogout() {
+            if(confirm("Apakah Anda yakin ingin logout?")) {
+                // Hapus sesi Supabase
+                const { error } = await sb.auth.signOut();
+                
+                if (error) {
+                    alert("Gagal logout: " + error.message);
+                    return;
+                }
+
+                // Arahkan ke index.html
                 window.location.href = 'index.html';
             }
         }
