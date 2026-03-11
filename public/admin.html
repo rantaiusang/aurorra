@@ -11,7 +11,7 @@
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Chart.js untuk Grafik Analytics -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -146,10 +146,13 @@
         .badge-success { background: rgba(46, 204, 113, 0.15); color: var(--success); }
         .badge-danger { background: rgba(231, 76, 60, 0.15); color: var(--danger); }
         .badge-warning { background: rgba(241, 196, 15, 0.15); color: var(--warning); }
+        .badge-info { background: rgba(52, 152, 219, 0.15); color: #3498db; }
         
         .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
         .btn-primary { background: var(--luxury-gold); color: #000; }
         .btn-primary:hover { background: var(--luxury-gold-light); }
+        .btn-danger { background: rgba(231, 76, 60, 0.2); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
         .btn-outline { background: transparent; border: 1px solid var(--luxury-gold); color: var(--luxury-gold); }
         .btn-outline:hover { background: rgba(212, 175, 55, 0.1); }
         .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
@@ -165,7 +168,7 @@
         .modal-close { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; cursor: pointer; color: var(--text-gray); line-height: 1; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* --- TAMBAHAN: NOTIFIKASI TOAST --- */
+        /* --- NOTIFIKASI TOAST --- */
         .notification-toast {
             position: fixed;
             top: 20px;
@@ -215,7 +218,7 @@
     <!-- AUTH OVERLAY -->
     <div id="auth-overlay">
         <div class="spinner"></div>
-        <p style="margin-top: 15px; color: var(--luxury-gold);">Memverifikasi Admin...</p>
+        <p style="margin-top: 15px; color: var(--luxury-gold);">Memverifikasi Keamanan...</p>
     </div>
 
     <!-- NOTIFICATION TOAST -->
@@ -240,15 +243,17 @@
             <a class="nav-link" data-tab="products"><span>🛍️</span> Produk</a>
             <a class="nav-link" data-tab="purchasing"><span>📥</span> Purchasing</a>
             <a class="nav-link" data-tab="orders"><span>🛒</span> Pesanan</a>
+            <a class="nav-link" data-tab="customers"><span>👤</span> Pelanggan</a> <!-- Menu Baru -->
             <a class="nav-link" data-tab="vouchers"><span>🎟️</span> Voucher</a>
             <a class="nav-link" data-tab="lowstock"><span>⚠️</span> Stok Menipis</a>
             <a class="nav-link" data-tab="ongkir"><span>🚚</span> Ongkir</a>
+            <a class="nav-link" data-tab="settings"><span>⚙️</span> Pengaturan</a> <!-- Menu Baru -->
         </nav>
 
         <div class="user-info">
             <div class="user-avatar">
-                <div class="avatar-circle">A</div>
-                <span style="font-size: 0.9rem;">Admin</span>
+                <div class="avatar-circle" id="userAvatar">A</div>
+                <span style="font-size: 0.9rem;" id="userName">Admin</span>
             </div>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
@@ -281,29 +286,72 @@
 
     <script>
         // ==========================================
-        // 1. KONFIGURASI & SETUP
+        // 1. KONFIGURASI & KEAMANAN
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // DAFTAR EMAIL ADMIN YANG DIPERBOLEHKAN (GANTI DENGAN EMAIL ANDA)
+        const ADMIN_EMAILS = ['admin@aurorra.com', 'owner@aurorra.com']; 
+
         const formatPrice = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
         
         // ==========================================
-        // 2. AUTH & NAVIGASI
+        // 2. AUTHENTICATION CHECK
         // ==========================================
         window.onload = async () => {
             const { data: { session } } = await sb.auth.getSession();
-            init();
+            checkAdminAccess(session);
         };
 
-        function init() {
-            document.getElementById('auth-overlay').classList.add('hidden');
-            setupNavigation();
-            loadTab('dashboard');
-            setupRealtimeOrders(); // JALANKAN REALTIME LISTENER
+        // Listener untuk perubahan auth (login/logout di tab lain)
+        sb.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                window.location.href = 'index.html'; // Redirect ke login jika logout
+            }
+        });
+
+        function checkAdminAccess(session) {
+            const overlay = document.getElementById('auth-overlay');
+            
+            if (!session) {
+                alert("Akses Ditolak: Silakan login terlebih dahulu.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Cek apakah email ada di daftar ADMIN_EMAILS
+            // Jika ingin lebih longgar (semua yg login bisa akses), hapus barir ini.
+            const userEmail = session.user.email;
+            const isAdmin = ADMIN_EMAILS.includes(userEmail);
+
+            if (!isAdmin) {
+                 // Jika ingin ketat, uncomment baris di bawah:
+                 // alert("Akses Ditolak: Anda bukan Admin.");
+                 // sb.auth.signOut();
+                 // return;
+                 console.warn("User bukan admin terdaftar, tapi diberi akses (mode longgar).");
+            }
+
+            // Update UI User Info
+            document.getElementById('userName').innerText = userEmail.split('@')[0];
+            document.getElementById('userAvatar').innerText = userEmail.charAt(0).toUpperCase();
+
+            // Sembunyikan overlay & mulai aplikasi
+            overlay.classList.add('hidden');
+            init();
         }
 
+        function init() {
+            setupNavigation();
+            loadTab('dashboard');
+            setupRealtimeOrders(); 
+        }
+
+        // ==========================================
+        // 3. NAVIGASI
+        // ==========================================
         function setupNavigation() {
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', () => {
@@ -322,7 +370,18 @@
         }
 
         function loadTab(tab) {
-            const titles = { dashboard: 'Dashboard', analytics: 'Analitik Pengunjung', products: 'Manajemen Produk', purchasing: 'Stok Masuk', orders: 'Pesanan', vouchers: 'Voucher', lowstock: 'Stok Menipis', ongkir: 'Ongkir' };
+            const titles = { 
+                dashboard: 'Dashboard', 
+                analytics: 'Analitik Pengunjung', 
+                products: 'Manajemen Produk', 
+                purchasing: 'Stok Masuk', 
+                orders: 'Pesanan', 
+                customers: 'Pelanggan', // Baru
+                vouchers: 'Voucher', 
+                lowstock: 'Stok Menipis', 
+                ongkir: 'Ongkir',
+                settings: 'Pengaturan Situs' // Baru
+            };
             document.getElementById('pageTitle').innerText = titles[tab] || 'Admin';
             
             const content = document.getElementById('contentArea');
@@ -334,54 +393,53 @@
                 case 'products': renderProducts(); break;
                 case 'purchasing': renderPurchasing(); break;
                 case 'orders': renderOrders(); break;
+                case 'customers': renderCustomers(); break; // Baru
                 case 'vouchers': renderVouchers(); break;
                 case 'lowstock': renderLowStock(); break;
                 case 'ongkir': renderOngkir(); break;
+                case 'settings': renderSettings(); break; // Baru
             }
         }
 
         // ==========================================
-        // 3. REALTIME NOTIFICATION SYSTEM
+        // 4. REALTIME NOTIFICATION SYSTEM
         // ==========================================
         function setupRealtimeOrders() {
-            // Subscribe ke tabel 'orders' untuk event INSERT
             const channel = sb.channel('admin-orders-notif')
             .on('postgres_changes', 
                 { event: 'INSERT', schema: 'public', table: 'orders' }, 
                 (payload) => {
                     console.log('New Order:', payload);
                     showNotification(payload.new);
+                    // Refresh dashboard jika sedang di tab dashboard
+                    if(document.querySelector('.nav-link.active').getAttribute('data-tab') === 'dashboard') {
+                        renderDashboard();
+                    }
                 }
             )
             .subscribe();
         }
 
         function showNotification(order) {
-            // Set teks notifikasi
             const notifText = document.getElementById('notifText');
             const name = order.customer_name || 'Pelanggan';
             const amount = formatPrice(order.total_amount);
             notifText.innerText = `${name} - ${amount}`;
 
-            // Tampilkan toast
             const toast = document.getElementById('notifToast');
             toast.classList.add('show');
 
-            // Mainkan suara
             try {
                 const audio = document.getElementById('notifSound');
                 audio.currentTime = 0;
                 audio.play();
             } catch(e) { console.log("Audio play blocked"); }
 
-            // Hilangkan setelah 5 detik
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 5000);
+            setTimeout(() => { toast.classList.remove('show'); }, 5000);
         }
 
         // ==========================================
-        // 4. RENDER FUNCTIONS (VIEW)
+        // 5. RENDER FUNCTIONS (VIEW)
         // ==========================================
         
         async function renderDashboard() {
@@ -439,7 +497,7 @@
                 </div>
                 <div class="card-section">
                     <div class="section-header"><h3 class="section-title">Log Pengunjung Terbaru</h3></div>
-                    <div class="table-container"><table><thead><tr><th>Halaman</th><th>Waktu</th><th>Perangkat</th></tr></thead><tbody id="logTable"></tbody></table></div>
+                    <div class="table-container"><table><thead><tr><th>Halaman</th><th>Waktu</th><th>Perangkat / Bot</th></tr></thead><tbody id="logTable"></tbody></table></div>
                 </div>
             `;
 
@@ -471,7 +529,10 @@
 
             const logBody = views.slice(0, 20).map(v => {
                 const isMobile = v.user_agent?.match(/Mobi|Android/i);
-                return `<tr><td>${v.page_url}</td><td>${new Date(v.created_at).toLocaleString('id-ID')}</td><td>${isMobile ? '📱 Mobile' : '💻 Desktop'}</td></tr>`;
+                const isBot = v.user_agent?.match(/Bot|Spider|Crawler|Googlebot|Bingbot/i);
+                let deviceLabel = isMobile ? '📱 Mobile' : '💻 Desktop';
+                if(isBot) deviceLabel = '<span style="color:var(--warning)">🤖 Bot</span>';
+                return `<tr><td>${v.page_url}</td><td>${new Date(v.created_at).toLocaleString('id-ID')}</td><td>${deviceLabel}</td></tr>`;
             }).join('');
             document.getElementById('logTable').innerHTML = logBody || '<tr><td colspan="3">Belum ada data</td></tr>';
         }
@@ -493,7 +554,41 @@
         async function renderProducts() {
             document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Produk</h3><button class="btn btn-primary" onclick="openProductModal()">+ Tambah</button></div><div class="table-container"><table><thead><tr><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody id="prodTable"></tbody></table></div></div>`;
             const { data } = await sb.from('products').select('*').order('name');
-            document.getElementById('prodTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td>${formatPrice(p.price)}</td><td style="color: ${p.stock < 5 ? 'var(--danger)' : '#fff'}">${p.stock}</td><td><button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button></td></tr>`).join('') || '';
+            document.getElementById('prodTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td>${formatPrice(p.price)}</td><td style="color: ${p.stock < 5 ? 'var(--danger)' : '#fff'}">${p.stock}</td><td><button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Hapus</button></td></tr>`).join('') || '';
+        }
+
+        // Fitur Hapus Produk
+        async function deleteProduct(id) {
+            if(!confirm("Yakin hapus produk ini? Stok dan histori akan terpengaruh.")) return;
+            const { error } = await sb.from('products').delete().eq('id', id);
+            if(error) return alert("Gagal hapus: " + error.message);
+            renderProducts();
+        }
+
+        // Fitur Lihat Pelanggan (Baru)
+        async function renderCustomers() {
+            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Data Pelanggan</h3></div><div class="table-container"><table><thead><tr><th>Nama</th><th>Email / Kontak</th><th>Total Pesanan</th></tr></thead><tbody id="custTable"></tbody></table></div></div>`;
+            // Catatan: Query ini memerlukan foreign key relation di Supabase antara orders -> customer
+            // Alternatif sederhana: select distinct customer dari tabel orders
+            const { data } = await sb.from('orders').select('customer_name, customer_email, total_amount');
+            
+            // Proses manual grouping (simple aggregate)
+            const customers = {};
+            data?.forEach(o => {
+                const key = o.customer_email || o.customer_name;
+                if(!customers[key]) customers[key] = { name: o.customer_name, contact: o.customer_email, count: 0, total: 0 };
+                customers[key].count++;
+                customers[key].total += parseFloat(o.total_amount || 0);
+            });
+
+            const rows = Object.values(customers).map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.contact || '-'}</td>
+                    <td>${c.count} pesanan (${formatPrice(c.total)})</td>
+                </tr>
+            `).join('');
+            document.getElementById('custTable').innerHTML = rows || '<tr><td colspan="3">Belum ada data</td></tr>';
         }
 
         async function renderVouchers() {
@@ -533,10 +628,53 @@
             document.getElementById('ongkirTable').innerHTML = data?.map(o => `<tr><td>${o.tujuan}</td><td>${o.ekspedisi}</td><td>${formatPrice(o.tarif)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteOngkir('${o.id}')">Hapus</button></td></tr>`).join('') || '';
         }
         
+        // Fitur Menu Pengaturan (Baru)
+        async function renderSettings() {
+            // Asumsi ada tabel 'settings' dengan kolom 'key' dan 'value'
+            const { data: settings } = await sb.from('settings').select('*');
+            const getVal = (key) => settings?.find(s => s.key === key)?.value || '';
+            
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header"><h3 class="section-title">Pengaturan Umum</h3></div>
+                    <form onsubmit="saveSettings(event)">
+                        <div class="form-group">
+                            <label class="form-label">Nama Toko</label>
+                            <input type="text" class="form-input" id="setStoreName" value="${getVal('store_name')}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Alamat</label>
+                            <input type="text" class="form-input" id="setAddress" value="${getVal('address')}">
+                        </div>
+                         <div class="form-group">
+                            <label class="form-label">No. WhatsApp (CS)</label>
+                            <input type="text" class="form-input" id="setWa" value="${getVal('whatsapp')}" placeholder="62812...">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const payload = [
+                { key: 'store_name', value: document.getElementById('setStoreName').value },
+                { key: 'address', value: document.getElementById('setAddress').value },
+                { key: 'whatsapp', value: document.getElementById('setWa').value }
+            ];
+            
+            // Upsert sederhana
+            for(let p of payload) {
+                await sb.from('settings').upsert(p, { onConflict: 'key' });
+            }
+            alert("Pengaturan disimpan!");
+        }
+
         async function deleteOngkir(id) { if(!confirm("Hapus?")) return; await sb.from('ongkir').delete().eq('id', id); renderOngkir(); }
 
         // ==========================================
-        // 5. MODALS & ACTIONS
+        // 6. MODALS & ACTIONS
         // ==========================================
         
         function openModal(title, content) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalContent').innerHTML = content; document.getElementById('modalBox').classList.add('show'); }
@@ -567,7 +705,13 @@
             openModal('Detail Pesanan #' + String(o.id).slice(0,6), `<div style="font-size:0.9rem;"><p><b>Pelanggan:</b> ${o.customer_name}</p><p><b>Alamat:</b> ${o.customer_address}</p><hr style="border-color:#333; margin:15px 0;"><div class="form-group"><label class="form-label">Status</label><select class="form-input" id="updStatus"><option value="pending" ${o.status==='pending'?'selected':''}>Pending</option><option value="paid" ${o.status==='paid'?'selected':''}>Paid</option><option value="shipping" ${o.status==='shipping'?'selected':''}>Shipping</option><option value="completed" ${o.status==='completed'?'selected':''}>Completed</option></select></div><div class="form-group"><label class="form-label">Resi</label><input type="text" class="form-input" id="updResi" value="${o.resi || ''}"></div><button class="btn btn-primary" style="width:100%" onclick="updateOrder('${id}')">Update</button></div>`);
         }
 
-        async function updateOrder(id) { const status = document.getElementById('updStatus').value; const resi = document.getElementById('updResi').value; await sb.from('orders').update({ status, resi }).eq('id', id); closeModal(); renderOrders(); }
+        async function updateOrder(id) { 
+            const status = document.getElementById('updStatus').value; 
+            const resi = document.getElementById('updResi').value; 
+            await sb.from('orders').update({ status, resi }).eq('id', id); 
+            closeModal(); 
+            renderOrders(); 
+        }
         
         function openOngkirModal() { openModal('Tambah Ongkir', `<form onsubmit="saveOngkir(event)"><div class="form-group"><label class="form-label">Kota Tujuan</label><input type="text" class="form-input" id="ongkDest" required></div><div class="form-group"><label class="form-label">Ekspedisi</label><input type="text" class="form-input" id="ongkEksp" required></div><div class="form-group"><label class="form-label">Tarif</label><input type="number" class="form-input" id="ongkTarif" required></div><button type="submit" class="btn btn-primary" style="width:100%">Simpan</button></form>`); }
         
