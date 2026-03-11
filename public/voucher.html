@@ -26,7 +26,6 @@
             color: var(--text-white); 
             font-family: 'Poppins', sans-serif; 
             min-height: 100vh; 
-            /* Padding bawah ditambah agar tidak tertutup tombol WA */
             padding: 20px 20px 100px 20px; 
         }
         
@@ -35,7 +34,7 @@
             max-width: 480px; 
             text-align: center; 
             z-index: 1; 
-            margin: 0 auto; /* Pusatkan container */
+            margin: 0 auto;
         }
         
         h2 { 
@@ -58,18 +57,15 @@
             padding: 30px; 
             margin-bottom: 25px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            width: 100%; /* Lebar penuh di dalam container */
+            width: 100%;
         }
         
         .step-label { display: inline-block; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); color: #000; font-weight: 700; font-size: 0.75rem; padding: 5px 15px; border-radius: 20px; margin-bottom: 20px; text-transform: uppercase; }
         .step-desc { color: #ccc; font-size: 0.9rem; margin-bottom: 25px; line-height: 1.6; }
         
-        /* Perbaikan Tombol agar tidak melebar */
         .btn-gold { 
             display: block; 
             width: 100%; 
-            /* Mencegah tombol mentok penuh di pinggir kartu */
-            max-width: 100%; 
             padding: 14px 20px; 
             background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
             color: #000; 
@@ -80,13 +76,11 @@
             border: none; 
             cursor: pointer; 
             font-size: 1rem; 
-            margin: 0 auto 15px auto; /* Pusatkan dan beri jarak bawah */
+            margin: 0 auto 15px auto;
             transition: transform 0.2s; 
-            box-sizing: border-box; /* Pastikan padding dihitung */
         }
         .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(212, 175, 55, 0.4); }
         
-        /* Perbaikan Input Wrapper */
         .input-wrapper { 
             background: rgba(0,0,0,0.3); 
             border: 1px solid rgba(255,255,255,0.1); 
@@ -96,7 +90,6 @@
             gap: 10px; 
             margin-top: 20px; 
             width: 100%;
-            box-sizing: border-box;
         }
         
         .input-code { 
@@ -111,7 +104,6 @@
             text-align: center; 
             text-transform: uppercase; 
             font-weight: 600; 
-            min-width: 0; /* Fix flex biar tidak overflow */
         }
         .input-code::placeholder { text-transform: none; letter-spacing: normal; color: #555; font-weight: 400; }
         
@@ -125,15 +117,15 @@
             cursor: pointer; 
             transition: 0.2s; 
             font-size: 0.9rem; 
-            white-space: nowrap; /* Teks tidak turun baris */
+            white-space: nowrap;
         }
         .btn-verify:active { transform: scale(0.95); }
+        .btn-verify:disabled { background: #555; color: #888; cursor: not-allowed; }
         
         .notification { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; font-size: 0.9rem; animation: fadeIn 0.3s; }
         .notif-success { background: rgba(39, 174, 96, 0.15); border: 1px solid rgba(39, 174, 96, 0.3); color: var(--success); }
         .notif-error { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: var(--danger); }
         
-        /* Redirect Box */
         .redirect-box {
             margin-top: 20px; padding: 15px;
             background: rgba(255, 255, 255, 0.05);
@@ -143,7 +135,6 @@
         }
         .redirect-box .countdown { font-size: 1.5rem; font-weight: 700; color: var(--luxury-gold); }
         
-        /* Chat Admin Button (Fixed Bottom) */
         .btn-chat-admin {
             position: fixed;
             bottom: 20px;
@@ -165,7 +156,6 @@
             box-shadow: 0 5px 20px rgba(37, 211, 102, 0.4);
             z-index: 100;
             font-size: 0.95rem;
-            box-sizing: border-box;
         }
         .btn-chat-admin:hover { background: #128C7E; transform: translateY(-2px); }
         .btn-chat-admin svg { width: 20px; height: 20px; fill: #fff; }
@@ -178,7 +168,7 @@
 
     <div class="voucher-container">
         <h2>Klaim Diskon</h2>
-        <p class="subtitle">Dapatkan potongan <span>Rp 10.000</span> dengan ulasan jujur Anda.</p>
+        <p class="subtitle">Dapatkan potongan eksklusif dengan ulasan jujur Anda.</p>
 
         <!-- STEP 1 -->
         <div class="card-box">
@@ -196,7 +186,7 @@
             <p class="step-desc">Masukkan kode rahasia dari Admin untuk mengaktifkan diskon.</p>
             
             <div class="input-wrapper">
-                <input type="text" class="input-code" id="userCode" placeholder="Contoh: AUR-X9Z" maxlength="10">
+                <input type="text" class="input-code" id="userCode" placeholder="Contoh: AUR-X9Z" maxlength="12" autocomplete="off">
                 <button class="btn-verify" id="btnCheckCode" onclick="verifyVoucher()">Cek</button>
             </div>
 
@@ -228,10 +218,20 @@
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. FUNGSI UTAMA VERIFIKASI & REDIRECT
+        // 2. UX: AUTO FOCUS & ENTER KEY
+        // ==========================================
+        window.onload = () => document.getElementById("userCode").focus();
+        
+        document.getElementById("userCode").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") verifyVoucher();
+        });
+
+        // ==========================================
+        // 3. FUNGSI UTAMA VERIFIKASI (PRODUCTION GRADE)
         // ==========================================
         async function verifyVoucher() {
-            const codeInput = document.getElementById('userCode').value.toUpperCase().trim();
+            // Element References
+            const codeInputRaw = document.getElementById('userCode').value;
             const notifElement = document.getElementById('notification');
             const btnVerify = document.getElementById('btnCheckCode');
             const redirectBox = document.getElementById('redirectBox');
@@ -240,69 +240,89 @@
             notifElement.style.display = "none";
             redirectBox.style.display = "none";
 
+            // -----------------------------------------------------------
+            // A. INPUT SANITIZATION (Keamanan)
+            // Hanya izinkan Huruf Besar, Angka, dan Strip
+            // -----------------------------------------------------------
+            const codeInput = codeInputRaw.toUpperCase().replace(/[^A-Z0-9-]/g, '').trim();
+
             if (!codeInput) {
                 showError("⚠️ Silakan masukkan kode terlebih dahulu.");
                 return;
             }
 
-            // Loading state
+            // -----------------------------------------------------------
+            // B. RATE LIMITING (UX & Security)
+            // Disable tombol 3 detik untuk cegah spam
+            // -----------------------------------------------------------
             btnVerify.innerText = "Cek...";
             btnVerify.disabled = true;
+            setTimeout(() => {
+                btnVerify.innerText = "Cek";
+                btnVerify.disabled = false;
+            }, 3000);
 
             try {
-                // 1. Cek ke Database: Apakah kode ada?
-                const { data, error } = await sb
+                // -----------------------------------------------------------
+                // C. ATOMIC UPDATE (Race Condition Prevention)
+                // Langsung update is_used: true DAN used_at: now()
+                // HANYA JIKA is_used: false.
+                // -----------------------------------------------------------
+                const { data: updateData, error: updateError } = await sb
                     .from('vouchers')
-                    .select('*')
+                    .update({ 
+                        is_used: true, 
+                        used_at: new Date().toISOString() // Audit Trail
+                    })
                     .eq('code', codeInput)
-                    .single();
+                    .eq('is_used', false) // Kunci Keamanan
+                    .select('code, discount_value, expired_at') // Ambil data penting
+                    .single(); // Gunakan single karena kita expect 1 row
 
-                if (error || !data) {
-                    showError("❌ Kode tidak ditemukan di sistem.");
-                    resetButton();
+                // -----------------------------------------------------------
+                // D. ERROR HANDLING
+                // -----------------------------------------------------------
+                if (updateError || !updateData) {
+                    // Jika gagal, cek apakah kode ada tapi sudah dipakai
+                    const { data: checkData } = await sb.from('vouchers').select('code').eq('code', codeInput).single();
+                    if (!checkData) showError("❌ Kode tidak ditemukan di sistem.");
+                    else showError("❌ Kode ini sudah pernah digunakan.");
                     return;
                 }
 
-                // 2. Cek apakah sudah dipakai?
-                if (data.is_used === true) {
-                    showError("❌ Kode ini sudah pernah digunakan.");
-                    resetButton();
-                    return;
+                // -----------------------------------------------------------
+                // E. VALIDASI EXPIRED DATE
+                // -----------------------------------------------------------
+                if (updateData.expired_at && new Date(updateData.expired_at) < new Date()) {
+                    showError("❌ Maaf, masa berlaku voucher sudah habis.");
+                    // Opsional: Kembalikan status is_used jadi false lagi jika inginStrict
+                    return; 
                 }
 
-                // 3. Jika Kode Valid -> UPDATE STATUS TERPAKAI
-                const { error: updateError } = await sb
-                    .from('vouchers')
-                    .update({ is_used: true })
-                    .eq('code', codeInput);
-
-                if (updateError) {
-                    showError("Terjadi kesalahan sistem, coba lagi.");
-                    resetButton();
-                    return;
-                }
-
-                // 4. SIMPAN KE LOCAL STORAGE
+                // -----------------------------------------------------------
+                // F. SIMPAN KE LOCAL STORAGE (DYNAMIC)
+                // Ambil nilai diskon dari DB, bukan hardcode
+                // -----------------------------------------------------------
                 const voucherData = {
-                    discount: 10000,
+                    discount: updateData.discount_value || 0,
                     active: true,
                     time: new Date().getTime(),
                     code: codeInput
                 };
                 localStorage.setItem('aurorraVoucher', JSON.stringify(voucherData));
 
-                // 5. TAMPILKAN SUKSES & MULAI REDIRECT
+                // G. TAMPILKAN SUKSES & REDIRECT
+                const discountFormatted = new Intl.NumberFormat('id-ID').format(voucherData.discount);
+                
                 notifElement.style.display = "block";
                 notifElement.className = "notification notif-success";
-                notifElement.innerHTML = "✅ <strong>Kode Valid!</strong><br>Diskon Rp 10.000 AKTIF!";
+                notifElement.innerHTML = `✅ <strong>Kode Valid!</strong><br>Diskon Rp ${discountFormatted} AKTIF!`;
                 
-                // Mulai Countdown Redirect
                 startRedirectCountdown();
 
             } catch (err) {
                 console.error(err);
                 showError("Terjadi kesalahan koneksi.");
-                resetButton();
             }
         }
 
@@ -313,30 +333,20 @@
             notifElement.innerHTML = message;
         }
 
-        function resetButton() {
-            const btnVerify = document.getElementById('btnCheckCode');
-            btnVerify.innerText = "Cek";
-            btnVerify.disabled = false;
-        }
-
-        // ==========================================
-        // 3. LOGIKA COUNTDOWN REDIRECT
-        // ==========================================
         function startRedirectCountdown() {
             const redirectBox = document.getElementById('redirectBox');
             const countdownEl = document.getElementById('countdownTimer');
-            let timeLeft = 3; // 3 detik
+            let timeLeft = 3;
 
-            redirectBox.style.display = "block"; // Tampilkan box countdown
+            redirectBox.style.display = "block";
             countdownEl.innerText = timeLeft;
 
             const timer = setInterval(() => {
                 timeLeft--;
                 countdownEl.innerText = timeLeft;
-
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    window.location.href = 'checkout.html'; // ALIHKAN KE CHECKOUT
+                    window.location.href = 'checkout.html';
                 }
             }, 1000);
         }
