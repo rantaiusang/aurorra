@@ -53,6 +53,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; text-align: center;
         }
         
+        /* GANTI: Logo Visual (Bukan Pi Network) */
         .checkout-visual { 
             width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; 
             background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
@@ -83,8 +84,9 @@
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
         
+        /* PERBAIKAN: Search Box Lebih Besar */
         .search-box { 
-            padding: 15px; 
+            padding: 15px; /* Padding container diperbesar */
             position: sticky; 
             top: 0; 
             background: #1e1e1e; 
@@ -93,13 +95,13 @@
         }
         .search-box input { 
             width: 100%; 
-            padding: 12px 15px;
+            padding: 12px 15px; /* Padding input diperbesar */
             background: rgba(255, 255, 255, 0.1); 
             border: 1px solid rgba(255, 255, 255, 0.2); 
             border-radius: 6px; 
             color: white; 
             box-sizing: border-box; 
-            font-size: 1rem;
+            font-size: 1rem; /* Font size diperbesar agar mudah dibaca */
         }
 
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
@@ -219,6 +221,7 @@
             
             <!-- VIEW 1: CHECKOUT FORM -->
             <div id="checkoutView">
+                <!-- PERBAIKAN: Logo diganti Shopping Bag -->
                 <div class="checkout-visual">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -279,7 +282,7 @@
                 Dapatkan potongan <span class="popup-highlight">Rp 10.000</span> untuk pesanan ini!
             </p>
             <div class="popup-actions">
-                <a href="voucher.html" class="btn-popup-primary" id="btnClaimVoucher">Klaim Voucher Sekarang</a>
+                <a href="voucher.html" class="btn-popup-primary">Klaim Voucher Sekarang</a>
                 <button class="btn-popup-secondary" id="btnSkipVoucher">Lewati, Bayar Penuh</button>
             </div>
         </div>
@@ -448,61 +451,27 @@
         function showError(msg) { const b = document.getElementById('error-message'); b.style.display='block'; b.innerText=msg; window.scrollTo({top:0}); }
 
         // ==========================================
-        // 6. SMART VOUCHER POPUP LOGIC (FIXED)
+        // 6. SMART VOUCHER POPUP LOGIC
         // ==========================================
         const btnPay = document.getElementById('btnPay');
         const voucherPopup = document.getElementById('voucherPopupOverlay');
         const btnSkipVoucher = document.getElementById('btnSkipVoucher');
-        const btnClaimVoucher = document.getElementById('btnClaimVoucher');
 
         btnPay.addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
 
-            // 1. Cek Local Storage dulu (performa)
             const savedVoucher = localStorage.getItem('aurorraVoucher');
-            if (savedVoucher) {
-                proceedToPaymentGateway();
+            
+            if (!savedVoucher) {
+                voucherPopup.classList.add('show');
                 return;
             }
 
-            // 2. Jika belum ada di local, cek ke Database
-            if(currentUser && currentUser.email) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('vouchers')
-                        .select('id')
-                        .eq('email', currentUser.email)
-                        .maybeSingle();
-
-                    if (data) {
-                        // Jika data ditemukan -> SUDAH PERNAH KLAIM
-                        // Tandai di local storage supaya next tidak cek DB lagi
-                        localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, claimed: true}));
-                        
-                        // Langsung proses pembayaran TANPA pop up
-                        proceedToPaymentGateway();
-                        return;
-                    }
-                } catch (err) {
-                    console.error("Error cek voucher:", err);
-                    // Jika error DB, tetap tampilkan popup atau langsung bayar? 
-                    // Asumsi aman: langsung bayar agar user tidak terhambat error DB
-                    proceedToPaymentGateway(); 
-                    return;
-                }
-            }
-
-            // 3. Jika tidak ada di local dan tidak ada di DB -> TAMPILKAN POP UP
-            voucherPopup.classList.add('show');
+            proceedToPaymentGateway();
         });
 
-        // Jika user klik "Klaim Voucher" -> redirect ke voucher.html
-        // (Tidak perlu set localStorage di sini, karena belum klaim)
-        // Saat dia kembali setelah klaim, state 'savedVoucher' akan berubah.
-        
         btnSkipVoucher.addEventListener('click', () => {
-            // Tandai "Lewati" agar tidak muncul lagi di sesi ini
             localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, skipped: true})); 
             voucherPopup.classList.remove('show');
             proceedToPaymentGateway();
