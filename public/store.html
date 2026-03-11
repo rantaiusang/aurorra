@@ -41,7 +41,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Points Badge (Hanya di Header) */
+        /* Points Badge */
         .points-badge {
             background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(0,0,0,0));
             border: 1px solid rgba(212, 175, 55, 0.3);
@@ -102,37 +102,16 @@
         .filter-btn { padding: 8px 22px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #aaa; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; }
         .filter-btn:hover, .filter-btn.active { background: var(--luxury-gold); color: #000; border-color: var(--luxury-gold); box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
 
-        /* ==========================================
-           PRODUCT GRID CONFIGURATION
-           ========================================== */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Desktop: 4 kolom */
-            gap: 28px;
-        }
+        /* Product Grid */
+        .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
 
-        /* Responsive: Mobile 2 Grid (PERBAIKAN TAMPILAN) */
         @media (max-width: 1024px) {
             .main-layout { flex-direction: column-reverse; padding: 20px 3%; }
             .cart-sidebar { position: static; margin-bottom: 30px; max-height: 400px; }
             .catalog-section { padding-right: 0; }
-            
-            /* Tablet/Mobile: 2 kolom RAPI */
-            .product-grid { 
-                grid-template-columns: repeat(2, 1fr); 
-                gap: 10px; /* Rapikan gap */
-            }
-            
-            /* Ubah gambar jadi Persegi (1:1) agar rapi */
-            .product-img-wrapper { 
-                height: 0; 
-                padding-bottom: 100%; /* Ratio 1:1 */
-                position: relative;
-            }
-            .product-img {
-                position: absolute;
-                top: 0; left: 0; width: 100%; height: 100%;
-            }
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .product-img-wrapper { height: 0; padding-bottom: 100%; position: relative; }
+            .product-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         }
 
         @media (max-width: 600px) {
@@ -143,11 +122,10 @@
             .btn-buy { padding: 6px; font-size: 0.65rem; letter-spacing: 0.5px; }
         }
 
-        .product-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); cursor: pointer; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; transition: all 0.4s; position: relative; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); cursor: pointer; }
         .product-card.show { opacity: 1; transform: translateY(0); }
         .product-card:hover { transform: translateY(-8px); border-color: rgba(212, 175, 55, 0.4); box-shadow: 0 15px 40px rgba(0,0,0, 0.6); }
         
-        /* Desktop Image Wrapper */
         .product-img-wrapper { width: 100%; height: 260px; overflow: hidden; position: relative; background: #000; }
         .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; display: block; opacity: 0.9; }
         .product-card:hover .product-img { transform: scale(1.08); opacity: 1; }
@@ -156,15 +134,7 @@
         .product-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: #fff; margin-bottom: 5px; font-weight: 600; }
         .product-price { font-size: 1.05rem; color: var(--luxury-gold); font-weight: 700; margin-bottom: 5px; display: block; }
         
-        /* RATING STYLES (BARU) */
-        .product-rating {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 8px;
-            font-size: 0.75rem;
-        }
+        .product-rating { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 8px; font-size: 0.75rem; }
         .rating-stars { color: var(--luxury-gold); letter-spacing: 1px; }
         .rating-score { color: #aaa; font-weight: 500; }
         
@@ -179,8 +149,7 @@
         .cart-sidebar { background: var(--panel-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; position: sticky; top: 100px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-height: calc(100vh - 140px); display: flex; flex-direction: column; }
         .sidebar-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; flex-shrink: 0; }
         .cart-items-scroll { overflow-y: auto; margin-bottom: 15px; padding-right: 5px; flex: 1; min-height: 0; }
-        .sidebar-cart-item { display: flex; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 10px; transition: 0.3s; }
-        .sidebar-cart-item:hover { background: rgba(255,255,255,0.04); }
+        .sidebar-cart-item { display: flex; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 10px; }
         .sidebar-item-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 1px solid #333; }
         .sidebar-item-details { flex: 1; }
         .sidebar-item-name { font-size: 0.9rem; font-weight: 500; color: #fff; margin-bottom: 4px; }
@@ -188,40 +157,23 @@
         .sidebar-remove-btn { background: none; border: none; color: #555; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
         .sidebar-remove-btn:hover { color: #ff6b6b; transform: scale(1.2); }
         
-        /* Floating Cart */
         #floating-cart { display: none; align-items: center; gap: 12px; position: fixed; bottom: 30px; right: 30px; background: var(--luxury-gold); color: #000; padding: 14px 28px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; z-index: 999; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
         #floating-cart:hover { background: #fff; transform: translateY(-2px); }
 
-        /* ==========================================
-           QUICK VIEW MODAL (POP UP DESKRIPSI)
-           ========================================== */
+        /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); padding: 15px; }
         .modal-overlay.show { display: flex; }
         
-        /* Style khusus untuk Quick View */
         .quick-view-content { background: var(--panel-bg); width: 100%; max-width: 500px; border-radius: 12px; border: 1px solid var(--glass-border); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; animation: slideUpFade 0.3s ease-out; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .quick-view-img { width: 100%; height: 250px; object-fit: cover; }
         .quick-view-body { padding: 25px; overflow-y: auto; text-align: left; }
         .quick-view-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--luxury-gold); margin-bottom: 10px; }
-        
-        /* Info Size (mL) */
-        .quick-view-size { 
-            display: inline-block; 
-            background: rgba(212, 175, 55, 0.15); 
-            color: var(--luxury-gold-light); 
-            padding: 4px 10px; 
-            border-radius: 4px; 
-            font-size: 0.8rem; 
-            margin-bottom: 15px; 
-            font-weight: 600; 
-        }
-
+        .quick-view-size { display: inline-block; background: rgba(212, 175, 55, 0.15); color: var(--luxury-gold-light); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 15px; font-weight: 600; }
         .quick-view-desc { font-size: 0.9rem; color: #aaa; line-height: 1.6; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
         .quick-view-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
         .meta-item span { display: block; font-size: 0.7rem; color: #666; }
         .meta-item strong { font-size: 1rem; color: #fff; }
 
-        /* Modal umum (Profile, History) */
         .modal-content { background: #1a1a1a; border: 1px solid rgba(212, 175, 55, 0.3); padding: 30px; width: 90%; max-width: 600px; border-radius: 12px; color: #fff; position: relative; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .modal-header { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; transition: color 0.2s; z-index: 10; background: none; border: none; }
@@ -298,8 +250,6 @@
                 <div class="cart-items-scroll" id="sidebarCartList">
                     <p style="text-align:center; color:#555">Keranjang masih kosong.</p>
                 </div>
-                <!-- Area Preview Poin DIHILANGKAN -->
-                
                 <div class="cart-footer">
                     <p style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 10px;">Gunakan tombol melayang di bawah untuk Checkout.</p>
                 </div>
@@ -308,33 +258,23 @@
     </main>
 
     <!-- Modals -->
-    
-    <!-- Quick View Modal -->
     <div class="modal-overlay" id="quickViewModal">
         <div class="quick-view-content">
             <button class="close-modal" onclick="AuroraStore.ui.closeModal('quickViewModal')">&times;</button>
             <img src="" id="qvImg" class="quick-view-img" alt="Product Image">
             <div class="quick-view-body">
                 <h2 class="quick-view-title" id="qvName">Product Name</h2>
-                <!-- Tampilan Ukuran mL (Baru) -->
                 <div class="quick-view-size" id="qvSize">Ukuran: - mL</div>
                 <div class="quick-view-desc" id="qvDesc">Deskripsi produk...</div>
                 <div class="quick-view-meta">
-                    <div class="meta-item">
-                        <span>Harga</span>
-                        <strong id="qvPrice" style="color:var(--luxury-gold);">Rp 0</strong>
-                    </div>
-                    <div class="meta-item">
-                        <span>Stok</span>
-                        <strong id="qvStock">0</strong>
-                    </div>
+                    <div class="meta-item"><span>Harga</span><strong id="qvPrice" style="color:var(--luxury-gold);">Rp 0</strong></div>
+                    <div class="meta-item"><span>Stok</span><strong id="qvStock">0</strong></div>
                 </div>
                 <button class="btn-buy" id="qvBuyBtn" style="margin-top:0;">Beli Sekarang</button>
             </div>
         </div>
     </div>
 
-    <!-- Profile Modal -->
     <div class="modal-overlay" id="profileModal">
         <div class="modal-content">
             <button class="close-modal" onclick="AuroraStore.ui.closeModal('profileModal')">&times;</button>
@@ -343,7 +283,6 @@
         </div>
     </div>
 
-    <!-- History Modal -->
     <div class="modal-overlay" id="historyModal">
         <div class="modal-content">
             <button class="close-modal" onclick="AuroraStore.ui.closeModal('historyModal')">&times;</button>
@@ -399,6 +338,10 @@
 
         async init() {
             this.supabase = supabase.createClient(this.config.SUPABASE_URL, this.config.SUPABASE_KEY);
+            
+            // PENTING: Catat kunjungan halaman ini ke Page Views
+            this.trackPageView(); 
+            
             this.setupEventListeners();
             this.startActivityMonitor();
             
@@ -406,6 +349,28 @@
             await this.products.fetch();
             
             this.cart.render();
+        },
+
+        // ==========================================
+        // FUNGSI TRACKING PAGE VIEWS (SUPABASE)
+        // ==========================================
+        async trackPageView() {
+            try {
+                const pageInfo = {
+                    page_url: window.location.pathname + window.location.search,
+                    user_agent: navigator.userAgent,
+                    // Jika user sudah login, bisa tambahkan user_id di sini
+                };
+
+                // Kirim ke tabel 'page_views'
+                const { error } = await this.supabase.from('page_views').insert([pageInfo]);
+                
+                if (error) {
+                    console.warn("Gagal mencatat page view (mungkin tabel belum ada):", error.message);
+                }
+            } catch (e) {
+                console.error("Error tracking page view:", e);
+            }
         },
 
         utils: {
@@ -435,21 +400,10 @@
             calculatePoints(amount) {
                 return Math.floor(AuroraStore.utils.cleanPrice(amount) / AuroraStore.config.POINT_RATE);
             },
-            /* HELPER: Generate Stars HTML */
             generateStarsHTML(rating) {
                 let stars = '';
                 const fullStars = Math.floor(rating);
-                const hasHalf = rating % 1 >= 0.5;
-                
-                for (let i = 0; i < fullStars; i++) {
-                    stars += '★'; // Full Star
-                }
-                if (hasHalf) {
-                    stars += '⯨'; // Half Star (or use ☆)
-                }
-                // Empty stars to fill up to 5? Optional.
-                // for(let i=stars.length; i<5; i++) stars += '☆';
-                
+                for (let i = 0; i < fullStars; i++) { stars += '★'; }
                 return stars;
             }
         },
@@ -504,7 +458,6 @@
                         return true;
                     }
                     
-                    // Insert new user if not found
                     const { data: newUser, error: insertError } = await AuroraStore.supabase.from('ngebelusers').insert([{
                         id: user.uid, 
                         email: user.email || null, 
@@ -512,7 +465,7 @@
                         phone: null, 
                         role: 'user', 
                         is_admin: false, 
-                        loyalty_points: 0 // Initialize points
+                        loyalty_points: 0
                     }]).select().single();
                     
                     if (insertError) return false;
@@ -544,7 +497,6 @@
                 try { await AuroraStore.supabase.auth.signOut(); } catch (e) {}
                 localStorage.clear();
                 sessionStorage.clear();
-                // PERBAIKAN: Redirect ke index.html
                 window.location.href = 'index.html'; 
             },
 
@@ -642,8 +594,6 @@
                     const stock = parseInt(product.stock) || 0;
                     const isOutOfStock = stock <= 0;
                     const price = AuroraStore.utils.formatPrice(product.price);
-                    
-                    // Ambil data Rating dari DB
                     const rating = parseFloat(product.rating) || 0.0;
                     const soldCount = parseInt(product.sold_count) || 0;
 
@@ -784,7 +734,6 @@
 
                 if (AuroraStore.state.isLoggedIn) {
                     const name = dbUser?.full_name || currentUser?.full_name || currentUser?.username || "User";
-                    // KEMBALIKAN: Ambil loyalty_points dari dbUser
                     const points = dbUser?.loyalty_points || 0;
                     const avatar = name.charAt(0).toUpperCase();
 
@@ -859,7 +808,6 @@
                 document.getElementById('qvName').innerText = product.name || 'Produk';
                 document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi tersedia.';
                 
-                // Render Size mL
                 const sizeML = product.size_ml ? `${product.size_ml} mL` : 'Ukuran tidak tersedia';
                 document.getElementById('qvSize').innerText = sizeML;
 
@@ -886,7 +834,6 @@
                 const content = document.getElementById('profileContent');
                 document.getElementById('profileModal').classList.add('show');
                 
-                // KEMBALIKAN: Tampilkan loyalty_points di profil
                 content.innerHTML = `
                     <div class="profile-detail-row"><span class="profile-label">Nama</span><span class="profile-value">${user.full_name || user.username || '-'}</span></div>
                     <div class="profile-detail-row"><span class="profile-label">Email</span><span class="profile-value">${user.email || '-'}</span></div>
