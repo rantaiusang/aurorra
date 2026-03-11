@@ -40,7 +40,7 @@
             overflow-x: hidden;
         }
 
-        /* --- SECURITY OVERLAY --- */
+        /* --- AUTH OVERLAY --- */
         #auth-overlay {
             position: fixed; inset: 0; background: var(--dark-bg);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -243,11 +243,12 @@
             <a class="nav-link" data-tab="products"><span>🛍️</span> Produk</a>
             <a class="nav-link" data-tab="purchasing"><span>📥</span> Purchasing</a>
             <a class="nav-link" data-tab="orders"><span>🛒</span> Pesanan</a>
-            <a class="nav-link" data-tab="customers"><span>👤</span> Pelanggan</a> <!-- Menu Baru -->
+            <a class="nav-link" data-tab="shipping"><span>📦</span> Pengiriman</a> <!-- Menu Baru -->
+            <a class="nav-link" data-tab="customers"><span>👤</span> Pelanggan</a>
             <a class="nav-link" data-tab="vouchers"><span>🎟️</span> Voucher</a>
             <a class="nav-link" data-tab="lowstock"><span>⚠️</span> Stok Menipis</a>
             <a class="nav-link" data-tab="ongkir"><span>🚚</span> Ongkir</a>
-            <a class="nav-link" data-tab="settings"><span>⚙️</span> Pengaturan</a> <!-- Menu Baru -->
+            <a class="nav-link" data-tab="settings"><span>⚙️</span> Pengaturan</a>
         </nav>
 
         <div class="user-info">
@@ -292,7 +293,6 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // DAFTAR EMAIL ADMIN YANG DIPERBOLEHKAN (GANTI DENGAN EMAIL ANDA)
         const ADMIN_EMAILS = ['admin@aurorra.com', 'owner@aurorra.com']; 
 
         const formatPrice = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
@@ -305,10 +305,9 @@
             checkAdminAccess(session);
         };
 
-        // Listener untuk perubahan auth (login/logout di tab lain)
         sb.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT') {
-                window.location.href = 'index.html'; // Redirect ke login jika logout
+                window.location.href = 'index.html'; 
             }
         });
 
@@ -321,24 +320,16 @@
                 return;
             }
 
-            // Cek apakah email ada di daftar ADMIN_EMAILS
-            // Jika ingin lebih longgar (semua yg login bisa akses), hapus barir ini.
             const userEmail = session.user.email;
             const isAdmin = ADMIN_EMAILS.includes(userEmail);
 
             if (!isAdmin) {
-                 // Jika ingin ketat, uncomment baris di bawah:
-                 // alert("Akses Ditolak: Anda bukan Admin.");
-                 // sb.auth.signOut();
-                 // return;
                  console.warn("User bukan admin terdaftar, tapi diberi akses (mode longgar).");
             }
 
-            // Update UI User Info
             document.getElementById('userName').innerText = userEmail.split('@')[0];
             document.getElementById('userAvatar').innerText = userEmail.charAt(0).toUpperCase();
 
-            // Sembunyikan overlay & mulai aplikasi
             overlay.classList.add('hidden');
             init();
         }
@@ -376,11 +367,12 @@
                 products: 'Manajemen Produk', 
                 purchasing: 'Stok Masuk', 
                 orders: 'Pesanan', 
-                customers: 'Pelanggan', // Baru
+                shipping: 'Pengiriman', // Baru
+                customers: 'Pelanggan', 
                 vouchers: 'Voucher', 
                 lowstock: 'Stok Menipis', 
                 ongkir: 'Ongkir',
-                settings: 'Pengaturan Situs' // Baru
+                settings: 'Pengaturan Situs' 
             };
             document.getElementById('pageTitle').innerText = titles[tab] || 'Admin';
             
@@ -393,11 +385,12 @@
                 case 'products': renderProducts(); break;
                 case 'purchasing': renderPurchasing(); break;
                 case 'orders': renderOrders(); break;
-                case 'customers': renderCustomers(); break; // Baru
+                case 'shipping': renderShipping(); break; // Baru
+                case 'customers': renderCustomers(); break; 
                 case 'vouchers': renderVouchers(); break;
                 case 'lowstock': renderLowStock(); break;
                 case 'ongkir': renderOngkir(); break;
-                case 'settings': renderSettings(); break; // Baru
+                case 'settings': renderSettings(); break; 
             }
         }
 
@@ -411,7 +404,6 @@
                 (payload) => {
                     console.log('New Order:', payload);
                     showNotification(payload.new);
-                    // Refresh dashboard jika sedang di tab dashboard
                     if(document.querySelector('.nav-link.active').getAttribute('data-tab') === 'dashboard') {
                         renderDashboard();
                     }
@@ -557,22 +549,17 @@
             document.getElementById('prodTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td>${formatPrice(p.price)}</td><td style="color: ${p.stock < 5 ? 'var(--danger)' : '#fff'}">${p.stock}</td><td><button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Hapus</button></td></tr>`).join('') || '';
         }
 
-        // Fitur Hapus Produk
         async function deleteProduct(id) {
-            if(!confirm("Yakin hapus produk ini? Stok dan histori akan terpengaruh.")) return;
+            if(!confirm("Yakin hapus produk ini?")) return;
             const { error } = await sb.from('products').delete().eq('id', id);
             if(error) return alert("Gagal hapus: " + error.message);
             renderProducts();
         }
 
-        // Fitur Lihat Pelanggan (Baru)
         async function renderCustomers() {
             document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Data Pelanggan</h3></div><div class="table-container"><table><thead><tr><th>Nama</th><th>Email / Kontak</th><th>Total Pesanan</th></tr></thead><tbody id="custTable"></tbody></table></div></div>`;
-            // Catatan: Query ini memerlukan foreign key relation di Supabase antara orders -> customer
-            // Alternatif sederhana: select distinct customer dari tabel orders
             const { data } = await sb.from('orders').select('customer_name, customer_email, total_amount');
             
-            // Proses manual grouping (simple aggregate)
             const customers = {};
             data?.forEach(o => {
                 const key = o.customer_email || o.customer_name;
@@ -613,7 +600,26 @@
         async function renderOrders() {
             document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Semua Pesanan</h3></div><div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="orderTable"></tbody></table></div></div>`;
             const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
-             document.getElementById('orderTable').innerHTML = data?.map(o => `<tr><td>#${String(o.id).slice(0,6)}</td><td>${o.customer_name}</td><td>${formatPrice(o.total_amount)}</td><td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td><td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td></tr>`).join('') || '';
+            document.getElementById('orderTable').innerHTML = data?.map(o => `<tr><td>#${String(o.id).slice(0,6)}</td><td>${o.customer_name}</td><td>${formatPrice(o.total_amount)}</td><td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td><td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td></tr>`).join('') || '';
+        }
+
+        // --- RENDER SHIPPING (MENU BARU) ---
+        async function renderShipping() {
+            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Data Pengiriman</h3></div><p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:15px;">Menampilkan pesanan yang sudah diinput kurir dan resinya.</p><div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Kurir</th><th>No. Resi</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="shipTable"></tbody></table></div></div>`;
+            
+            // Filter pesanan yang kolom courier dan tracking_number TIDAK null
+            const { data } = await sb.from('orders').select('*').not('courier', 'is', null).not('tracking_number', 'is', null).order('created_at', { ascending: false });
+            
+            document.getElementById('shipTable').innerHTML = data?.map(o => `
+                <tr>
+                    <td>#${String(o.id).slice(0,6)}</td>
+                    <td>${o.customer_name}</td>
+                    <td><span class="badge badge-info">${o.courier || '-'}</span></td>
+                    <td style="font-family: monospace; letter-spacing: 1px;">${o.tracking_number || '-'}</td>
+                    <td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Update</button></td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" style="text-align:center">Belum ada data pengiriman. Input di menu Pesanan.</td></tr>';
         }
 
         async function renderLowStock() {
@@ -628,9 +634,7 @@
             document.getElementById('ongkirTable').innerHTML = data?.map(o => `<tr><td>${o.tujuan}</td><td>${o.ekspedisi}</td><td>${formatPrice(o.tarif)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteOngkir('${o.id}')">Hapus</button></td></tr>`).join('') || '';
         }
         
-        // Fitur Menu Pengaturan (Baru)
         async function renderSettings() {
-            // Asumsi ada tabel 'settings' dengan kolom 'key' dan 'value'
             const { data: settings } = await sb.from('settings').select('*');
             const getVal = (key) => settings?.find(s => s.key === key)?.value || '';
             
@@ -664,7 +668,6 @@
                 { key: 'whatsapp', value: document.getElementById('setWa').value }
             ];
             
-            // Upsert sederhana
             for(let p of payload) {
                 await sb.from('settings').upsert(p, { onConflict: 'key' });
             }
@@ -700,17 +703,62 @@
             e.preventDefault(); const payload = { product_id: document.getElementById('purProd').value, qty: parseInt(document.getElementById('purQty').value), harga: parseFloat(document.getElementById('purPrice').value) }; await sb.from('purchasing').insert([payload]); closeModal(); renderPurchasing();
         }
 
+        // --- MODAL DETAIL PESANAN DENGAN INPUT KURIR & RESI ---
         async function openOrderDetail(id) {
             const { data: o } = await sb.from('orders').select('*').eq('id', id).single(); if(!o) return;
-            openModal('Detail Pesanan #' + String(o.id).slice(0,6), `<div style="font-size:0.9rem;"><p><b>Pelanggan:</b> ${o.customer_name}</p><p><b>Alamat:</b> ${o.customer_address}</p><hr style="border-color:#333; margin:15px 0;"><div class="form-group"><label class="form-label">Status</label><select class="form-input" id="updStatus"><option value="pending" ${o.status==='pending'?'selected':''}>Pending</option><option value="paid" ${o.status==='paid'?'selected':''}>Paid</option><option value="shipping" ${o.status==='shipping'?'selected':''}>Shipping</option><option value="completed" ${o.status==='completed'?'selected':''}>Completed</option></select></div><div class="form-group"><label class="form-label">Resi</label><input type="text" class="form-input" id="updResi" value="${o.resi || ''}"></div><button class="btn btn-primary" style="width:100%" onclick="updateOrder('${id}')">Update</button></div>`);
+            
+            // Daftar Kurir untuk Dropdown
+            const couriers = ['JNE', 'J&T', 'SiCepat', 'AnterAja', 'POS Indonesia', 'Ninja', 'Wahana', 'Lainnya'];
+            const courierOptions = couriers.map(c => `<option value="${c}" ${o.courier === c ? 'selected' : ''}>${c}</option>`).join('');
+
+            openModal('Detail Pesanan #' + String(o.id).slice(0,6), `
+                <div style="font-size:0.9rem;">
+                    <p><b>Pelanggan:</b> ${o.customer_name}</p>
+                    <p><b>Alamat:</b> ${o.customer_address}</p>
+                    <hr style="border-color:#333; margin:15px 0;">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Status Pesanan</label>
+                        <select class="form-input" id="updStatus">
+                            <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
+                            <option value="paid" ${o.status==='paid'?'selected':''}>Paid</option>
+                            <option value="shipping" ${o.status==='shipping'?'selected':''}>Shipping</option>
+                            <option value="completed" ${o.status==='completed'?'selected':''}>Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Kurir Pengiriman</label>
+                        <select class="form-input" id="updCourier">
+                            <option value="">- Pilih Kurir -</option>
+                            ${courierOptions}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">No. Resi (Tracking Number)</label>
+                        <input type="text" class="form-input" id="updTracking" value="${o.tracking_number || ''}" placeholder="Masukkan nomor resi">
+                    </div>
+
+                    <button class="btn btn-primary" style="width:100%" onclick="updateOrder('${id}')">Simpan Perubahan</button>
+                </div>
+            `);
         }
 
+        // --- UPDATE ORDER TERMASUK KURIR & RESI ---
         async function updateOrder(id) { 
             const status = document.getElementById('updStatus').value; 
-            const resi = document.getElementById('updResi').value; 
-            await sb.from('orders').update({ status, resi }).eq('id', id); 
+            const courier = document.getElementById('updCourier').value; 
+            const tracking_number = document.getElementById('updTracking').value; 
+            
+            // Update tabel orders
+            await sb.from('orders').update({ status, courier, tracking_number }).eq('id', id); 
+            
             closeModal(); 
-            renderOrders(); 
+            // Refresh halaman yang sesuai
+            const activeTab = document.querySelector('.nav-link.active').getAttribute('data-tab');
+            if(activeTab === 'shipping') renderShipping();
+            else renderOrders();
         }
         
         function openOngkirModal() { openModal('Tambah Ongkir', `<form onsubmit="saveOngkir(event)"><div class="form-group"><label class="form-label">Kota Tujuan</label><input type="text" class="form-input" id="ongkDest" required></div><div class="form-group"><label class="form-label">Ekspedisi</label><input type="text" class="form-input" id="ongkEksp" required></div><div class="form-group"><label class="form-label">Tarif</label><input type="number" class="form-input" id="ongkTarif" required></div><button type="submit" class="btn btn-primary" style="width:100%">Simpan</button></form>`); }
