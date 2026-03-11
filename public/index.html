@@ -21,7 +21,7 @@
             --dark-card: #161216;
             --text-gray: #a0a0a0;
             --text-white: #ffffff;
-            --nav-height: 65px; /* Sedikit diperkecil */
+            --nav-height: 65px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -77,21 +77,20 @@
             bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 92%; /* Sedikit diperkecil agar tidak mentok pinggir */
-            max-width: 500px; /* Lebar maksimal diperkecil agar lebih pas */
+            width: 92%; 
+            max-width: 500px; 
             height: var(--nav-height);
             background: rgba(22, 18, 22, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 35px; /* Sedikit diperkecil border radius */
+            border-radius: 35px; 
             border: 1px solid rgba(212, 175, 55, 0.1);
             display: flex;
-            /* PERBAIKAN: Ratakan item secara merata */
             justify-content: space-around; 
             align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             z-index: 9999;
-            padding: 0 5px; /* Padding dikurangi */
+            padding: 0 5px; 
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
         }
 
@@ -101,7 +100,6 @@
             pointer-events: none;
         }
 
-        /* Hapus scroll behavior karena item sudah pas */
         .bottom-nav::-webkit-scrollbar { display: none; }
 
         .nav-item {
@@ -109,16 +107,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 8px 5px; /* Sesuaikan padding */
+            padding: 8px 5px; 
             color: var(--text-gray);
             text-decoration: none;
-            font-size: 0.65rem; /* Sesuaikan font */
+            font-size: 0.65rem; 
             font-weight: 500;
             border-radius: 20px;
             transition: all 0.3s ease;
-            flex: 1; /* Item memenuhi ruang yang ada */
+            flex: 1; 
             cursor: pointer;
-            min-width: 0; /* Agar flex bisa mengecil jika perlu */
+            min-width: 0; 
         }
 
         .nav-item svg {
@@ -149,7 +147,7 @@
             background: linear-gradient(135deg, var(--luxury-gold), #b8860b);
             border-radius: 20px;
             padding: 8px 15px;
-            flex: 1.2; /* Sedikit lebih lebar */
+            flex: 1.2; 
             font-weight: 600;
         }
         .nav-item.nav-login:hover {
@@ -621,7 +619,6 @@
         let lastScrollTop = 0;
         let scrollTimeout;
 
-        // Hide/Show saat Scroll Halaman
         window.addEventListener('scroll', function() {
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             if (scrollTimeout) clearTimeout(scrollTimeout);
@@ -691,18 +688,33 @@
         }
 
         // ==========================================
-        // 6. FETCH PRODUK (MODIFIED: AMBIL 1 ITEM)
+        // 6. FETCH PRODUK (LOGIKA ROTASI 2 HARI)
         // ==========================================
         async function loadProducts() {
             const productGrid = document.getElementById('productGrid');
             try {
-                // Ambil 1 produk teratas
-                const { data: products, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false }).limit(1); 
+                // 1. Ambil SEMUA produk dari database
+                // Kita hilangkan .limit(1) agar bisa dirotasi
+                const { data: products, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false }); 
                 if (error) throw error;
 
                 if (products && products.length > 0) {
                     productGrid.innerHTML = ''; 
-                    const product = products[0]; // Ambil item pertama
+                    
+                    // 2. Logika Penentuan Produk berdasarkan Waktu (2 Hari)
+                    const TWO_DAYS_IN_MS = 2 * 24 * 60 * 60 * 1000; // 172800000 ms
+                    const startDate = new Date('2024-01-01T00:00:00Z').getTime(); // Tanggal acuan tetap
+                    const now = Date.now();
+
+                    // Hitung indeks: (Waktu sekarang - Tanggal acuan) / 2 hari
+                    const intervals = Math.floor((now - startDate) / TWO_DAYS_IN_MS);
+                    
+                    // Gunakan modulo agar indeks selalu berada dalam range jumlah produk
+                    // Math.abs untuk jaga-jaga jika ada perbedaan timezone ekstrem, meski floor biasanya cukup
+                    let index = Math.abs(intervals) % products.length;
+                    
+                    // Pilih produk spesifik untuk 2 hari ini
+                    const product = products[index];
                     
                     const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
                     
@@ -720,6 +732,7 @@
                                 <a href="store.html" class="btn-card">Beli Sekarang</a>
                             </div>
                         </div>`;
+                    
                     productGrid.insertAdjacentHTML('beforeend', cardHTML);
 
                     updateUIBasedOnSession();
