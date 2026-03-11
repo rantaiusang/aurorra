@@ -790,6 +790,7 @@
         document.addEventListener("DOMContentLoaded", function() {
             initNewsletter();
             loadProducts();
+            trackVisitor(); // Jalankan tracker saat halaman siap
         });
 
         window.onload = function() { window.scrollTo(0, 0); };
@@ -804,6 +805,28 @@
                 });
             }, { threshold: 0.1 });
             document.querySelectorAll('.fade-on-scroll').forEach(el => observer.observe(el));
+        }
+
+        // ==========================================
+        // 10. VISITOR ANALYTICS TRACKER (TAMBAHAN)
+        // ==========================================
+        async function trackVisitor() {
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/page_views`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Prefer': 'return=minimal' // Efisiensi bandwidth
+                    },
+                    body: JSON.stringify({
+                        page_url: window.location.pathname,
+                        user_agent: navigator.userAgent
+                    })
+                });
+            } catch (e) {
+                console.log('Tracker error:', e);
+            }
         }
     </script>
 </body>
