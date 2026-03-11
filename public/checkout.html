@@ -53,7 +53,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; text-align: center;
         }
         
-        /* GANTI: Logo Visual (Bukan Pi Network) */
         .checkout-visual { 
             width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; 
             background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
@@ -84,9 +83,8 @@
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
         
-        /* PERBAIKAN: Search Box Lebih Besar */
         .search-box { 
-            padding: 15px; /* Padding container diperbesar */
+            padding: 15px; 
             position: sticky; 
             top: 0; 
             background: #1e1e1e; 
@@ -95,13 +93,13 @@
         }
         .search-box input { 
             width: 100%; 
-            padding: 12px 15px; /* Padding input diperbesar */
+            padding: 12px 15px;
             background: rgba(255, 255, 255, 0.1); 
             border: 1px solid rgba(255, 255, 255, 0.2); 
             border-radius: 6px; 
             color: white; 
             box-sizing: border-box; 
-            font-size: 1rem; /* Font size diperbesar agar mudah dibaca */
+            font-size: 1rem;
         }
 
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
@@ -221,7 +219,6 @@
             
             <!-- VIEW 1: CHECKOUT FORM -->
             <div id="checkoutView">
-                <!-- PERBAIKAN: Logo diganti Shopping Bag -->
                 <div class="checkout-visual">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -463,12 +460,36 @@
 
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             
-            if (!savedVoucher) {
-                voucherPopup.classList.add('show');
+            // Jika sudah ada data voucher di local (sudah pernah muncul/skip/klaim)
+            if (savedVoucher) {
+                proceedToPaymentGateway();
                 return;
             }
 
-            proceedToPaymentGateway();
+            // === CEK KE DATABASE: Apakah user ini sudah pernah klaim? ===
+            if(currentUser && currentUser.email) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('vouchers')
+                        .select('id')
+                        .eq('email', currentUser.email)
+                        .maybeSingle();
+
+                    if (data) {
+                        // Jika data ditemukan, berarti SUDAH PERNAH KLAIM
+                        // Tandai di local agar tidak cek DB lagi di masa depan
+                        localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, already_claimed: true}));
+                        proceedToPaymentGateway();
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Gagal cek status voucher:", err);
+                    // Jika error, lanjutkan saja (fallback)
+                }
+            }
+
+            // Jika belum pernah klaim (di DB maupun Local)
+            voucherPopup.classList.add('show');
         });
 
         btnSkipVoucher.addEventListener('click', () => {
