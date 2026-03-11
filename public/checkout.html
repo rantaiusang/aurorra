@@ -279,7 +279,7 @@
                 Dapatkan potongan <span class="popup-highlight">Rp 10.000</span> untuk pesanan ini!
             </p>
             <div class="popup-actions">
-                <a href="voucher.html" class="btn-popup-primary">Klaim Voucher Sekarang</a>
+                <a href="voucher.html" class="btn-popup-primary" id="btnClaimVoucher">Klaim Voucher Sekarang</a>
                 <button class="btn-popup-secondary" id="btnSkipVoucher">Lewati, Bayar Penuh</button>
             </div>
         </div>
@@ -448,25 +448,25 @@
         function showError(msg) { const b = document.getElementById('error-message'); b.style.display='block'; b.innerText=msg; window.scrollTo({top:0}); }
 
         // ==========================================
-        // 6. SMART VOUCHER POPUP LOGIC
+        // 6. SMART VOUCHER POPUP LOGIC (FIXED)
         // ==========================================
         const btnPay = document.getElementById('btnPay');
         const voucherPopup = document.getElementById('voucherPopupOverlay');
         const btnSkipVoucher = document.getElementById('btnSkipVoucher');
+        const btnClaimVoucher = document.getElementById('btnClaimVoucher');
 
         btnPay.addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
 
+            // 1. Cek Local Storage dulu (performa)
             const savedVoucher = localStorage.getItem('aurorraVoucher');
-            
-            // Jika sudah ada data voucher di local (sudah pernah muncul/skip/klaim)
             if (savedVoucher) {
                 proceedToPaymentGateway();
                 return;
             }
 
-            // === CEK KE DATABASE: Apakah user ini sudah pernah klaim? ===
+            // 2. Jika belum ada di local, cek ke Database
             if(currentUser && currentUser.email) {
                 try {
                     const { data, error } = await supabaseClient
@@ -476,23 +476,33 @@
                         .maybeSingle();
 
                     if (data) {
-                        // Jika data ditemukan, berarti SUDAH PERNAH KLAIM
-                        // Tandai di local agar tidak cek DB lagi di masa depan
-                        localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, already_claimed: true}));
+                        // Jika data ditemukan -> SUDAH PERNAH KLAIM
+                        // Tandai di local storage supaya next tidak cek DB lagi
+                        localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, claimed: true}));
+                        
+                        // Langsung proses pembayaran TANPA pop up
                         proceedToPaymentGateway();
                         return;
                     }
                 } catch (err) {
-                    console.error("Gagal cek status voucher:", err);
-                    // Jika error, lanjutkan saja (fallback)
+                    console.error("Error cek voucher:", err);
+                    // Jika error DB, tetap tampilkan popup atau langsung bayar? 
+                    // Asumsi aman: langsung bayar agar user tidak terhambat error DB
+                    proceedToPaymentGateway(); 
+                    return;
                 }
             }
 
-            // Jika belum pernah klaim (di DB maupun Local)
+            // 3. Jika tidak ada di local dan tidak ada di DB -> TAMPILKAN POP UP
             voucherPopup.classList.add('show');
         });
 
+        // Jika user klik "Klaim Voucher" -> redirect ke voucher.html
+        // (Tidak perlu set localStorage di sini, karena belum klaim)
+        // Saat dia kembali setelah klaim, state 'savedVoucher' akan berubah.
+        
         btnSkipVoucher.addEventListener('click', () => {
+            // Tandai "Lewati" agar tidak muncul lagi di sesi ini
             localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, skipped: true})); 
             voucherPopup.classList.remove('show');
             proceedToPaymentGateway();
