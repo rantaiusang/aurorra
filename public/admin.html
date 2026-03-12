@@ -147,8 +147,18 @@
             border: 1px solid rgba(255,255,255,0.05);
             padding: 20px; margin-bottom: 30px;
         }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
         .section-title { font-family: 'Playfair Display', font-size: 1.2rem; color: var(--luxury-gold); }
+
+        /* --- SEARCH INPUT STYLE --- */
+        .search-wrapper {
+            position: relative; width: 100%; max-width: 300px;
+        }
+        .search-input {
+            width: 100%; padding: 8px 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #fff; font-family: inherit; font-size: 0.85rem; transition: 0.2s;
+        }
+        .search-input:focus { outline: none; border-color: var(--luxury-gold); background: rgba(0,0,0,0.3); }
+        .search-input::placeholder { color: #666; }
 
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -221,6 +231,7 @@
             .page-title { font-size: 1.4rem; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
             .notification-toast { width: 90%; left: 5%; right: 5%; bottom: 20px; top: auto; }
+            .search-wrapper { max-width: 100%; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
@@ -479,10 +490,8 @@
         // 5. RENDER FUNCTIONS
         // ==========================================
         
-        // --- PERBAIKAN: REVENUE CALCULATION ---
         async function renderDashboard() {
             const [ordersRes, productsRes] = await Promise.all([
-                // Hanya hitung revenue dari order yang statusnya paid, shipping, atau completed
                 sb.from('orders').select('id, total_amount, status').in('status', ['paid', 'shipping', 'completed']),
                 sb.from('products').select('stock')
             ]);
@@ -585,84 +594,229 @@
             document.getElementById('recentOrders').innerHTML = `<div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Tanggal</th></tr></thead><tbody>${tbody}</tbody></table></div>`;
         }
 
+        // ==========================================
+        // 6. SEARCHABLE TABLES IMPLEMENTATION
+        // ==========================================
+
+        // Helper: Search Logic
+        function getFilteredRows(data, query) {
+            if (!query) return data;
+            const q = query.toLowerCase();
+            return data.filter(row => {
+                return Object.values(row).some(val => String(val).toLowerCase().includes(q));
+            });
+        }
+
+        // 1. PRODUK
+        let allProducts = [];
         async function renderProducts() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Produk</h3><button class="btn btn-primary" onclick="openProductModal()">+ Tambah</button></div><div class="table-container"><table><thead><tr><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody id="prodTable"></tbody></table></div></div>`;
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Produk</h3>
+                        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                            <div class="search-wrapper">
+                                <input type="text" class="search-input" id="searchProduct" placeholder="Cari nama, kategori..." onkeyup="filterProducts()">
+                            </div>
+                            <button class="btn btn-primary" onclick="openProductModal()">+ Tambah</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody id="prodTable"></tbody></table></div>
+                </div>`;
             const { data } = await sb.from('products').select('*').order('name');
-            document.getElementById('prodTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td>${formatPrice(p.price)}</td><td style="color: ${p.stock < 5 ? 'var(--danger)' : '#fff'}">${p.stock}</td><td><button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Hapus</button></td></tr>`).join('') || '';
+            allProducts = data || [];
+            filterProducts();
+        }
+        function filterProducts() {
+            const q = document.getElementById('searchProduct')?.value;
+            const filtered = getFilteredRows(allProducts, q);
+            const tbody = filtered?.map(p => `<tr><td>${p.name}</td><td>${formatPrice(p.price)}</td><td style="color: ${p.stock < 5 ? 'var(--danger)' : '#fff'}">${p.stock}</td><td><button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Hapus</button></td></tr>`).join('') || '<tr><td colspan="4">No data</td></tr>';
+            document.getElementById('prodTable').innerHTML = tbody;
         }
 
         async function deleteProduct(id) { if(!confirm("Hapus?")) return; await sb.from('products').delete().eq('id', id); renderProducts(); }
 
-        async function renderCustomers() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Data Pelanggan</h3></div><div class="table-container"><table><thead><tr><th>Nama</th><th>Email</th><th>Total Pesanan</th></tr></thead><tbody id="custTable"></tbody></table></div></div>`;
-            const { data } = await sb.from('orders').select('customer_name, customer_email, total_amount');
-            const customers = {};
-            data?.forEach(o => { const key = o.customer_email || o.customer_name; if(!customers[key]) customers[key] = { name: o.customer_name, contact: o.customer_email, count: 0, total: 0 }; customers[key].count++; customers[key].total += parseFloat(o.total_amount || 0); });
-            document.getElementById('custTable').innerHTML = Object.values(customers).map(c => `<tr><td>${c.name}</td><td>${c.contact || '-'}</td><td>${c.count} (${formatPrice(c.total)})</td></tr>`).join('') || '<tr><td colspan="3">No data</td></tr>';
-        }
-
-        async function renderVouchers() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Voucher</h3><button class="btn btn-primary" onclick="createVoucher()">+ Generate</button></div><div class="table-container"><table><thead><tr><th>Code</th><th>Status</th><th>Value</th><th>Aksi</th></tr></thead><tbody id="voucherTable"></tbody></table></div></div>`;
-            const { data } = await sb.from('vouchers').select('*').order('created_at', { ascending: false });
-            document.getElementById('voucherTable').innerHTML = data?.map(v => `<tr><td style="color: var(--luxury-gold)">${v.code}</td><td><span class="badge badge-${v.is_used ? 'danger' : 'success'}">${v.is_used ? 'Used' : 'Avail'}</span></td><td>${formatPrice(v.discount_value)}</td><td>${!v.is_used ? `<button class="btn btn-danger btn-sm" onclick="deleteVoucher('${v.id}')">Hapus</button>` : ''}</td></tr>`).join('') || '';
-        }
-
-        // --- PERBAIKAN: AUTO GENERATE VOUCHER ---
-        async function createVoucher() { 
-            const code = "AUR-" + Math.random().toString(36).substring(2,6).toUpperCase();
-            const btn = event.target;
-            btn.innerHTML = "Generating...";
-            
-            const { error } = await sb.from('vouchers').insert([{
-                code: code,
-                discount_value: 10000, // Default value 10.000
-                is_used: false,
-                notes: "Created by Admin"
-            }]);
-            
-            if(error) {
-                alert("Gagal membuat voucher: " + error.message);
-            } else {
-                renderVouchers(); 
-            }
-            btn.innerHTML = "+ Generate";
-        }
-
-        async function deleteVoucher(id) { await sb.from('vouchers').delete().eq('id', id); renderVouchers(); }
-
+        // 2. PURCHASING
+        let allPurchasing = [];
         async function renderPurchasing() {
-             document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Stok Masuk</h3><button class="btn btn-primary" onclick="openPurchaseModal()">+ Tambah</button></div><div class="table-container"><table><thead><tr><th>Produk</th><th>Qty</th><th>Harga Modal</th><th>Tanggal</th></tr></thead><tbody id="purchaseTable"></tbody></table></div></div>`;
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Stok Masuk</h3>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                             <div class="search-wrapper"><input type="text" class="search-input" id="searchPurchasing" placeholder="Cari nama produk..." onkeyup="filterPurchasing()"></div>
+                             <button class="btn btn-primary" onclick="openPurchaseModal()">+ Tambah</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Produk</th><th>Qty</th><th>Harga Modal</th><th>Tanggal</th></tr></thead><tbody id="purchaseTable"></tbody></table></div>
+                </div>`;
             const { data } = await sb.from('purchasing').select('qty, harga, created_at, products(name)');
-            document.getElementById('purchaseTable').innerHTML = data?.map(p => `<tr><td>${p.products?.name || '-'}</td><td>+${p.qty}</td><td>${formatPrice(p.harga)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('') || '';
+            allPurchasing = data || [];
+            filterPurchasing();
+        }
+        function filterPurchasing() {
+            const q = document.getElementById('searchPurchasing')?.value;
+            const filtered = getFilteredRows(allPurchasing, q);
+            // Custom filter for nested product name
+            const qLow = q?.toLowerCase() || '';
+            const finalData = filtered.filter(p => !q || (p.products?.name?.toLowerCase().includes(qLow) || String(p.qty).includes(qLow)));
+
+            const tbody = finalData?.map(p => `<tr><td>${p.products?.name || '-'}</td><td>+${p.qty}</td><td>${formatPrice(p.harga)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('') || '<tr><td colspan="4">No data</td></tr>';
+            document.getElementById('purchaseTable').innerHTML = tbody;
         }
 
+        // 3. PESANAN
+        let allOrders = [];
         async function renderOrders() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Semua Pesanan</h3></div><div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="orderTable"></tbody></table></div></div>`;
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Semua Pesanan</h3>
+                        <div class="search-wrapper"><input type="text" class="search-input" id="searchOrders" placeholder="Cari ID, nama, status..." onkeyup="filterOrders()"></div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="orderTable"></tbody></table></div>
+                </div>`;
             const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
-            document.getElementById('orderTable').innerHTML = data?.map(o => `<tr><td>#${String(o.id).slice(0,6)}</td><td>${o.customer_name}</td><td>${formatPrice(o.total_amount)}</td><td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td><td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td></tr>`).join('') || '';
+            allOrders = data || [];
+            filterOrders();
+        }
+        function filterOrders() {
+            const q = document.getElementById('searchOrders')?.value;
+            const filtered = getFilteredRows(allOrders, q);
+            const tbody = filtered?.map(o => `<tr><td>#${String(o.id).slice(0,6)}</td><td>${o.customer_name}</td><td>${formatPrice(o.total_amount)}</td><td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td><td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td></tr>`).join('') || '';
+            document.getElementById('orderTable').innerHTML = tbody;
         }
 
+        // 4. PENGIRIMAN
+        let allShipping = [];
         async function renderShipping() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Pengiriman</h3></div><div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Info Kirim</th><th>Aksi</th></tr></thead><tbody id="shipTable"></tbody></table></div></div>`;
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Pengiriman</h3>
+                        <div class="search-wrapper"><input type="text" class="search-input" id="searchShipping" placeholder="Cari nama, resi..." onkeyup="filterShipping()"></div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Total</th><th>Status</th><th>Info Kirim</th><th>Aksi</th></tr></thead><tbody id="shipTable"></tbody></table></div>
+                </div>`;
             const { data } = await sb.from('orders').select('*').in('status', ['paid', 'shipping']).order('created_at', { ascending: true });
-            if(!data || data.length === 0) { document.getElementById('shipTable').innerHTML = '<tr><td colspan="6" style="text-align:center">Tidak ada pesanan.</td></tr>'; return; }
-            document.getElementById('shipTable').innerHTML = data.map(o => {
+            allShipping = data || [];
+            filterShipping();
+        }
+        function filterShipping() {
+            const q = document.getElementById('searchShipping')?.value;
+            const filtered = getFilteredRows(allShipping, q);
+            if(filtered.length === 0) { document.getElementById('shipTable').innerHTML = '<tr><td colspan="6" style="text-align:center">Tidak ada pesanan.</td></tr>'; return; }
+            
+            document.getElementById('shipTable').innerHTML = filtered.map(o => {
                 const isShipping = o.status === 'shipping' && o.tracking_number;
                 const infoKirim = isShipping ? `<span class="badge badge-info">${o.courier}</span> <br> ${o.tracking_number}` : `<span style="color:var(--warning)">Menunggu Input</span>`;
                 return `<tr><td>#${String(o.id).slice(0,6)}</td><td>${o.customer_name}<br><small style="color:var(--text-gray)">${o.customer_address || '-'}</small></td><td>${formatPrice(o.total_amount)}</td><td><span class="badge badge-${o.status === 'shipping' ? 'success' : 'warning'}">${o.status}</span></td><td>${infoKirim}</td><td><button class="btn btn-primary btn-sm" onclick="openOrderDetail('${o.id}')">${isShipping ? 'Update' : 'Input Resi'}</button></td></tr>`;
             }).join('');
         }
 
-        async function renderLowStock() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Stok Menipis</h3></div><div class="table-container"><table><thead><tr><th>Produk</th><th>Stok</th></tr></thead><tbody id="lowTable"></tbody></table></div></div>`;
-            const { data } = await sb.from('products').select('*').lt('stock', 5);
-            document.getElementById('lowTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td style="color: var(--danger)">${p.stock}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">Aman</td></tr>';
+        // 5. PELANGGAN
+        let allCustomers = {};
+        async function renderCustomers() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Data Pelanggan</h3>
+                        <div class="search-wrapper"><input type="text" class="search-input" id="searchCustomers" placeholder="Cari nama, email..." onkeyup="filterCustomers()"></div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Nama</th><th>Email</th><th>Total Pesanan</th></tr></thead><tbody id="custTable"></tbody></table></div>
+                </div>`;
+            const { data } = await sb.from('orders').select('customer_name, customer_email, total_amount');
+            allCustomers = {};
+            data?.forEach(o => { const key = o.customer_email || o.customer_name; if(!allCustomers[key]) allCustomers[key] = { name: o.customer_name, contact: o.customer_email, count: 0, total: 0 }; allCustomers[key].count++; allCustomers[key].total += parseFloat(o.total_amount || 0); });
+            filterCustomers();
+        }
+        function filterCustomers() {
+            const q = document.getElementById('searchCustomers')?.value;
+            let vals = Object.values(allCustomers);
+            if(q) {
+                const qLow = q.toLowerCase();
+                vals = vals.filter(c => c.name.toLowerCase().includes(qLow) || (c.contact && c.contact.toLowerCase().includes(qLow)));
+            }
+            const rows = vals.map(c => `<tr><td>${c.name}</td><td>${c.contact || '-'}</td><td>${c.count} (${formatPrice(c.total)})</td></tr>`).join('') || '<tr><td colspan="3">No data</td></tr>';
+            document.getElementById('custTable').innerHTML = rows;
         }
 
+        // 6. VOUCHER
+        let allVouchers = [];
+        async function renderVouchers() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Voucher</h3>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <div class="search-wrapper"><input type="text" class="search-input" id="searchVouchers" placeholder="Cari kode..." onkeyup="filterVouchers()"></div>
+                            <button class="btn btn-primary" onclick="createVoucher()">+ Generate</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Code</th><th>Status</th><th>Value</th><th>Aksi</th></tr></thead><tbody id="voucherTable"></tbody></table></div>
+                </div>`;
+            const { data } = await sb.from('vouchers').select('*').order('created_at', { ascending: false });
+            allVouchers = data || [];
+            filterVouchers();
+        }
+        function filterVouchers() {
+            const q = document.getElementById('searchVouchers')?.value;
+            const filtered = getFilteredRows(allVouchers, q);
+            document.getElementById('voucherTable').innerHTML = filtered?.map(v => `<tr><td style="color: var(--luxury-gold)">${v.code}</td><td><span class="badge badge-${v.is_used ? 'danger' : 'success'}">${v.is_used ? 'Used' : 'Avail'}</span></td><td>${formatPrice(v.discount_value)}</td><td>${!v.is_used ? `<button class="btn btn-danger btn-sm" onclick="deleteVoucher('${v.id}')">Hapus</button>` : ''}</td></tr>`).join('') || '';
+        }
+
+        async function createVoucher() { 
+            const code = "AUR-" + Math.random().toString(36).substring(2,6).toUpperCase();
+            const btn = event.target; btn.innerHTML = "Generating...";
+            const { error } = await sb.from('vouchers').insert([{ code: code, discount_value: 10000, is_used: false, notes: "Created by Admin" }]);
+            if(error) alert("Gagal: " + error.message);
+            renderVouchers(); btn.innerHTML = "+ Generate";
+        }
+        async function deleteVoucher(id) { await sb.from('vouchers').delete().eq('id', id); renderVouchers(); }
+
+        // 7. STOK MENIPIS
+        let allLowStock = [];
+        async function renderLowStock() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Stok Menipis</h3>
+                        <div class="search-wrapper"><input type="text" class="search-input" id="searchLowStock" placeholder="Cari nama produk..." onkeyup="filterLowStock()"></div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Produk</th><th>Stok</th></tr></thead><tbody id="lowTable"></tbody></table></div>
+                </div>`;
+            const { data } = await sb.from('products').select('*').lt('stock', 5);
+            allLowStock = data || [];
+            filterLowStock();
+        }
+        function filterLowStock() {
+            const q = document.getElementById('searchLowStock')?.value;
+            const filtered = getFilteredRows(allLowStock, q);
+            document.getElementById('lowTable').innerHTML = filtered?.map(p => `<tr><td>${p.name}</td><td style="color: var(--danger)">${p.stock}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">Aman</td></tr>';
+        }
+
+        // 8. ONGKIR
+        let allOngkir = [];
         async function renderOngkir() {
-             document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Ongkir</h3><button class="btn btn-primary" onclick="openOngkirModal()">+ Tambah</button></div><div class="table-container"><table><thead><tr><th>Tujuan</th><th>Ekspedisi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div></div>`;
+             document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Ongkir</h3>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                             <div class="search-wrapper"><input type="text" class="search-input" id="searchOngkir" placeholder="Cari kota, ekspedisi..." onkeyup="filterOngkir()"></div>
+                             <button class="btn btn-primary" onclick="openOngkirModal()">+ Tambah</button>
+                        </div>
+                    </div>
+                    <div class="table-container"><table><thead><tr><th>Tujuan</th><th>Ekspedisi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div>
+                </div>`;
             const { data } = await sb.from('ongkir').select('*');
-            document.getElementById('ongkirTable').innerHTML = data?.map(o => `
+            allOngkir = data || [];
+            filterOngkir();
+        }
+        function filterOngkir() {
+            const q = document.getElementById('searchOngkir')?.value;
+            const filtered = getFilteredRows(allOngkir, q);
+            document.getElementById('ongkirTable').innerHTML = filtered?.map(o => `
                 <tr>
                     <td>${o.tujuan}</td>
                     <td>${o.ekspedisi}</td>
@@ -704,7 +858,7 @@
         async function deleteOngkir(id) { if(!confirm("Hapus?")) return; await sb.from('ongkir').delete().eq('id', id); renderOngkir(); }
 
         // ==========================================
-        // 6. MODALS & ACTIONS
+        // 7. MODALS & ACTIONS
         // ==========================================
         
         function openModal(title, content) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalContent').innerHTML = content; document.getElementById('modalBox').classList.add('show'); }
