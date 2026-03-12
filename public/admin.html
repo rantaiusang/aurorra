@@ -796,7 +796,6 @@
                     </div>
                 </div>`;
             
-            // Hanya select data yang diperlukan, tanpa join products
             const { data, error } = await sb.from('purchasing').select('id, qty, harga, created_at').order('created_at', { ascending: false });
             
             if (error) {
@@ -827,12 +826,10 @@
             document.getElementById('purchaseTable').innerHTML = tbody;
         }
 
-        // Modal untuk Tambah (dengan pilihan produk) dan Edit (tanpa pilihan produk)
         async function openPurchaseModal(id = null) {
             let data = { qty: '', harga: '' };
             
             if (id) {
-                // Mode Edit: Ambil data dari cache
                 const found = allPurchasing.find(p => p.id === id);
                 if (found) data = found;
                 
@@ -850,7 +847,6 @@
                     </form>
                 `);
             } else {
-                // Mode Tambah: Perlu pilih produk
                 const { data: prods } = await sb.from('products').select('id, name'); 
                 const options = prods.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
                 
@@ -884,10 +880,8 @@
             const harga = parseFloat(document.getElementById('purPrice').value);
 
             if (id) {
-                // Update hanya qty dan harga
                 await sb.from('purchasing').update({ qty, harga }).eq('id', id);
             } else {
-                // Insert baru dengan product_id
                 const product_id = document.getElementById('purProd').value;
                 await sb.from('purchasing').insert([{ product_id, qty, harga }]);
             }
@@ -1036,7 +1030,9 @@
             document.getElementById('lowTable').innerHTML = filtered?.map(p => `<tr><td>${p.name}</td><td style="color: var(--danger)">${p.stock}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">Aman</td></tr>';
         }
 
-        // 8. ONGKIR
+        // ==========================================
+        // 8. ONGKIR (FIXED)
+        // ==========================================
         let allOngkir = [];
         async function renderOngkir() {
              document.getElementById('contentArea').innerHTML = `
@@ -1050,7 +1046,15 @@
                     </div>
                     <div class="table-container"><table><thead><tr><th>Asal</th><th>Tujuan</th><th>Ekspedisi</th><th>Estimasi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div>
                 </div>`;
-            const { data } = await sb.from('ongkir').select('*');
+            
+            // Mengambil data dengan error handling
+            const { data, error } = await sb.from('ongkir').select('*');
+            if(error){
+                console.error("Gagal ambil data ongkir:", error);
+                document.getElementById('ongkirTable').innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Gagal memuat data: ${error.message}</td></tr>`;
+                return;
+            }
+
             allOngkir = data || [];
             filterOngkir();
         }
@@ -1071,6 +1075,13 @@
                     </td>
                 </tr>
             `).join('') || '';
+        }
+
+        async function deleteOngkir(id) { 
+            if(!confirm("Hapus?")) return; 
+            const { error } = await sb.from('ongkir').delete().eq('id', id);
+            if(error) alert("Gagal menghapus: " + error.message);
+            renderOngkir(); 
         }
 
         async function renderSettings() {
@@ -1098,8 +1109,6 @@
             for(let p of payload) { await sb.from('settings').upsert(p, { onConflict: 'key' }); }
             alert("Tersimpan!");
         }
-
-        async function deleteOngkir(id) { if(!confirm("Hapus?")) return; await sb.from('ongkir').delete().eq('id', id); renderOngkir(); }
 
         // ==========================================
         // 7. MODALS & ACTIONS
@@ -1146,6 +1155,7 @@
         }
         
         async function openOngkirModal(id = null) {
+            // Set default values sesuai struktur tabel terakhir
             let data = { asal: 'jakarta', tujuan: '', ekspedisi: 'jne', tarif: '', estimasi: '2-3 hari' };
             if(id) { 
                 const res = await sb.from('ongkir').select('*').eq('id', id).single(); 
@@ -1178,22 +1188,39 @@
             `);
         }
         
+        // PERBAIKAN UTAMA: Menambahkan ID generator dan updated_at
         async function saveOngkir(e, id) { 
             e.preventDefault(); 
+            
             const payload = { 
                 asal: document.getElementById('ongkAsal').value, 
                 tujuan: document.getElementById('ongkDest').value, 
                 ekspedisi: document.getElementById('ongkEksp').value, 
                 estimasi: document.getElementById('ongkEst').value, 
-                tarif: parseFloat(document.getElementById('ongkTarif').value)
+                tarif: parseInt(document.getElementById('ongkTarif').value) || 0,
+                updated_at: new Date().toISOString() // Tambahkan timestamp
             }; 
+
+            let error = null;
+
             if(id) { 
-                await sb.from('ongkir').update(payload).eq('id', id); 
+                // Mode Edit
+                const res = await sb.from('ongkir').update(payload).eq('id', id); 
+                error = res.error;
             } else { 
-                await sb.from('ongkir').insert([payload]); 
+                // Mode Tambah - Generate UUID manual jika DB tidak otomatis
+                const newId = crypto.randomUUID(); // Generate UUID v4
+                const res = await sb.from('ongkir').insert([{ ...payload, id: newId }]); 
+                error = res.error;
             } 
-            closeModal(); 
-            renderOngkir(); 
+            
+            if(error) {
+                console.error("Save Error:", error);
+                alert("Gagal menyimpan data ongkir!\n\nPesan Error: " + error.message + "\n\nPastikan RLS Policy di Supabase diizinkan untuk INSERT.");
+            } else {
+                closeModal(); 
+                renderOngkir();
+            }
         }
 
         async function handleLogout() { if(confirm("Logout?")) { await sb.auth.signOut(); window.location.href = 'index.html'; } }
