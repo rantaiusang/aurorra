@@ -24,6 +24,7 @@
             --border-color: rgba(255, 255, 255, 0.1);
             --error-red: #ef4444;
             --error-bg: rgba(239, 68, 68, 0.1);
+            --success-green: #10b981;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -48,6 +49,8 @@
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
         }
         .logo {
             font-size: 1.4rem;
@@ -68,6 +71,7 @@
             justify-content: center;
             padding: 40px 20px;
             position: relative;
+            z-index: 2;
         }
         .glow-effect {
             position: absolute; width: 350px; height: 350px;
@@ -81,6 +85,8 @@
             background: var(--dark-card); width: 100%; max-width: 400px; padding: 45px 30px;
             border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); text-align: center;
             box-shadow: 0 20px 50px rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
         .spinner-wrapper { margin: 0 auto 30px; height: 70px; display: flex; align-items: center; justify-content: center; position: relative; }
         .spinner {
@@ -127,6 +133,72 @@
         .error-title { color: #fca5a5; font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         .error-msg { color: #e5e7eb; word-break: break-word; }
         .spin-anim { animation: spin 1s linear infinite; }
+
+        /* --- TAMBAHAN: LIVE ACTIVITY LOG STYLING --- */
+        .live-activity-log {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none; /* Agar tidak menghalangi klik */
+        }
+
+        .log-item {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border-left: 3px solid var(--success-green);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(-120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            max-width: 300px;
+            font-size: 0.8rem;
+        }
+
+        .log-item.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .log-item.fade-out {
+            transform: translateX(-120%);
+            opacity: 0;
+        }
+
+        .log-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .log-content {
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+        }
+        .log-name { font-weight: 600; color: var(--text-white); }
+        .log-action { color: var(--text-muted); font-size: 0.75rem; }
+        .log-time { color: var(--success-green); font-size: 0.7rem; margin-top: 2px; }
+
+        /* Responsive untuk Log */
+        @media (max-width: 600px) {
+            .live-activity-log { left: 10px; right: 10px; bottom: 10px; }
+            .log-item { max-width: 100%; font-size: 0.75rem; padding: 10px 15px; }
+        }
     </style>
 </head>
 <body>
@@ -165,6 +237,9 @@
             </div>
         </div>
     </div>
+
+    <!-- TAMBAHAN: CONTAINER UNTUK LOG AKTIVITAS -->
+    <div class="live-activity-log" id="live-log-container"></div>
 
     <script>
         // --- 1. KONFIGURASI SUPABASE ---
@@ -282,7 +357,7 @@
                 } else {
                     // TIDAK ADA SESSION -> TAMPILKAN TOMBOL LOGIN
                     console.log("ℹ️ Belum login. Tampilkan tombol.");
-                    ui.title.innerText = "Aurora Store";
+                    ui.title.innerText = "Aurora Storee";
                     ui.desc.innerText = "Masuk untuk mengakses koleksi eksklusif.";
                     ui.spinner.style.display = 'none';
                     document.querySelector('.pi-icon').style.display = 'none';
@@ -301,7 +376,84 @@
             }
         }
 
-        window.onload = checkSession;
+        // --- 4. ANALYTICS TRACKER (TAMBAHAN) ---
+        async function trackPageView() {
+            try {
+                await sb.from('page_views').insert([{
+                    page_url: window.location.pathname, // e.g., /login.html
+                    user_agent: navigator.userAgent
+                }]);
+                console.log("📊 Analytics tracked: Login Page");
+            } catch (e) {
+                console.warn("Analytics error:", e.message);
+            }
+        }
+
+        // --- 5. LIVE ACTIVITY LOG (TAMBAHAN) ---
+        const dummyUsers = [
+            "Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko",
+            "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi",
+            "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu",
+            "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino",
+            "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga"
+        ];
+
+        const dummyProducts = [
+            "Aurorra Rouge", "Mystic Night", "Royal Oud", "Velvet Rose", "Ocean Breeze", 
+            "Golden Sunset", "Midnight Noir", "Cherry Blossom", "Amber Musk", "Fresh Citrus",
+            "Dark Desire", "Pure White", "Blue Ocean", "Pink Paradise", "Silver Rain"
+        ];
+
+        function showRandomActivity() {
+            const container = document.getElementById('live-log-container');
+            
+            // 1. Pilih data random
+            const name = dummyUsers[Math.floor(Math.random() * dummyUsers.length)];
+            const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
+            const time = Math.floor(Math.random() * 5) + 1; // 1-5 menit lalu
+
+            // 2. Buat elemen log
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = `
+                <div class="log-icon">🛍️</div>
+                <div class="log-content">
+                    <span class="log-name">${name}</span>
+                    <span class="log-action">Membeli ${product}</span>
+                    <span class="log-time">${time} menit yang lalu</span>
+                </div>
+            `;
+
+            // 3. Tambahkan ke container
+            container.prepend(logItem); // Prepend agar yang baru di atas (posisi container bottom-up)
+
+            // 4. Trigger animasi masuk (sedikit delay untuk render)
+            setTimeout(() => {
+                logItem.classList.add('show');
+            }, 50);
+
+            // 5. Hapus setelah beberapa detik
+            setTimeout(() => {
+                logItem.classList.remove('show');
+                logItem.classList.add('fade-out');
+                // Hapus dari DOM setelah animasi selesai
+                setTimeout(() => {
+                    logItem.remove();
+                }, 500);
+            }, 4000); // Tampil selama 4 detik
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            checkSession();
+            trackPageView(); // Jalankan analytics
+            
+            // Jalankan Live Log dengan interval acak (antara 5 - 10 detik)
+            showRandomActivity(); // Langsung tampilkan pertama kali
+            setInterval(() => {
+                showRandomActivity();
+            }, (Math.floor(Math.random() * 6) + 5) * 1000); // Random interval 5-10 detik
+        };
     </script>
 </body>
 </html>
