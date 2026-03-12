@@ -10,7 +10,7 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- DOKU CHECKOUT JS -->
+    <!-- DOKU CHECKOUT JS (Opsional, jika butuh loadJokulCheckout) -->
     <script src="https://jokul.doku.com/checkout-jokul.min.js"></script>
 
     <style>
@@ -53,7 +53,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; text-align: center;
         }
         
-        /* GANTI: Logo Visual (Bukan Pi Network) */
         .checkout-visual { 
             width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; 
             background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
@@ -84,25 +83,8 @@
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
         
-        /* PERBAIKAN: Search Box Lebih Besar */
-        .search-box { 
-            padding: 15px; /* Padding container diperbesar */
-            position: sticky; 
-            top: 0; 
-            background: #1e1e1e; 
-            z-index: 1; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-        }
-        .search-box input { 
-            width: 100%; 
-            padding: 12px 15px; /* Padding input diperbesar */
-            background: rgba(255, 255, 255, 0.1); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            border-radius: 6px; 
-            color: white; 
-            box-sizing: border-box; 
-            font-size: 1rem; /* Font size diperbesar agar mudah dibaca */
-        }
+        .search-box { padding: 15px; position: sticky; top: 0; background: #1e1e1e; z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .search-box input { width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: white; box-sizing: border-box; font-size: 1rem; }
 
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
         .option:hover { background: rgba(212, 175, 55, 0.2); color: var(--luxury-gold); }
@@ -132,47 +114,20 @@
 
         /* VOUCHER POPUP STYLES */
         .voucher-popup-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+            padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s ease;
         }
         .voucher-popup-overlay.show { opacity: 1; visibility: visible; }
         
         .voucher-popup-card {
-            background: linear-gradient(145deg, #1a1620, #0f0c15);
-            border: 2px solid var(--luxury-gold);
-            border-radius: 20px;
-            width: 100%;
-            max-width: 400px;
-            padding: 30px;
-            text-align: center;
-            transform: scale(0.8);
-            transition: transform 0.3s ease;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+            background: linear-gradient(145deg, #1a1620, #0f0c15); border: 2px solid var(--luxury-gold);
+            border-radius: 20px; width: 100%; max-width: 400px; padding: 30px; text-align: center;
+            transform: scale(0.8); transition: transform 0.3s ease; box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
         }
         .voucher-popup-overlay.show .voucher-popup-card { transform: scale(1); }
 
-        .popup-badge {
-            display: inline-block;
-            background: var(--danger-color);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-        
+        .popup-badge { display: inline-block; background: var(--danger-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 15px; text-transform: uppercase; }
         .popup-icon { font-size: 3rem; margin-bottom: 15px; animation: bounce 2s infinite; }
         .popup-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #fff; margin-bottom: 10px; }
         .popup-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 25px; line-height: 1.5; }
@@ -181,32 +136,16 @@
         
         .btn-popup-primary { background: var(--luxury-gold); color: #000; padding: 14px; border-radius: 50px; font-weight: 700; text-decoration: none; transition: 0.2s; }
         .btn-popup-primary:hover { background: #fff; }
-        
         .btn-popup-secondary { background: transparent; color: #888; border: none; padding: 10px; cursor: pointer; font-size: 0.9rem; }
         .btn-popup-secondary:hover { color: #fff; text-decoration: underline; }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
-        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
 
-        /* STATIC HELP BUTTON */
-        .help-footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #666;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding-top: 20px;
-        }
+        .help-footer { margin-top: 20px; text-align: center; font-size: 0.85rem; color: #666; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
         .help-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
         .help-footer a:hover { color: var(--luxury-gold); text-decoration: underline; }
 
-        @media (max-width: 480px) {
-            .payment-card { padding: 25px 20px; }
-            .voucher-popup-card { padding: 20px; }
-        }
+        @media (max-width: 480px) { .payment-card { padding: 25px 20px; } .voucher-popup-card { padding: 20px; } }
     </style>
 </head>
 <body>
@@ -221,13 +160,8 @@
             
             <!-- VIEW 1: CHECKOUT FORM -->
             <div id="checkoutView">
-                <!-- PERBAIKAN: Logo diganti Shopping Bag -->
                 <div class="checkout-visual">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                 </div>
                 <h2>Checkout Pesanan</h2>
                 <p class="sub-text">Lengkapi data alamat pengiriman.</p>
@@ -251,10 +185,7 @@
                     <div class="item-summary"><div id="summaryList"><div style="text-align:center; color:#888;">Memuat...</div></div></div>
                     <div class="total-display"><span>Total Tagihan</span><span class="total-amount" id="displayTotal">Rp 0</span></div>
                     <button type="submit" class="btn-pay" id="btnProceed" disabled>Lanjut ke Pembayaran</button>
-                    
-                    <div class="help-footer">
-                        Butuh bantuan? <a href="https://wa.me/628133039866?text=Halo%20Admin%20Aurorra" target="_blank">Hubungi Admin</a>
-                    </div>
+                    <div class="help-footer">Butuh bantuan? <a href="https://wa.me/628133039866?text=Halo%20Admin%20Aurorra" target="_blank">Hubungi Admin</a></div>
                 </form>
             </div>
 
@@ -277,10 +208,7 @@
             <div class="popup-badge">🎉 Penawaran Spesial</div>
             <div class="popup-icon">🎁</div>
             <h3 class="popup-title">Selamat! Kesempatan Hemat</h3>
-            <p class="popup-desc">
-                Terdeteksi Anda belum menggunakan voucher. <br>
-                Dapatkan potongan <span class="popup-highlight">Rp 10.000</span> untuk pesanan ini!
-            </p>
+            <p class="popup-desc">Terdeteksi Anda belum menggunakan voucher. <br>Dapatkan potongan <span class="popup-highlight">Rp 10.000</span> untuk pesanan ini!</p>
             <div class="popup-actions">
                 <a href="voucher.html" class="btn-popup-primary">Klaim Voucher Sekarang</a>
                 <button class="btn-popup-secondary" id="btnSkipVoucher">Lewati, Bayar Penuh</button>
@@ -294,7 +222,9 @@
         // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
-        const { createClient } = supabase;
+        
+        // Pastikan inisialisasi benar
+        const { createClient } = window.supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Global State
@@ -304,7 +234,6 @@
         let currentUser = null;
         let selectedShippingData = null;
         let finalPayload = null; 
-        let isVoucherApplied = false;
 
         // ==========================================
         // 2. HELPER FUNCTIONS
@@ -340,7 +269,15 @@
 
         async function loadShippingCost() {
             const city = cityInputHidden.value; if(!city) return;
-            try { const { data } = await supabaseClient.from("ongkir").select("tarif, ekspedisi, estimasi").eq("tujuan", city).eq("ekspedisi", "jne").single(); if(data) { shippingCost = parseInt(data.tarif) || 0; selectedShippingData = data; document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost); updateFinalTotal(); } } catch (e) { console.error(e); }
+            try { 
+                const { data } = await supabaseClient.from("ongkir").select("tarif, ekspedisi, estimasi").eq("tujuan", city).eq("ekspedisi", "jne").single(); 
+                if(data) { 
+                    shippingCost = parseInt(data.tarif) || 0; 
+                    selectedShippingData = data; 
+                    document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost); 
+                    updateFinalTotal(); 
+                } 
+            } catch (e) { console.error(e); }
         }
 
         function updateFinalTotal() {
@@ -352,17 +289,11 @@
                     if (v.active && v.discount) discount = v.discount;
                 } catch(e) {}
             }
-
             const finalTotal = (currentTotal + shippingCost) - discount;
-            
             const displayTotalEl = document.getElementById('displayTotal');
             displayTotalEl.innerText = formatPrice(finalTotal);
-
             if (discount > 0) {
                 displayTotalEl.innerHTML = `<small style="display:block; font-size:0.7rem; color:#2ecc71; margin-bottom:5px;">(Potongan Rp 10.000)</small>${formatPrice(finalTotal)}`;
-                isVoucherApplied = true;
-            } else {
-                isVoucherApplied = false;
             }
         }
 
@@ -371,7 +302,6 @@
         // ==========================================
         async function initCheckout() {
             await loadCities();
-            
             const payBtn = document.getElementById('btnProceed');
             const errorBox = document.getElementById('error-message');
 
@@ -401,7 +331,7 @@
         }
 
         // ==========================================
-        // 5. HANDLE PROCEED TO CONFIRM
+        // 5. HANDLE PROCEED TO CONFIRM (SESUAI BACKEND)
         // ==========================================
         async function handleProceedToConfirm(event) {
             event.preventDefault();
@@ -419,6 +349,7 @@
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
 
+            // Hitung diskon
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
             if (savedVoucher) { try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} }
@@ -426,11 +357,22 @@
             const finalBill = (currentTotal + shippingCost) - discount;
             const invoiceNumber = `INV-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.floor(Math.random() * 10000)}`;
 
+            // ==================================================
+            // SESUAIKAN DENGAN EDGE FUNCTION (create-payment)
+            // ==================================================
             finalPayload = {
-                invoiceNumber, amount: finalBill, customerName: fullName, customerEmail: currentUser.email,
-                customerPhone: phone, customerAddress: `${address}, ${city}`, shippingCost,
-                ekspedisi: selectedShippingData?.ekspedisi, estimasi: selectedShippingData?.estimasi, kota: city,
-                items: cartItems, userId: currentUser.id, discount
+                invoiceNumber: invoiceNumber,
+                amount: finalBill, // Total akhir (sudah dikurang diskon)
+                customerName: fullName,
+                customerEmail: currentUser.email, // Ambil dari session
+                customerPhone: phone,
+                customerAddress: `${address}, ${city}`,
+                shippingCost: shippingCost,
+                ekspedisi: selectedShippingData?.ekspedisi || 'jne',
+                estimasi: selectedShippingData?.estimasi || '-',
+                kota: city,
+                items: cartItems,
+                userId: currentUser.id
             };
 
             localStorage.setItem('aurora_pending_order', JSON.stringify({...finalPayload, status: 'pending'}));
@@ -459,15 +401,12 @@
 
         btnPay.addEventListener('click', async function(e) {
             e.preventDefault();
-            e.stopPropagation();
-
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             
             if (!savedVoucher) {
                 voucherPopup.classList.add('show');
                 return;
             }
-
             proceedToPaymentGateway();
         });
 
@@ -490,6 +429,7 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session) throw new Error("Sesi habis. Login ulang.");
 
+                // PANGGIL EDGE FUNCTION
                 const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
                     method: "POST",
                     headers: { 
@@ -501,15 +441,14 @@
                 });
 
                 const result = await response.json();
-                if (!response.ok) throw new Error(result.message || "Gagal memproses pembayaran.");
+                if (!response.ok) throw new Error(result.error || "Gagal memproses pembayaran.");
                 
-                const paymentUrl = result.payment?.url || result.paymentUrl;
+                // AMBIL URL DARI RESPONSE BACKEND
+                const paymentUrl = result.paymentUrl; // Sesuai return di Edge Function
                 if (!paymentUrl) throw new Error("URL Pembayaran tidak ditemukan.");
 
                 localStorage.removeItem('aurora_pending_order');
-
-                if (typeof loadJokulCheckout === 'function') loadJokulCheckout(paymentUrl);
-                else window.location.href = paymentUrl;
+                window.location.href = paymentUrl;
 
             } catch (err) {
                 console.error(err);
