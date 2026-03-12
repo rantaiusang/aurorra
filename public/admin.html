@@ -243,7 +243,7 @@
             <a class="nav-link" data-tab="products"><span>🛍️</span> Produk</a>
             <a class="nav-link" data-tab="purchasing"><span>📥</span> Purchasing</a>
             <a class="nav-link" data-tab="orders"><span>🛒</span> Pesanan</a>
-            <a class="nav-link" data-tab="shipping"><span>📦</span> Pengiriman</a> <!-- Menu Baru -->
+            <a class="nav-link" data-tab="shipping"><span>📦</span> Pengiriman</a>
             <a class="nav-link" data-tab="customers"><span>👤</span> Pelanggan</a>
             <a class="nav-link" data-tab="vouchers"><span>🎟️</span> Voucher</a>
             <a class="nav-link" data-tab="lowstock"><span>⚠️</span> Stok Menipis</a>
@@ -367,7 +367,7 @@
                 products: 'Manajemen Produk', 
                 purchasing: 'Stok Masuk', 
                 orders: 'Pesanan', 
-                shipping: 'Pengiriman', // Baru
+                shipping: 'Pengiriman', 
                 customers: 'Pelanggan', 
                 vouchers: 'Voucher', 
                 lowstock: 'Stok Menipis', 
@@ -385,7 +385,7 @@
                 case 'products': renderProducts(); break;
                 case 'purchasing': renderPurchasing(); break;
                 case 'orders': renderOrders(); break;
-                case 'shipping': renderShipping(); break; // Baru
+                case 'shipping': renderShipping(); break; 
                 case 'customers': renderCustomers(); break; 
                 case 'vouchers': renderVouchers(); break;
                 case 'lowstock': renderLowStock(); break;
@@ -603,23 +603,70 @@
             document.getElementById('orderTable').innerHTML = data?.map(o => `<tr><td>#${String(o.id).slice(0,6)}</td><td>${o.customer_name}</td><td>${formatPrice(o.total_amount)}</td><td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td><td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Detail</button></td></tr>`).join('') || '';
         }
 
-        // --- RENDER SHIPPING (MENU BARU) ---
+        // --- RENDER SHIPPING (FIXED) ---
         async function renderShipping() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Data Pengiriman</h3></div><p style="font-size:0.8rem; color:var(--text-gray); margin-bottom:15px;">Menampilkan pesanan yang sudah diinput kurir dan resinya.</p><div class="table-container"><table><thead><tr><th>ID</th><th>Pelanggan</th><th>Kurir</th><th>No. Resi</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="shipTable"></tbody></table></div></div>`;
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card-section">
+                    <div class="section-header"><h3 class="section-title">Manajemen Pengiriman</h3></div>
+                    <p style="font-size:0.85rem; color:var(--text-gray); margin-bottom:15px;">
+                        Daftar pesanan yang perlu dikirim (<span style="color:var(--warning)">Paid</span>) atau sedang dalam pengiriman (<span style="color:var(--success)">Shipping</span>).
+                    </p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID Order</th>
+                                    <th>Pelanggan</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Kurir / Resi</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shipTable"></tbody>
+                        </table>
+                    </div>
+                </div>`;
             
-            // Filter pesanan yang kolom courier dan tracking_number TIDAK null
-            const { data } = await sb.from('orders').select('*').not('courier', 'is', null).not('tracking_number', 'is', null).order('created_at', { ascending: false });
-            
-            document.getElementById('shipTable').innerHTML = data?.map(o => `
+            // Filter: Ambil pesanan Paid (butuh kirim) atau Shipping (sudah input resi)
+            const { data } = await sb.from('orders')
+                .select('*')
+                .in('status', ['paid', 'shipping']) 
+                .order('created_at', { ascending: true });
+
+            if(!data || data.length === 0) {
+                document.getElementById('shipTable').innerHTML = '<tr><td colspan="6" style="text-align:center">Tidak ada pesanan yang perlu dikirim saat ini.</td></tr>';
+                return;
+            }
+
+            const rows = data.map(o => {
+                const isShipping = o.status === 'shipping' && o.tracking_number;
+                let infoKirim = '-';
+                if(isShipping) {
+                    infoKirim = `<span class="badge badge-info">${o.courier}</span> <br> <span style="font-size:0.8rem; font-family:monospace;">${o.tracking_number}</span>`;
+                } else {
+                    infoKirim = `<span style="color:var(--warning); font-style:italic;">Menunggu Input</span>`;
+                }
+
+                return `
                 <tr>
                     <td>#${String(o.id).slice(0,6)}</td>
-                    <td>${o.customer_name}</td>
-                    <td><span class="badge badge-info">${o.courier || '-'}</span></td>
-                    <td style="font-family: monospace; letter-spacing: 1px;">${o.tracking_number || '-'}</td>
-                    <td><span class="badge badge-${o.status === 'completed' ? 'success' : 'warning'}">${o.status}</span></td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openOrderDetail('${o.id}')">Update</button></td>
+                    <td>
+                        ${o.customer_name} <br>
+                        <span style="font-size:0.75rem; color:var(--text-gray)">${o.customer_address || '-'}</span>
+                    </td>
+                    <td>${formatPrice(o.total_amount)}</td>
+                    <td><span class="badge badge-${o.status === 'shipping' ? 'success' : 'warning'}">${o.status}</span></td>
+                    <td>${infoKirim}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="openOrderDetail('${o.id}')">
+                            ${isShipping ? 'Update Resi' : 'Input Resi'}
+                        </button>
+                    </td>
                 </tr>
-            `).join('') || '<tr><td colspan="6" style="text-align:center">Belum ada data pengiriman. Input di menu Pesanan.</td></tr>';
+            `}).join('');
+
+            document.getElementById('shipTable').innerHTML = rows;
         }
 
         async function renderLowStock() {
