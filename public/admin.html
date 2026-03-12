@@ -795,7 +795,9 @@
             document.getElementById('lowTable').innerHTML = filtered?.map(p => `<tr><td>${p.name}</td><td style="color: var(--danger)">${p.stock}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">Aman</td></tr>';
         }
 
-        // 8. ONGKIR
+        // ==========================================
+        // 8. ONGKIR (UPDATED TO MATCH TABLE SCHEMA)
+        // ==========================================
         let allOngkir = [];
         async function renderOngkir() {
              document.getElementById('contentArea').innerHTML = `
@@ -803,23 +805,26 @@
                     <div class="section-header">
                         <h3 class="section-title">Ongkir</h3>
                         <div style="display:flex; gap:10px; align-items:center;">
-                             <div class="search-wrapper"><input type="text" class="search-input" id="searchOngkir" placeholder="Cari kota, ekspedisi..." onkeyup="filterOngkir()"></div>
+                             <div class="search-wrapper"><input type="text" class="search-input" id="searchOngkir" placeholder="Cari asal, tujuan, ekspedisi..." onkeyup="filterOngkir()"></div>
                              <button class="btn btn-primary" onclick="openOngkirModal()">+ Tambah</button>
                         </div>
                     </div>
-                    <div class="table-container"><table><thead><tr><th>Tujuan</th><th>Ekspedisi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div>
+                    <div class="table-container"><table><thead><tr><th>Asal</th><th>Tujuan</th><th>Ekspedisi</th><th>Estimasi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div>
                 </div>`;
             const { data } = await sb.from('ongkir').select('*');
             allOngkir = data || [];
             filterOngkir();
         }
+        
         function filterOngkir() {
             const q = document.getElementById('searchOngkir')?.value;
             const filtered = getFilteredRows(allOngkir, q);
             document.getElementById('ongkirTable').innerHTML = filtered?.map(o => `
                 <tr>
+                    <td>${o.asal || '-'}</td>
                     <td>${o.tujuan}</td>
                     <td>${o.ekspedisi}</td>
+                    <td>${o.estimasi || '-'}</td>
                     <td>${formatPrice(o.tarif)}</td>
                     <td>
                         <button class="btn btn-outline btn-sm" onclick="openOngkirModal('${o.id}')">Edit</button> 
@@ -828,7 +833,7 @@
                 </tr>
             `).join('') || '';
         }
-        
+
         async function renderSettings() {
             const { data: settings } = await sb.from('settings').select('*');
             const getVal = (key) => settings?.find(s => s.key === key)?.value || '';
@@ -910,14 +915,22 @@
             if(activeTab === 'shipping') renderShipping(); else renderOrders();
         }
         
+        // UPDATED: Modal Ongkir sesuai tabel baru
         async function openOngkirModal(id = null) {
-            let data = { tujuan: '', ekspedisi: '', tarif: '' };
+            // Default values sesuai database definition
+            let data = { asal: 'jakarta', tujuan: '', ekspedisi: 'jne', tarif: '', estimasi: '2-3 hari' };
+            
             if(id) { 
                 const res = await sb.from('ongkir').select('*').eq('id', id).single(); 
                 if(res.data) data = res.data; 
             }
+            
             openModal(id ? 'Edit Ongkir' : 'Tambah Ongkir', `
                 <form onsubmit="saveOngkir(event, '${id || ''}')">
+                    <div class="form-group">
+                        <label class="form-label">Kota Asal</label>
+                        <input type="text" class="form-input" id="ongkAsal" value="${data.asal}" required>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Kota Tujuan</label>
                         <input type="text" class="form-input" id="ongkDest" value="${data.tujuan}" required>
@@ -925,6 +938,10 @@
                     <div class="form-group">
                         <label class="form-label">Ekspedisi</label>
                         <input type="text" class="form-input" id="ongkEksp" value="${data.ekspedisi}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estimasi</label>
+                        <input type="text" class="form-input" id="ongkEst" value="${data.estimasi}" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Tarif</label>
@@ -935,11 +952,14 @@
             `);
         }
         
+        // UPDATED: Save Ongkir dengan field baru
         async function saveOngkir(e, id) { 
             e.preventDefault(); 
             const payload = { 
+                asal: document.getElementById('ongkAsal').value, 
                 tujuan: document.getElementById('ongkDest').value, 
                 ekspedisi: document.getElementById('ongkEksp').value, 
+                estimasi: document.getElementById('ongkEst').value, 
                 tarif: parseFloat(document.getElementById('ongkTarif').value)
             }; 
             if(id) { 
