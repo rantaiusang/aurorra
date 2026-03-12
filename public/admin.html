@@ -266,7 +266,7 @@
             <a class="nav-link active" data-tab="dashboard"><span>🏠</span> Dashboard</a>
             <a class="nav-link" data-tab="analytics"><span>📊</span> Analytics</a>
             <a class="nav-link" data-tab="products"><span>🛍️</span> Produk</a>
-            <a class="nav-link" data-tab="parfum"><span>🧴</span> Stok Parfum</a> <!-- Menu Baru -->
+            <a class="nav-link" data-tab="parfum"><span>🧴</span> Stok Parfum</a>
             <a class="nav-link" data-tab="purchasing"><span>📥</span> Purchasing</a>
             <a class="nav-link" data-tab="orders"><span>🛒</span> Pesanan</a>
             <a class="nav-link" data-tab="shipping"><span>📦</span> Pengiriman</a>
@@ -409,7 +409,7 @@
                 dashboard: 'Dashboard', 
                 analytics: 'Analitik Pengunjung', 
                 products: 'Manajemen Produk', 
-                parfum: 'Stok Parfum', // Title Baru
+                parfum: 'Stok Parfum',
                 purchasing: 'Stok Masuk', 
                 orders: 'Pesanan', 
                 shipping: 'Pengiriman', 
@@ -428,7 +428,7 @@
                 case 'dashboard': renderDashboard(); break;
                 case 'analytics': renderAnalytics(); break;
                 case 'products': renderProducts(); break;
-                case 'parfum': renderParfum(); break; // Case Baru
+                case 'parfum': renderParfum(); break;
                 case 'purchasing': renderPurchasing(); break;
                 case 'orders': renderOrders(); break;
                 case 'shipping': renderShipping(); break; 
@@ -640,7 +640,7 @@
         async function deleteProduct(id) { if(!confirm("Hapus?")) return; await sb.from('products').delete().eq('id', id); renderProducts(); }
 
         // ==========================================
-        // PARFUM STOCK IMPLEMENTATION (NEW)
+        // PARFUM STOCK IMPLEMENTATION
         // ==========================================
         let allParfum = [];
         async function renderParfum() {
@@ -672,13 +672,11 @@
                     </div>
                 </div>`;
             
-            // Ambil data dari tabel 'stok_parfum' (sesuai skema)
-            // Error handling jika tabel belum ada atau salah nama
             const { data, error } = await sb.from('stok_parfum').select('*').order('created_at', { ascending: false });
             
             if (error) {
                 console.error(error);
-                document.getElementById('parfumTable').innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Gagal memuat data. Pastikan tabel 'stok_parfum' sudah dibuat di Supabase.</td></tr>`;
+                document.getElementById('parfumTable').innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Gagal memuat data.</td></tr>`;
                 return;
             }
             
@@ -711,10 +709,6 @@
                 const res = await sb.from('stok_parfum').select('*').eq('id', id).single(); 
                 if(res.data) data = res.data; 
             }
-            
-            // Ambil daftar produk untuk dropdown relasi (opsional, jika product_id diperlukan)
-            // Jika product_id tidak wajib diisi manual, bisa diabaikan atau auto-fill. 
-            // Di sini kita buat input manual sesuai skema (bigint).
             
             openModal(id ? 'Edit Parfum' : 'Tambah Parfum', `
                 <form onsubmit="saveParfum(event, '${id || ''}')">
@@ -774,37 +768,143 @@
         }
 
         // ==========================================
-        // END OF PARFUM
+        // PURCHASING (UPDATED - TANPA NAMA PRODUK)
         // ==========================================
-
-        // 2. PURCHASING
         let allPurchasing = [];
         async function renderPurchasing() {
             document.getElementById('contentArea').innerHTML = `
                 <div class="card-section">
                     <div class="section-header">
-                        <h3 class="section-title">Stok Masuk</h3>
+                        <h3 class="section-title">Stok Masuk (Purchasing)</h3>
                         <div style="display:flex; gap:10px; align-items:center;">
-                             <div class="search-wrapper"><input type="text" class="search-input" id="searchPurchasing" placeholder="Cari nama produk..." onkeyup="filterPurchasing()"></div>
+                             <div class="search-wrapper"><input type="text" class="search-input" id="searchPurchasing" placeholder="Cari data..." onkeyup="filterPurchasing()"></div>
                              <button class="btn btn-primary" onclick="openPurchaseModal()">+ Tambah</button>
                         </div>
                     </div>
-                    <div class="table-container"><table><thead><tr><th>Produk</th><th>Qty</th><th>Harga Modal</th><th>Tanggal</th></tr></thead><tbody id="purchaseTable"></tbody></table></div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Qty</th>
+                                    <th>Harga Beli</th>
+                                    <th>Tanggal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchaseTable"></tbody>
+                        </table>
+                    </div>
                 </div>`;
-            const { data } = await sb.from('purchasing').select('qty, harga, created_at, products(name)');
+            
+            // Hanya select data yang diperlukan, tanpa join products
+            const { data, error } = await sb.from('purchasing').select('id, qty, harga, created_at').order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error(error);
+                document.getElementById('purchaseTable').innerHTML = `<tr><td colspan="4" style="color:var(--danger)">Gagal memuat data.</td></tr>`;
+                return;
+            }
+
             allPurchasing = data || [];
             filterPurchasing();
         }
+        
         function filterPurchasing() {
             const q = document.getElementById('searchPurchasing')?.value;
             const filtered = getFilteredRows(allPurchasing, q);
-            // Custom filter for nested product name
-            const qLow = q?.toLowerCase() || '';
-            const finalData = filtered.filter(p => !q || (p.products?.name?.toLowerCase().includes(qLow) || String(p.qty).includes(qLow)));
 
-            const tbody = finalData?.map(p => `<tr><td>${p.products?.name || '-'}</td><td>+${p.qty}</td><td>${formatPrice(p.harga)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('') || '<tr><td colspan="4">No data</td></tr>';
+            const tbody = filtered?.map(p => `
+                <tr>
+                    <td>+${p.qty}</td>
+                    <td>${formatPrice(p.harga)}</td>
+                    <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openPurchaseModal('${p.id}')">Edit</button> 
+                        <button class="btn btn-danger btn-sm" onclick="deletePurchase('${p.id}')">Hapus</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="4">No data</td></tr>';
             document.getElementById('purchaseTable').innerHTML = tbody;
         }
+
+        // Modal untuk Tambah (dengan pilihan produk) dan Edit (tanpa pilihan produk)
+        async function openPurchaseModal(id = null) {
+            let data = { qty: '', harga: '' };
+            
+            if (id) {
+                // Mode Edit: Ambil data dari cache
+                const found = allPurchasing.find(p => p.id === id);
+                if (found) data = found;
+                
+                openModal('Edit Pembelian', `
+                    <form onsubmit="savePurchase(event, '${id}')">
+                        <div class="form-group">
+                            <label>Qty</label>
+                            <input type="number" class="form-input" id="purQty" value="${data.qty}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Beli</label>
+                            <input type="number" class="form-input" id="purPrice" value="${data.harga}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Update</button>
+                    </form>
+                `);
+            } else {
+                // Mode Tambah: Perlu pilih produk
+                const { data: prods } = await sb.from('products').select('id, name'); 
+                const options = prods.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                
+                openModal('Catat Pembelian Baru', `
+                    <form onsubmit="savePurchase(event)">
+                        <div class="form-group">
+                            <label>Produk</label>
+                            <select class="form-input" id="purProd" required>
+                                <option value="">Pilih...</option>
+                                ${options}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Qty</label>
+                            <input type="number" class="form-input" id="purQty" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Beli</label>
+                            <input type="number" class="form-input" id="purPrice" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Simpan</button>
+                    </form>
+                `);
+            }
+        }
+
+        async function savePurchase(e, id) {
+            e.preventDefault(); 
+            
+            const qty = parseInt(document.getElementById('purQty').value);
+            const harga = parseFloat(document.getElementById('purPrice').value);
+
+            if (id) {
+                // Update hanya qty dan harga
+                await sb.from('purchasing').update({ qty, harga }).eq('id', id);
+            } else {
+                // Insert baru dengan product_id
+                const product_id = document.getElementById('purProd').value;
+                await sb.from('purchasing').insert([{ product_id, qty, harga }]);
+            }
+            
+            closeModal(); 
+            renderPurchasing();
+        }
+
+        async function deletePurchase(id) { 
+            if(!confirm("Hapus data pembelian ini?")) return; 
+            await sb.from('purchasing').delete().eq('id', id); 
+            renderPurchasing(); 
+        }
+
+        // ==========================================
+        // END OF PURCHASING
+        // ==========================================
 
         // 3. PESANAN
         let allOrders = [];
@@ -1017,15 +1117,6 @@
         async function saveProduct(e, id) {
             e.preventDefault(); const payload = { name: document.getElementById('inpName').value, price: parseFloat(document.getElementById('inpPrice').value), image_url: document.getElementById('inpImage').value, category: document.getElementById('inpCat').value };
             if(id) { await sb.from('products').update(payload).eq('id', id); } else { await sb.from('products').insert([payload]); } closeModal(); renderProducts();
-        }
-
-        async function openPurchaseModal() {
-            const { data: prods } = await sb.from('products').select('id, name'); const options = prods.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            openModal('Catat Pembelian', `<form onsubmit="savePurchase(event)"><div class="form-group"><label>Produk</label><select class="form-input" id="purProd" required><option value="">Pilih...</option>${options}</select></div><div class="form-group"><label>Qty</label><input type="number" class="form-input" id="purQty" required></div><div class="form-group"><label>Harga Modal</label><input type="number" class="form-input" id="purPrice" required></div><button type="submit" class="btn btn-primary" style="width:100%">Simpan</button></form>`);
-        }
-
-        async function savePurchase(e) {
-            e.preventDefault(); const payload = { product_id: document.getElementById('purProd').value, qty: parseInt(document.getElementById('purQty').value), harga: parseFloat(document.getElementById('purPrice').value) }; await sb.from('purchasing').insert([payload]); closeModal(); renderPurchasing();
         }
 
         async function openOrderDetail(id) {
