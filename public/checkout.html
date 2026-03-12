@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -21,8 +20,6 @@
             --card-bg: #1a1620; 
             --danger-color: #ff4d4d; 
             --info-color: #3498db; 
-            --wa-green: #25D366;
-            --wa-dark: #128C7E;
             --success-color: #2ecc71;
         }
         body { 
@@ -56,7 +53,15 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; text-align: center;
         }
         
-        .coin-visual { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; background: linear-gradient(135deg, var(--luxury-gold), #b8860b); display: flex; justify-content: center; align-items: center; font-size: 2rem; color: white; font-weight: bold; }
+        /* GANTI: Logo Visual (Bukan Pi Network) */
+        .checkout-visual { 
+            width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; 
+            background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        .checkout-visual svg { width: 28px; height: 28px; stroke: white; stroke-width: 2; fill: none; }
+
         .payment-logo { width: 80px; height: 80px; margin: 0 auto 30px; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #FFD700, #FDB931); border-radius: 50%; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
         .payment-logo svg { width: 50%; height: 50%; fill: #000; }
 
@@ -78,8 +83,27 @@
         .custom-select-trigger::after { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--luxury-gold); margin-right: 5px; }
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
-        .search-box { padding: 10px; position: sticky; top: 0; background: #1e1e1e; z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .search-box input { width: 100%; padding: 8px 10px; background: rgba(255,255,255, 0.1); border: 1px solid rgba(255,255,255, 0.2); border-radius: 4px; color: white; box-sizing: border-box; }
+        
+        /* PERBAIKAN: Search Box Lebih Besar */
+        .search-box { 
+            padding: 15px; /* Padding container diperbesar */
+            position: sticky; 
+            top: 0; 
+            background: #1e1e1e; 
+            z-index: 1; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .search-box input { 
+            width: 100%; 
+            padding: 12px 15px; /* Padding input diperbesar */
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 6px; 
+            color: white; 
+            box-sizing: border-box; 
+            font-size: 1rem; /* Font size diperbesar agar mudah dibaca */
+        }
+
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
         .option:hover { background: rgba(212, 175, 55, 0.2); color: var(--luxury-gold); }
         .option.selected { color: var(--luxury-gold); font-weight: 600; background: rgba(212, 175, 55, 0.1); }
@@ -106,9 +130,7 @@
         .error-box { display:none; background:rgba(255, 77, 77, 0.1); border: 1px solid var(--danger-color); color:#ffcccc; padding:15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.85rem; }
         .hidden { display: none !important; }
 
-        /* ==========================================
-           NEW: SMART VOUCHER POPUP STYLES
-           ========================================== */
+        /* VOUCHER POPUP STYLES */
         .voucher-popup-overlay {
             position: fixed;
             inset: 0;
@@ -123,10 +145,7 @@
             visibility: hidden;
             transition: all 0.3s ease;
         }
-        .voucher-popup-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
+        .voucher-popup-overlay.show { opacity: 1; visibility: visible; }
         
         .voucher-popup-card {
             background: linear-gradient(145deg, #1a1620, #0f0c15);
@@ -139,12 +158,8 @@
             transform: scale(0.8);
             transition: transform 0.3s ease;
             box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
-            position: relative;
-            overflow: hidden;
         }
-        .voucher-popup-overlay.show .voucher-popup-card {
-            transform: scale(1);
-        }
+        .voucher-popup-overlay.show .voucher-popup-card { transform: scale(1); }
 
         .popup-badge {
             display: inline-block;
@@ -156,60 +171,18 @@
             font-weight: 700;
             margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
         
-        .popup-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite;
-        }
+        .popup-icon { font-size: 3rem; margin-bottom: 15px; animation: bounce 2s infinite; }
+        .popup-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #fff; margin-bottom: 10px; }
+        .popup-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 25px; line-height: 1.5; }
+        .popup-highlight { color: var(--luxury-gold); font-weight: 700; font-size: 1.1rem; }
+        .popup-actions { display: flex; flex-direction: column; gap: 10px; }
         
-        .popup-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-        
-        .popup-desc {
-            color: #aaa;
-            font-size: 0.9rem;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        
-        .popup-highlight {
-            color: var(--luxury-gold);
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .popup-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .btn-popup-primary {
-            background: var(--luxury-gold);
-            color: #000;
-            padding: 14px;
-            border-radius: 50px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: 0.2s;
-        }
+        .btn-popup-primary { background: var(--luxury-gold); color: #000; padding: 14px; border-radius: 50px; font-weight: 700; text-decoration: none; transition: 0.2s; }
         .btn-popup-primary:hover { background: #fff; }
         
-        .btn-popup-secondary {
-            background: transparent;
-            color: #888;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
+        .btn-popup-secondary { background: transparent; color: #888; border: none; padding: 10px; cursor: pointer; font-size: 0.9rem; }
         .btn-popup-secondary:hover { color: #fff; text-decoration: underline; }
 
         @keyframes bounce {
@@ -218,27 +191,20 @@
             60% {transform: translateY(-5px);}
         }
 
-        /* WhatsApp Widget Styles (Keep existing) */
-        .wa-widget-container { position: fixed; bottom: 30px; left: 30px; z-index: 999; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: flex-start; pointer-events: none; }
-        .wa-chat-box { background: #fff; width: 300px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); overflow: hidden; margin-bottom: 15px; opacity: 0; transform: translateY(20px) scale(0.9); transform-origin: bottom left; transition: all 0.3s; pointer-events: none; display: flex; flex-direction: column; }
-        .wa-chat-box.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        .wa-header { background: var(--wa-dark); padding: 12px 15px; display: flex; align-items: center; gap: 12px; color: #fff; }
-        .wa-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: #fff; border: 2px solid #fff; }
-        .wa-header-info h4 { margin: 0; font-size: 0.95rem; font-weight: 600; line-height: 1.2; }
-        .wa-header-info p { margin: 2px 0 0 0; font-size: 0.7rem; opacity: 0.9; display: flex; align-items: center; gap: 4px; }
-        .wa-status-dot { width: 7px; height: 7px; background: #25D366; border-radius: 50%; display: inline-block; }
-        .wa-body { padding: 15px; background: #e5ddd5; color: #333; font-size: 0.9rem; min-height: 80px; display: flex; align-items: center; }
-        .wa-bubble { background: #fff; padding: 10px 15px; border-radius: 8px 8px 8px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; line-height: 1.4; word-wrap: break-word; max-width: 100%; }
-        .wa-footer { padding: 10px; background: #f0f0f0; text-align: center; }
-        .wa-btn-start { display: block; width: 100%; background: var(--wa-green); color: #fff; text-decoration: none; padding: 10px; border-radius: 25px; font-weight: 600; font-size: 0.9rem; }
-        .wa-toggle-btn { width: 60px; height: 60px; background: var(--wa-green); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: transform 0.3s; pointer-events: auto; position: relative; }
-        .wa-toggle-btn svg { width: 35px; height: 35px; fill: #fff; }
-        .wa-badge { position: absolute; top: 0; right: 0; background: #ff3b30; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; animation: pulse-badge 2s infinite; }
+        /* STATIC HELP BUTTON */
+        .help-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 20px;
+        }
+        .help-footer a { color: #888; text-decoration: none; transition: color 0.2s; }
+        .help-footer a:hover { color: var(--luxury-gold); text-decoration: underline; }
 
         @media (max-width: 480px) {
-            .wa-widget-container { left: 15px; bottom: 20px; }
-            .wa-chat-box { width: calc(100vw - 40px); left: 0; max-width: 320px; }
-            .payment-card { margin-bottom: 80px; }
+            .payment-card { padding: 25px 20px; }
             .voucher-popup-card { padding: 20px; }
         }
     </style>
@@ -255,7 +221,14 @@
             
             <!-- VIEW 1: CHECKOUT FORM -->
             <div id="checkoutView">
-                <div class="coin-visual">π</div>
+                <!-- PERBAIKAN: Logo diganti Shopping Bag -->
+                <div class="checkout-visual">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </div>
                 <h2>Checkout Pesanan</h2>
                 <p class="sub-text">Lengkapi data alamat pengiriman.</p>
                 <div id="error-message" class="error-box"></div>
@@ -267,7 +240,7 @@
                         <div class="custom-select-wrapper" id="cityDropdown">
                             <div class="custom-select-trigger" id="cityTrigger">Pilih Kota</div>
                             <div class="custom-select-options">
-                                <div class="search-box"><input type="text" id="citySearch" placeholder="Cari kota..."></div>
+                                <div class="search-box"><input type="text" id="citySearch" placeholder="Ketik nama kota..."></div>
                                 <div class="options-list" id="cityOptionsList"><div class="option disabled" style="cursor:default; color:#666;">Memuat...</div></div>
                             </div>
                         </div>
@@ -278,6 +251,10 @@
                     <div class="item-summary"><div id="summaryList"><div style="text-align:center; color:#888;">Memuat...</div></div></div>
                     <div class="total-display"><span>Total Tagihan</span><span class="total-amount" id="displayTotal">Rp 0</span></div>
                     <button type="submit" class="btn-pay" id="btnProceed" disabled>Lanjut ke Pembayaran</button>
+                    
+                    <div class="help-footer">
+                        Butuh bantuan? <a href="https://wa.me/628133039866?text=Halo%20Admin%20Aurorra" target="_blank">Hubungi Admin</a>
+                    </div>
                 </form>
             </div>
 
@@ -311,23 +288,6 @@
         </div>
     </div>
 
-    <!-- WHATSAPP WIDGET -->
-    <div class="wa-widget-container">
-        <div class="wa-chat-box" id="waChatBox">
-            <div class="wa-header">
-                <img src="https://dikapquhusbwjccbqcsb.supabase.co/storage/v1/object/public/images/logo.png" alt="Aurorra Logo">
-                <div class="wa-header-info"><h4>Customer Service</h4><p><span class="wa-status-dot"></span> Online</p></div>
-                <div style="margin-left:auto; cursor:pointer;" id="waCloseBtn">✕</div>
-            </div>
-            <div class="wa-body"><div class="wa-bubble">Halo! Ada yang bisa kami bantu?</div></div>
-            <div class="wa-footer"><a href="https://wa.me/628133039866?text=Halo%20Admin" target="_blank" class="wa-btn-start">Mulai Chat</a></div>
-        </div>
-        <div class="wa-toggle-btn" id="waToggleBtn" title="Chat WhatsApp">
-            <div class="wa-badge"></div>
-            <svg viewBox="0 0 32 32"><path d="M16,2A13,13,0,0,0,5.32,22.8L2,30l7.35-2.14A12.94,12.94,0,1,0,16,2M16,25.67a10.59,10.59,0,0,1-5.07-1.3l-.36-.21-3.76,1.1,1-3.67-.23-.38A10.6,10.6,0,1,1,16,25.67Z"/></svg>
-        </div>
-    </div>
-
     <script>
         // ==========================================
         // 1. KONFIGURASI & SETUP
@@ -344,7 +304,10 @@
         let currentUser = null;
         let selectedShippingData = null;
         let finalPayload = null; 
-        let isVoucherApplied = false; // Flag status voucher
+        let isVoucherApplied = false;
+        
+        // State untuk status klaim review dari database
+        let hasClaimedReviewInDB = false; 
 
         // ==========================================
         // 2. HELPER FUNCTIONS
@@ -357,21 +320,8 @@
         }
 
         // ==========================================
-        // 3. WHATSAPP WIDGET SETUP
+        // 3. LOGIC: DROPDOWN, CITY, SHIPPING
         // ==========================================
-        function setupWhatsAppWidget() {
-            const toggleBtn = document.getElementById('waToggleBtn');
-            const closeBtn = document.getElementById('waCloseBtn');
-            const chatBox = document.getElementById('waChatBox');
-            const badge = document.querySelector('.wa-badge');
-            if(toggleBtn) toggleBtn.addEventListener('click', () => { chatBox.classList.toggle('open'); if(badge) badge.style.display = 'none'; });
-            if(closeBtn) closeBtn.addEventListener('click', () => chatBox.classList.remove('open'));
-        }
-
-        // ==========================================
-        // 4. LOGIC: DROPDOWN, CITY, SHIPPING
-        // ==========================================
-        // (Logika dropdown kota dan ongkir sama seperti sebelumnya, disingkat untuk hemat ruang)
         const cityDropdown = document.getElementById('cityDropdown');
         const cityTrigger = document.getElementById('cityTrigger');
         const cityOptions = document.querySelector('.custom-select-options');
@@ -397,9 +347,10 @@
         }
 
         function updateFinalTotal() {
-            // Cek apakah ada voucher aktif di Local Storage
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
+            
+            // Cek localStorage
             if (savedVoucher) {
                 try {
                     const v = JSON.parse(savedVoucher);
@@ -407,14 +358,20 @@
                 } catch(e) {}
             }
 
-            // Hitung total
+            // KEAMANAN TAMBAHAN:
+            // Jika diskon > 0, tapi di database user TIDAK punya hak klaim (hasClaimedReviewInDB = false)
+            // Maka paksa diskon menjadi 0 (Ini mengatasi kasus user hapus cache/device baru)
+            if (discount > 0 && !hasClaimedReviewInDB) {
+                discount = 0;
+                // Opsional: Bersihkan localStorage yang tidak valid
+                localStorage.removeItem('aurorraVoucher');
+            }
+
             const finalTotal = (currentTotal + shippingCost) - discount;
             
-            // Update UI
             const displayTotalEl = document.getElementById('displayTotal');
             displayTotalEl.innerText = formatPrice(finalTotal);
 
-            // Tampilkan info diskon jika ada
             if (discount > 0) {
                 displayTotalEl.innerHTML = `<small style="display:block; font-size:0.7rem; color:#2ecc71; margin-bottom:5px;">(Potongan Rp 10.000)</small>${formatPrice(finalTotal)}`;
                 isVoucherApplied = true;
@@ -424,10 +381,9 @@
         }
 
         // ==========================================
-        // 5. MAIN INITIALIZATION
+        // 4. MAIN INITIALIZATION (DENGAN PENGECEKAN DB)
         // ==========================================
         async function initCheckout() {
-            setupWhatsAppWidget();
             await loadCities();
             
             const payBtn = document.getElementById('btnProceed');
@@ -437,12 +393,44 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session) { errorBox.style.display = "block"; errorBox.innerHTML = "Sesi habis. <a href='login.html'>Login</a>."; payBtn.disabled = true; return; }
                 currentUser = session.user;
-                
+
+                // ==================================================
+                // LOGIKA BARU: CEK KLAIM VOUCHER KE DATABASE
+                // ==================================================
+                try {
+                    const { data: reviewData, error: reviewError } = await supabaseClient
+                        .from("google_reviews") // Pastikan tabel ini ada di Supabase
+                        .select("claimed")
+                        .eq("user_id", currentUser.id)
+                        .single();
+
+                    if (reviewData && reviewData.claimed) {
+                        // User sudah pernah klaim di DB
+                        hasClaimedReviewInDB = true;
+                        
+                        // Sinkronkan localStorage agar tidak bisa klaim lagi
+                        localStorage.setItem('aurorraVoucher', JSON.stringify({
+                            active: false,
+                            used: true
+                        }));
+                    } else {
+                        // User belum pernah klaim di DB
+                        hasClaimedReviewInDB = false;
+                    }
+                } catch (dbError) {
+                    // Jika error (misal data tidak ditemukan), anggap belum klaim
+                    console.log("Info: Data review tidak ditemukan atau error, user dianggap belum klaim.");
+                    hasClaimedReviewInDB = false;
+                }
+                // ==================================================
+                // AKHIR LOGIKA BARU
+                // ==================================================
+
                 const successLoad = loadCartAndCalculateTotal();
                 if (successLoad && parseFloat(currentTotal) > 0) { payBtn.disabled = false; payBtn.innerText = "Lanjut ke Pembayaran"; } 
                 else { payBtn.innerText = "Keranjang Kosong"; payBtn.disabled = true; }
 
-                updateFinalTotal(); // Update total dengan cek voucher
+                updateFinalTotal();
             } catch (err) { console.error("Init Error:", err); }
         }
 
@@ -459,12 +447,11 @@
         }
 
         // ==========================================
-        // 6. HANDLE PROCEED TO CONFIRM
+        // 5. HANDLE PROCEED TO CONFIRM
         // ==========================================
         async function handleProceedToConfirm(event) {
             event.preventDefault();
             
-            // Validasi Form
             const fullName = document.getElementById('fullName').value.trim();
             const phone = document.getElementById('phoneNumber').value.trim();
             const address = document.getElementById('address').value.trim();
@@ -475,14 +462,16 @@
             if (address.length < 10) return showError("Alamat minimal 10 karakter.");
             if (!city) return showError("Pilih kota tujuan.");
 
-            // Pindah ke View Payment
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
 
-            // Hitung total akhir dengan diskon
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
-            if (savedVoucher) { try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} }
+            
+            // Gunakan flag hasClaimedReviewInDB untuk validasi final
+            if (savedVoucher && hasClaimedReviewInDB) { 
+                try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} 
+            }
             
             const finalBill = (currentTotal + shippingCost) - discount;
             const invoiceNumber = `INV-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.floor(Math.random() * 10000)}`;
@@ -494,10 +483,8 @@
                 items: cartItems, userId: currentUser.id, discount
             };
 
-            // Simpan sementara jika nanti butuh restore
             localStorage.setItem('aurora_pending_order', JSON.stringify({...finalPayload, status: 'pending'}));
 
-            // Render Summary di View Payment
             let summaryHtml = `
                 <div class="summary-row"><span>Order ID</span><span>#${invoiceNumber}</span></div>
                 <div class="summary-row"><span>Nama</span><span>${fullName}</span></div>
@@ -514,37 +501,38 @@
         function showError(msg) { const b = document.getElementById('error-message'); b.style.display='block'; b.innerText=msg; window.scrollTo({top:0}); }
 
         // ==========================================
-        // 7. SMART VOUCHER POPUP LOGIC (NEW)
+        // 6. SMART VOUCHER POPUP LOGIC (DENGAN VALIDASI DB)
         // ==========================================
         const btnPay = document.getElementById('btnPay');
         const voucherPopup = document.getElementById('voucherPopupOverlay');
         const btnSkipVoucher = document.getElementById('btnSkipVoucher');
 
         btnPay.addEventListener('click', async function(e) {
-            // Cegah eksekusi bayar langsung
             e.preventDefault();
             e.stopPropagation();
 
-            // 1. Cek apakah user sudah klaim voucher
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             
-            // Jika belum klaim (tidak ada data sama sekali), munculkan popup
+            // Logika: Jika localStorage KOSONG, cek database sebelum munculkan popup
             if (!savedVoucher) {
-                voucherPopup.classList.add('show');
-                return; // Hentikan proses bayar, tunggu user pilih
+                // Jika di DB sudah pernah klaim, JANGAN munculkan popup
+                if (hasClaimedReviewInDB) {
+                    // Langsung proses pembayaran tanpa popup
+                    proceedToPaymentGateway(); 
+                } else {
+                    // Jika di DB belum klaim, munculkan popup
+                    voucherPopup.classList.add('show');
+                }
+                return;
             }
 
-            // Jika sudah ada voucher (sudah klaim atau sudah skip), lanjut bayar
+            // Jika ada voucher di localStorage, langsung proses
             proceedToPaymentGateway();
         });
 
-        // Jika user klik "Lewati"
         btnSkipVoucher.addEventListener('click', () => {
-            // Tandai bahwa user sudah melihat dan melewatkan voucher
-            // Kita set flag sederhana agar tidak mengganggu lagi di sesi ini
             localStorage.setItem('aurorraVoucher', JSON.stringify({active: false, skipped: true})); 
             voucherPopup.classList.remove('show');
-            // Lanjut bayar
             proceedToPaymentGateway();
         });
 
@@ -577,10 +565,7 @@
                 const paymentUrl = result.payment?.url || result.paymentUrl;
                 if (!paymentUrl) throw new Error("URL Pembayaran tidak ditemukan.");
 
-                // Hapus pending order karena sudah dikirim ke gateway
                 localStorage.removeItem('aurora_pending_order');
-                // Hapus flag voucher skip agar bersih (opsional)
-                // localStorage.removeItem('aurorraVoucher'); 
 
                 if (typeof loadJokulCheckout === 'function') loadJokulCheckout(paymentUrl);
                 else window.location.href = paymentUrl;
@@ -590,8 +575,8 @@
                 const errBox = document.getElementById('error-message-payment');
                 errBox.style.display = "block"; 
                 errBox.innerText = err.message;
-                btnPay.disabled = false; 
                 if(btnSpan) btnSpan.innerText = originalText;
+                btnPay.disabled = false;
             }
         }
 
