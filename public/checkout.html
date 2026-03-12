@@ -305,9 +305,6 @@
         let selectedShippingData = null;
         let finalPayload = null; 
         let isVoucherApplied = false;
-        
-        // State untuk status klaim review dari database
-        let hasClaimedReviewInDB = false; 
 
         // ==========================================
         // 2. HELPER FUNCTIONS
@@ -349,22 +346,11 @@
         function updateFinalTotal() {
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
-            
-            // Cek localStorage
             if (savedVoucher) {
                 try {
                     const v = JSON.parse(savedVoucher);
                     if (v.active && v.discount) discount = v.discount;
                 } catch(e) {}
-            }
-
-            // KEAMANAN TAMBAHAN:
-            // Jika diskon > 0, tapi di database user TIDAK punya hak klaim (hasClaimedReviewInDB = false)
-            // Maka paksa diskon menjadi 0 (Ini mengatasi kasus user hapus cache/device baru)
-            if (discount > 0 && !hasClaimedReviewInDB) {
-                discount = 0;
-                // Opsional: Bersihkan localStorage yang tidak valid
-                localStorage.removeItem('aurorraVoucher');
             }
 
             const finalTotal = (currentTotal + shippingCost) - discount;
@@ -381,7 +367,7 @@
         }
 
         // ==========================================
-        // 4. MAIN INITIALIZATION (DENGAN PENGECEKAN DB)
+        // 4. MAIN INITIALIZATION
         // ==========================================
         async function initCheckout() {
             await loadCities();
@@ -393,39 +379,7 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session) { errorBox.style.display = "block"; errorBox.innerHTML = "Sesi habis. <a href='login.html'>Login</a>."; payBtn.disabled = true; return; }
                 currentUser = session.user;
-
-                // ==================================================
-                // LOGIKA BARU: CEK KLAIM VOUCHER KE DATABASE
-                // ==================================================
-                try {
-                    const { data: reviewData, error: reviewError } = await supabaseClient
-                        .from("google_reviews") // Pastikan tabel ini ada di Supabase
-                        .select("claimed")
-                        .eq("user_id", currentUser.id)
-                        .single();
-
-                    if (reviewData && reviewData.claimed) {
-                        // User sudah pernah klaim di DB
-                        hasClaimedReviewInDB = true;
-                        
-                        // Sinkronkan localStorage agar tidak bisa klaim lagi
-                        localStorage.setItem('aurorraVoucher', JSON.stringify({
-                            active: false,
-                            used: true
-                        }));
-                    } else {
-                        // User belum pernah klaim di DB
-                        hasClaimedReviewInDB = false;
-                    }
-                } catch (dbError) {
-                    // Jika error (misal data tidak ditemukan), anggap belum klaim
-                    console.log("Info: Data review tidak ditemukan atau error, user dianggap belum klaim.");
-                    hasClaimedReviewInDB = false;
-                }
-                // ==================================================
-                // AKHIR LOGIKA BARU
-                // ==================================================
-
+                
                 const successLoad = loadCartAndCalculateTotal();
                 if (successLoad && parseFloat(currentTotal) > 0) { payBtn.disabled = false; payBtn.innerText = "Lanjut ke Pembayaran"; } 
                 else { payBtn.innerText = "Keranjang Kosong"; payBtn.disabled = true; }
@@ -467,11 +421,7 @@
 
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
-            
-            // Gunakan flag hasClaimedReviewInDB untuk validasi final
-            if (savedVoucher && hasClaimedReviewInDB) { 
-                try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} 
-            }
+            if (savedVoucher) { try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} }
             
             const finalBill = (currentTotal + shippingCost) - discount;
             const invoiceNumber = `INV-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.floor(Math.random() * 10000)}`;
@@ -501,7 +451,7 @@
         function showError(msg) { const b = document.getElementById('error-message'); b.style.display='block'; b.innerText=msg; window.scrollTo({top:0}); }
 
         // ==========================================
-        // 6. SMART VOUCHER POPUP LOGIC (DENGAN VALIDASI DB)
+        // 6. SMART VOUCHER POPUP LOGIC
         // ==========================================
         const btnPay = document.getElementById('btnPay');
         const voucherPopup = document.getElementById('voucherPopupOverlay');
@@ -513,20 +463,11 @@
 
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             
-            // Logika: Jika localStorage KOSONG, cek database sebelum munculkan popup
             if (!savedVoucher) {
-                // Jika di DB sudah pernah klaim, JANGAN munculkan popup
-                if (hasClaimedReviewInDB) {
-                    // Langsung proses pembayaran tanpa popup
-                    proceedToPaymentGateway(); 
-                } else {
-                    // Jika di DB belum klaim, munculkan popup
-                    voucherPopup.classList.add('show');
-                }
+                voucherPopup.classList.add('show');
                 return;
             }
 
-            // Jika ada voucher di localStorage, langsung proses
             proceedToPaymentGateway();
         });
 
