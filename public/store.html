@@ -73,11 +73,40 @@
         .back-link:hover { color: var(--luxury-gold); }
         .store-nav { display: flex; gap: 30px; align-items: center; }
         
-        /* User Menu */
+        /* User Menu & Glow Effects */
         .user-menu-container { position: relative; }
         .user-btn { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 12px; border-radius: 20px; transition: background 0.3s; }
         .user-btn:hover { background: rgba(255,255,255,0.05); }
-        .user-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, var(--luxury-gold), #aa8a2e); color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        
+        .user-avatar {
+            width: 32px; height: 32px; 
+            background: linear-gradient(135deg, var(--luxury-gold), #aa8a2e); 
+            color: #000; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; 
+            font-weight: bold; font-size: 0.85rem; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* FIX: Efek Menyala untuk Avatar & Tombol Login */
+        .guest-glow-active {
+            border: 1px solid var(--luxury-gold);
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.6), inset 0 0 5px rgba(212, 175, 55, 0.2);
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 8px rgba(212, 175, 55, 0.4); }
+            50% { box-shadow: 0 0 16px rgba(212, 175, 55, 0.8); }
+            100% { box-shadow: 0 0 8px rgba(212, 175, 55, 0.4); }
+        }
+
+        .login-text-glow {
+            color: var(--luxury-gold) !important;
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+            font-weight: 600;
+        }
+
         .dropdown-menu { position: absolute; top: 120%; right: 0; width: 220px; background: #222; border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; z-index: 10; }
         .dropdown-menu.show { display: flex; animation: fadeIn 0.2s ease; }
         .dropdown-item { padding: 12px 20px; color: #ccc; text-decoration: none; font-size: 0.9rem; transition: 0.2s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
@@ -740,7 +769,7 @@
                     nav.innerHTML = `
                         <div class="user-menu-container">
                             <div class="user-btn" onclick="AuroraStore.ui.toggleDropdown()">
-                                <div class="user-avatar">${avatar}</div>
+                                <div class="user-avatar guest-glow-active">${avatar}</div>
                                 <span style="color: #fff; font-size: 0.9rem;">${name}</span>
                                 ${points > 0 ? `<span class="points-badge">👑 ${points} pts</span>` : ''}
                                 <span style="color: #666; font-size:0.8rem;">▼</span>
@@ -755,9 +784,9 @@
                     nav.innerHTML = `
                         <div class="user-menu-container">
                             <div class="user-btn" onclick="window.location.href='login.html'">
-                                <div class="user-avatar" style="background:#333; color:#fff;">G</div>
+                                <div class="user-avatar guest-glow-active">G</div>
                                 <span style="color: #fff; font-size: 0.9rem;">Guest</span>
-                                <span style="color: var(--luxury-gold); font-size:0.8rem; margin-left:5px;">Login</span>
+                                <span class="login-text-glow" style="font-size:0.8rem; margin-left:5px;">Login</span>
                             </div>
                         </div>`;
                 }
