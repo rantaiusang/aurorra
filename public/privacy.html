@@ -8,6 +8,9 @@
     <!-- Font (Sama dengan Index & Store) -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
+    <!-- TAMBAHAN: SDK SUPABASE UNTUK ANALYTICS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* --- VARIABLES (SAMA DENGAN STORE & INDEX) --- */
         :root {
@@ -293,31 +296,46 @@
         </div>
     </div>
 
-    <!-- SCRIPT SCROLL ANIMATION & RESET -->
+    <!-- SCRIPT SCROLL ANIMATION, RESET & ANALYTICS -->
     <script>
-        // 1. Memastikan halaman selalu mulai dari paling atas saat load
+        // --- 1. KONFIGURASI SUPABASE (TAMBAHAN) ---
+        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- 2. FUNGSI TRACKER ANALYTICS ---
+        async function trackPageView() {
+            try {
+                await sb.from('page_views').insert([{
+                    page_url: window.location.pathname, // Akan merekam '/privacy.html'
+                    user_agent: navigator.userAgent
+                }]);
+                console.log("📊 Analytics tracked: Privacy Page");
+            } catch (error) {
+                console.error("Analytics Error:", error.message);
+            }
+        }
+
+        // --- 3. INISIALISASI SAAT HALAMAN DIMUAT ---
         window.onload = function() {
-            window.scrollTo(0, 0);
-            initScrollAnimations();
+            window.scrollTo(0, 0); // Reset scroll ke atas
+            initScrollAnimations(); // Jalankan animasi scroll
+            trackPageView(); // Jalankan analytics
         };
 
-        // 2. Intersection Observer untuk Animasi Fade In saat Scroll
+        // --- 4. OBSERVER UNTUK ANIMASI SCROLL ---
         function initScrollAnimations() {
             const observerOptions = {
-                root: null, // viewport
+                root: null,
                 rootMargin: '0px',
-                threshold: 0.15 // Memicu animasi ketika 15% elemen terlihat
+                threshold: 0.15
             };
 
             const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
-                        // Hentikan observasi jika ingin animasi hanya terjadi sekali
-                        // observer.unobserve(entry.target); 
-                    } else {
-                        // Hapus baris ini jika ingin elemen tetap terlihat setelah scroll keluar
-                        // entry.target.classList.remove('visible'); 
                     }
                 });
             }, observerOptions);
