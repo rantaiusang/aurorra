@@ -348,15 +348,16 @@
                  console.warn("User bukan admin terdaftar, tapi diberi akses (mode longgar).");
             }
 
-            // --- REVISI: Ambil Nama Lengkap dari tabel users ---
+            // --- REVISI: Ambil Nama Lengkap dari tabel ngebelusers ---
             let displayName = userEmail.split('@')[0]; // Default fallback
             try {
-                const { data: userData } = await sb.from('users').select('full_name').eq('id', userId).single();
+                // Query ke tabel 'ngebelusers' untuk ambil kolom 'full_name'
+                const { data: userData } = await sb.from('ngebelusers').select('full_name').eq('id', userId).single();
                 if (userData && userData.full_name) {
                     displayName = userData.full_name;
                 }
             } catch (e) {
-                console.log("Gagal ambil data user, pakai email");
+                console.log("Gagal ambil data nama user, pakai email:", e.message);
             }
             
             document.getElementById('userName').innerText = displayName;
@@ -506,7 +507,6 @@
             if (!views) return;
             document.getElementById('totalVisitors').innerText = views.length;
             document.getElementById('todayVisitors').innerText = views.filter(v => v.created_at.startsWith(now.toISOString().split('T')[0])).length;
-            // Chart logic omitted for brevity, same as previous
             const logBody = views.slice(0, 20).map(v => `<tr><td>${v.page_url}</td><td>${new Date(v.created_at).toLocaleString('id-ID')}</td><td>${v.user_agent?.match(/Mobi|Android/i) ? 'Mobile' : 'Desktop'}</td></tr>`).join('');
             document.getElementById('logTable').innerHTML = logBody || '<tr><td colspan="3">No data</td></tr>';
         }
@@ -570,7 +570,7 @@
             document.getElementById('lowTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td style="color: var(--danger)">${p.stock}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">Aman</td></tr>';
         }
 
-        // --- REVISI: MENU ONGKIR DENGAN EDIT ---
+        // --- REVISI: MENU ONGKIR DENGAN FITUR EDIT ---
         async function renderOngkir() {
              document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Ongkir</h3><button class="btn btn-primary" onclick="openOngkirModal()">+ Tambah</button></div><div class="table-container"><table><thead><tr><th>Tujuan</th><th>Ekspedisi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div></div>`;
             const { data } = await sb.from('ongkir').select('*');
