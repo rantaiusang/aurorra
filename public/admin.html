@@ -318,7 +318,7 @@
         const formatPrice = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
         
         // ==========================================
-        // 2. AUTHENTICATION CHECK (REVISI)
+        // 2. AUTHENTICATION CHECK
         // ==========================================
         window.onload = async () => {
             const { data: { session } } = await sb.auth.getSession();
@@ -348,10 +348,8 @@
                  console.warn("User bukan admin terdaftar, tapi diberi akses (mode longgar).");
             }
 
-            // --- REVISI: Ambil Nama Lengkap dari tabel ngebelusers ---
-            let displayName = userEmail.split('@')[0]; // Default fallback
+            let displayName = userEmail.split('@')[0];
             try {
-                // Query ke tabel 'ngebelusers' untuk ambil kolom 'full_name'
                 const { data: userData } = await sb.from('ngebelusers').select('full_name').eq('id', userId).single();
                 if (userData && userData.full_name) {
                     displayName = userData.full_name;
@@ -481,9 +479,11 @@
         // 5. RENDER FUNCTIONS
         // ==========================================
         
+        // --- PERBAIKAN: REVENUE CALCULATION ---
         async function renderDashboard() {
             const [ordersRes, productsRes] = await Promise.all([
-                sb.from('orders').select('id, total_amount, status').not('status', 'eq', 'cancelled'),
+                // Hanya hitung revenue dari order yang statusnya paid, shipping, atau completed
+                sb.from('orders').select('id, total_amount, status').in('status', ['paid', 'shipping', 'completed']),
                 sb.from('products').select('stock')
             ]);
             const revenue = ordersRes.data?.reduce((a, c) => a + (parseFloat(c.total_amount) || 0), 0) || 0;
@@ -492,7 +492,7 @@
             document.getElementById('contentArea').innerHTML = `
                 <div class="stats-grid">
                     <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value">${formatPrice(revenue)}</div></div>
-                    <div class="stat-card"><div class="stat-label">Pesanan</div><div class="stat-value">${ordersCount}</div></div>
+                    <div class="stat-card"><div class="stat-label">Pesanan Aktif</div><div class="stat-value">${ordersCount}</div></div>
                     <div class="stat-card"><div class="stat-label">Stok Menipis</div><div class="stat-value" style="color: ${lowStock > 0 ? 'var(--danger)' : 'var(--success)'}">${lowStock}</div></div>
                 </div>
                 <div class="card-section"><div class="section-header"><h3 class="section-title">Pesanan Terbaru</h3></div><div id="recentOrders"></div></div>`;
@@ -500,15 +500,83 @@
         }
 
         let visitorChart = null; 
+        
         async function renderAnalytics() {
-            document.getElementById('contentArea').innerHTML = `<div class="stats-grid"><div class="stat-card"><div class="stat-label">Total Pengunjung</div><div class="stat-value" id="totalVisitors">0</div></div><div class="stat-card"><div class="stat-label">Hari Ini</div><div class="stat-value" id="todayVisitors">0</div></div></div><div class="card-section"><div class="section-header"><h3 class="section-title">Grafik Kunjungan</h3></div><div style="height: 300px;"><canvas id="visitorChart"></canvas></div></div><div class="card-section"><div class="section-header"><h3 class="section-title">Log</h3></div><div class="table-container"><table><thead><tr><th>Halaman</th><th>Waktu</th><th>Device</th></tr></thead><tbody id="logTable"></tbody></table></div></div>`;
-            const now = new Date(); const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            document.getElementById('contentArea').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">Total Pengunjung</div><div class="stat-value" id="totalVisitors">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Hari Ini</div><div class="stat-value" id="todayVisitors">0</div></div>
+                </div>
+                <div class="card-section">
+                    <div class="section-header"><h3 class="section-title">Grafik Kunjungan (7 Hari Terakhir)</h3></div>
+                    <div style="height: 300px; width: 100%;"><canvas id="visitorChart"></canvas></div>
+                </div>
+                <div class="card-section">
+                    <div class="section-header"><h3 class="section-title">Log Pengunjung</h3></div>
+                    <div class="table-container"><table><thead><tr><th>Halaman</th><th>Waktu</th><th>Device</th></tr></thead><tbody id="logTable"></tbody></table></div>
+                </div>`;
+
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             const { data: views } = await sb.from('page_views').select('*').gte('created_at', sevenDaysAgo.toISOString()).order('created_at', { ascending: false });
-            if (!views) return;
+            
+            if (!views || views.length === 0) {
+                document.getElementById('logTable').innerHTML = '<tr><td colspan="3">Belum ada data.</td></tr>';
+                return;
+            }
+
+            const todayStr = now.toISOString().split('T')[0];
+            const todayVisitors = views.filter(v => v.created_at.startsWith(todayStr)).length;
+            
             document.getElementById('totalVisitors').innerText = views.length;
-            document.getElementById('todayVisitors').innerText = views.filter(v => v.created_at.startsWith(now.toISOString().split('T')[0])).length;
-            const logBody = views.slice(0, 20).map(v => `<tr><td>${v.page_url}</td><td>${new Date(v.created_at).toLocaleString('id-ID')}</td><td>${v.user_agent?.match(/Mobi|Android/i) ? 'Mobile' : 'Desktop'}</td></tr>`).join('');
-            document.getElementById('logTable').innerHTML = logBody || '<tr><td colspan="3">No data</td></tr>';
+            document.getElementById('todayVisitors').innerText = todayVisitors;
+
+            const daily = {};
+            views.forEach(v => {
+                const day = v.created_at.split('T')[0];
+                if (!daily[day]) daily[day] = 0;
+                daily[day]++;
+            });
+
+            const labels = Object.keys(daily).sort();
+            const values = labels.map(key => daily[key]);
+
+            const ctx = document.getElementById('visitorChart').getContext('2d');
+            if (visitorChart) visitorChart.destroy();
+
+            visitorChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Visitor',
+                        data: values,
+                        borderColor: '#d4af37',
+                        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#a0a0a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#a0a0a0' }, grid: { display: false } }
+                    }
+                }
+            });
+
+            const logBody = views.slice(0, 20).map(v => {
+                const isMobile = v.user_agent?.match(/Mobi|Android/i);
+                const isBot = v.user_agent?.match(/Bot|Spider|Crawler/i);
+                let deviceLabel = isMobile ? 'Mobile' : 'Desktop';
+                if(isBot) deviceLabel = 'Bot';
+                return `<tr><td>${v.page_url}</td><td>${new Date(v.created_at).toLocaleString('id-ID')}</td><td>${deviceLabel}</td></tr>`;
+            }).join('');
+            document.getElementById('logTable').innerHTML = logBody;
         }
 
         async function loadRecentOrders() {
@@ -534,11 +602,32 @@
         }
 
         async function renderVouchers() {
-            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Voucher</h3><button class="btn btn-primary" onclick="createVoucher()">+ Generate</button></div><div class="table-container"><table><thead><tr><th>Code</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="voucherTable"></tbody></table></div></div>`;
+            document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Voucher</h3><button class="btn btn-primary" onclick="createVoucher()">+ Generate</button></div><div class="table-container"><table><thead><tr><th>Code</th><th>Status</th><th>Value</th><th>Aksi</th></tr></thead><tbody id="voucherTable"></tbody></table></div></div>`;
             const { data } = await sb.from('vouchers').select('*').order('created_at', { ascending: false });
-            document.getElementById('voucherTable').innerHTML = data?.map(v => `<tr><td style="color: var(--luxury-gold)">${v.code}</td><td><span class="badge badge-${v.is_used ? 'danger' : 'success'}">${v.is_used ? 'Used' : 'Avail'}</span></td><td>${!v.is_used ? `<button class="btn btn-danger btn-sm" onclick="deleteVoucher('${v.id}')">Hapus</button>` : ''}</td></tr>`).join('') || '';
+            document.getElementById('voucherTable').innerHTML = data?.map(v => `<tr><td style="color: var(--luxury-gold)">${v.code}</td><td><span class="badge badge-${v.is_used ? 'danger' : 'success'}">${v.is_used ? 'Used' : 'Avail'}</span></td><td>${formatPrice(v.discount_value)}</td><td>${!v.is_used ? `<button class="btn btn-danger btn-sm" onclick="deleteVoucher('${v.id}')">Hapus</button>` : ''}</td></tr>`).join('') || '';
         }
-        async function createVoucher() { await sb.from('vouchers').insert([{ notes: 'Created by Admin' }]); renderVouchers(); }
+
+        // --- PERBAIKAN: AUTO GENERATE VOUCHER ---
+        async function createVoucher() { 
+            const code = "AUR-" + Math.random().toString(36).substring(2,6).toUpperCase();
+            const btn = event.target;
+            btn.innerHTML = "Generating...";
+            
+            const { error } = await sb.from('vouchers').insert([{
+                code: code,
+                discount_value: 10000, // Default value 10.000
+                is_used: false,
+                notes: "Created by Admin"
+            }]);
+            
+            if(error) {
+                alert("Gagal membuat voucher: " + error.message);
+            } else {
+                renderVouchers(); 
+            }
+            btn.innerHTML = "+ Generate";
+        }
+
         async function deleteVoucher(id) { await sb.from('vouchers').delete().eq('id', id); renderVouchers(); }
 
         async function renderPurchasing() {
@@ -570,7 +659,6 @@
             document.getElementById('lowTable').innerHTML = data?.map(p => `<tr><td>${p.name}</td><td style="color: var(--danger)">${p.stock}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center">Aman</td></tr>';
         }
 
-        // --- REVISI: MENU ONGKIR DENGAN FITUR EDIT ---
         async function renderOngkir() {
              document.getElementById('contentArea').innerHTML = `<div class="card-section"><div class="section-header"><h3 class="section-title">Ongkir</h3><button class="btn btn-primary" onclick="openOngkirModal()">+ Tambah</button></div><div class="table-container"><table><thead><tr><th>Tujuan</th><th>Ekspedisi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div></div>`;
             const { data } = await sb.from('ongkir').select('*');
@@ -668,7 +756,6 @@
             if(activeTab === 'shipping') renderShipping(); else renderOrders();
         }
         
-        // --- REVISI: MODAL ONGKIR (TAMBAH & EDIT) ---
         async function openOngkirModal(id = null) {
             let data = { tujuan: '', ekspedisi: '', tarif: '' };
             if(id) { 
