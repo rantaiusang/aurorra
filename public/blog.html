@@ -12,7 +12,6 @@
         /* --- AURORRA BLOG THEME --- */
         :root {
             --luxury-gold: #d4af37;
-            --luxury-gold-dim: rgba(212, 175, 55, 0.15);
             --dark-bg: #0f0c15;
             --dark-card: rgba(25, 23, 28, 0.98);
             --text-white: #ffffff;
@@ -55,6 +54,7 @@
             font-size: 0.9rem; transition: color 0.3s;
         }
         nav a:hover { color: var(--luxury-gold); }
+        nav a.active { color: var(--luxury-gold); font-weight: 600; }
 
         /* --- HERO BLOG --- */
         .blog-hero {
@@ -62,7 +62,7 @@
             padding: 80px 20px 60px;
             border-bottom: 1px solid var(--border-color);
         }
-        .blog-hero h1 { font-size: 3rem; margin-bottom: 15px; color: var(--luxury-gold); }
+        .blog-hero h1 { font-size: 2.8rem; margin-bottom: 15px; color: var(--luxury-gold); }
         .blog-hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
 
         /* --- LAYOUT UTAMA --- */
@@ -81,6 +81,7 @@
                 grid-template-columns: 2fr 1fr;
                 padding: 60px 40px;
             }
+            .blog-hero h1 { font-size: 3.5rem; }
         }
 
         /* --- ARTIKEL GRID --- */
@@ -113,6 +114,7 @@
             background-size: cover;
             background-position: center;
             position: relative;
+            background-color: #1a1820;
         }
         .card-category {
             position: absolute;
@@ -212,11 +214,13 @@
 
     <!-- HEADER -->
     <header>
-        <a href="index.html" class="logo">Aurorra ⚡</a>
+        <!-- Link Logo: Kembali ke Halaman Utama (Root) -->
+        <a href="../index.html" class="logo">Aurorra ⚡</a>
         <nav>
-            <a href="index.html">Store</a>
-            <a href="blog.html" style="color: var(--luxury-gold);">Journal</a>
-            <a href="#">Tentang</a>
+            <!-- Link Store: Kembali ke Halaman Utama -->
+            <a href="../index.html">Store</a>
+            <!-- Link Journal: Halaman Ini Sendiri -->
+            <a href="blog.html" class="active">Journal</a>
         </nav>
     </header>
 
@@ -232,14 +236,29 @@
         <!-- DAFTAR ARTIKEL (MAIN CONTENT) -->
         <main class="articles-grid">
             
-            <!-- Artikel 1 -->
-            <a href="artikel-1.html" class="article-card">
-                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Oud+Guide');">
+            <!-- Artikel 1: Obat Jerawat -->
+            <a href="blog/obat-jerawat-ampuh.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Obat+Jerawat');">
+                    <span class="card-category">Kesehatan</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">5 Rekomendasi Obat Jerawat Apotek Paling Ampuh (2024)</h3>
+                    <p class="card-excerpt">Rangkuman obat jerawat paling efektif dari apotek seperti Haloskin, Vitacid, dan Medi-Klin. Panduan lengkap penggunaan.</p>
+                    <div class="card-meta">
+                        <span>24 Mei 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Artikel 2: Parfum Oud -->
+            <a href="#" class="article-card">
+                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Oud+Care');">
                     <span class="card-category">Perawatan</span>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Cara Merawat Parfum Oud Agar Tahan Hingga Puluhan Tahun</h3>
-                    <p class="card-excerpt">Parfum dengan bahan dasar Oud memiliki karakter unik. Simpan di tempat lembab atau kering? Temukan jawabannya di sini.</p>
+                    <p class="card-excerpt">Parfum dengan bahan dasar Oud memiliki karakter unik. Simpan di tempat lembab atau kering?</p>
                     <div class="card-meta">
                         <span>12 Okt 2023</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
@@ -247,14 +266,14 @@
                 </div>
             </a>
 
-            <!-- Artikel 2 -->
-            <a href="artikel-2.html" class="article-card">
+            <!-- Artikel 3: Diffuser -->
+            <a href="#" class="article-card">
                 <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Diffuser');">
                     <span class="card-category">Interior</span>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Memilih Diffuser yang Tepat untuk Ruang Keluarga</h3>
-                    <p class="card-excerpt">Jangan sembarangan memilih aroma untuk ruang keluarga. Kenali jenis-jenis diffuser ultrasonik dan reed diffuser.</p>
+                    <p class="card-excerpt">Jangan sembarangan memilih aroma untuk ruang keluarga. Kenali jenis-jenis diffuser ultrasonik.</p>
                     <div class="card-meta">
                         <span>05 Okt 2023</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
@@ -262,29 +281,14 @@
                 </div>
             </a>
 
-            <!-- Artikel 3 -->
-            <a href="artikel-3.html" class="article-card">
-                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Business');">
-                    <span class="card-category">Lifestyle</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Rekomendasi Aroma Parfum untuk Meeting Bisnis</h3>
-                    <p class="card-excerpt">Kesan pertama sangat penting. Aroma yang tepat bisa meningkatkan kepercayaan diri dan profesionalisme Anda.</p>
-                    <div class="card-meta">
-                        <span>28 Sept 2023</span>
-                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Artikel 4 -->
-            <a href="artikel-4.html" class="article-card">
+            <!-- Artikel 4: EDT vs EDP -->
+            <a href="#" class="article-card">
                 <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=EDT+vs+EDP');">
                     <span class="card-category">Edukasi</span>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">EDT vs EDP: Mana yang Lebih Awet?</h3>
-                    <p class="card-excerpt">Sering bingung bedanya Eau de Toilette dan Eau de Parfum? Mari kita bahas konsentrasi dan ketahanannya.</p>
+                    <p class="card-excerpt">Sering bingung bedanya Eau de Toilette dan Eau de Parfum? Mari kita bahas konsentrasinya.</p>
                     <div class="card-meta">
                         <span>15 Sept 2023</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
@@ -302,7 +306,7 @@
                     <li><a href="#"><span class="dot"></span> Perawatan Parfum</a></li>
                     <li><a href="#"><span class="dot"></span> Panduan Gaya</a></li>
                     <li><a href="#"><span class="dot"></span> Review Produk</a></li>
-                    <li><a href="#"><span class="dot"></span> Tips & Trik</a></li>
+                    <li><a href="#"><span class="dot"></span> Kesehatan</a></li>
                 </ul>
             </div>
 
@@ -319,7 +323,7 @@
     </div>
 
     <footer>
-        &copy; 2023 Aurorra Store. All Rights Reserved.
+        &copy; 2024 Aurorra Store. All Rights Reserved.
     </footer>
 
 </body>
