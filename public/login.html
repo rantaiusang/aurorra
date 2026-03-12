@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* --- AURORA LUXURY THEME (Pertahankan Tampilan) --- */
+        /* --- AURORA LUXURY THEME --- */
         :root {
             --luxury-gold: #d4af37;
             --luxury-gold-dim: rgba(212, 175, 55, 0.15);
@@ -134,7 +134,7 @@
         .error-msg { color: #e5e7eb; word-break: break-word; }
         .spin-anim { animation: spin 1s linear infinite; }
 
-        /* --- TAMBAHAN: LIVE ACTIVITY LOG STYLING --- */
+        /* --- LIVE ACTIVITY LOG STYLING --- */
         .live-activity-log {
             position: fixed;
             bottom: 20px;
@@ -143,7 +143,24 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            pointer-events: none; /* Agar tidak menghalangi klik */
+            pointer-events: none;
+            min-height: 60px; /* Pastikan area tidak collapse saat kosong */
+        }
+
+        /* Elemen placeholder saat tidak ada log */
+        .log-placeholder {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.75rem;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            animation: fadeInOut 4s infinite; /* Animasi halus */
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
         }
 
         .log-item {
@@ -196,8 +213,9 @@
 
         /* Responsive untuk Log */
         @media (max-width: 600px) {
-            .live-activity-log { left: 10px; right: 10px; bottom: 10px; }
+            .live-activity-log { left: 10px; right: 10px; bottom: 10px; align-items: center; }
             .log-item { max-width: 100%; font-size: 0.75rem; padding: 10px 15px; }
+            .log-placeholder { display: none; } /* Sembunyikan placeholder di mobile jika ingin bersih */
         }
     </style>
 </head>
@@ -216,9 +234,10 @@
             </div>
 
             <h2 id="status-title">Menghubungkan...</h2>
-            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman ke Aurorra</p>
+            <!-- PERBAIKAN 1: Subtitle dihapus untuk fokus ke tombol -->
+            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman</p>
 
-            <!-- Tombol Google (Muncul jika belum login) -->
+            <!-- Tombol Google -->
             <button id="btn-google" class="btn-google" onclick="handleGoogleLogin()">
                 <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                     <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
@@ -238,8 +257,13 @@
         </div>
     </div>
 
-    <!-- TAMBAHAN: CONTAINER UNTUK LOG AKTIVITAS -->
-    <div class="live-activity-log" id="live-log-container"></div>
+    <!-- CONTAINER LOG -->
+    <div class="live-activity-log" id="live-log-container">
+        <!-- PERBAIKAN 2: Placeholder saat kosong -->
+        <div class="log-placeholder" id="log-placeholder">
+            <span>⏳</span> Menunggu aktivitas pembeli...
+        </div>
+    </div>
 
     <script>
         // --- 1. KONFIGURASI SUPABASE ---
@@ -283,82 +307,51 @@
             }
         }
 
-        // --- 3. LOGIKA UTAMA (ADAPTASI LOGIKA NGBEL) ---
+        // --- 3. LOGIKA UTAMA ---
         async function checkSession() {
             try {
-                // A. CEK SESSION
                 const { data: { session }, error: sessionError } = await sb.auth.getSession();
-                
                 if (sessionError) throw sessionError;
 
                 if (session) {
-                    // SESSION ADA -> CEK DATABASE
-                    console.log("✅ Login Terdeteksi. Mengecek Database...");
-                    
+                    console.log("✅ Login Terdeteksi.");
                     ui.title.innerText = "Verifikasi Akun...";
-                    ui.desc.innerText = "Mengecek data profil Aurorra.";
                     ui.spinner.style.borderTopColor = "var(--luxury-gold)";
 
-                    // Cek data di tabel 'aurorausers' (Ganti nama tabel jika berbeda)
                     const { data: userData, error: fetchError } = await sb
                         .from('ngebelusers') 
                         .select('role') 
                         .eq('id', session.user.id)
                         .maybeSingle(); 
 
-                    // Handle Error Database (selain data tidak ditemukan)
                     if (fetchError && fetchError.code !== 'PGRST116') {
-                        console.error("❌ Error Database:", fetchError);
-                        ui.title.innerText = "Error Koneksi";
-                        ui.desc.innerText = "Gagal mengakses database.";
-                        ui.errorBox.style.display = 'block';
-                        ui.errorMsg.innerText = fetchError.message;
-                        ui.spinner.style.display = 'none';
-                        document.querySelector('.pi-icon').style.display = 'none';
-                        return;
+                        throw fetchError;
                     }
 
-                    // LOGIKA 1: USER BARU (Belum ada data di tabel)
                     if (!userData) {
-                        console.log("ℹ️ User Baru. Redirect ke signup.html...");
                         ui.title.innerText = "Akun Baru";
-                        ui.desc.innerText = "Mengarahkan ke pembuatan profil...";
-                        
-                        setTimeout(() => {
-                            window.location.href = 'signup.html';
-                        }, 1500);
+                        ui.desc.innerText = "Mengarahkan ke pendaftaran...";
+                        setTimeout(() => { window.location.href = 'signup.html'; }, 1500);
                         return;
                     }
 
-                    // LOGIKA 2: USER LAMA (Data ada)
-                    console.log("✅ Data User Ditemukan:", userData);
-                    
-                    // Simpan ke localStorage
                     localStorage.setItem('aurora_user', JSON.stringify(session.user));
                     localStorage.setItem('aurora_role', userData.role || 'user');
 
-                    // Tentukan Redirect (Aurora fokus ke Store, bukan Dashboard Admin Ngebel)
                     if (userData.role === 'admin') {
                         ui.title.innerText = "Admin Terdeteksi";
-                        ui.desc.innerText = "Mengakses Dashboard...";
-                        setTimeout(() => {
-                            window.location.href = 'admin.html';
-                        }, 1500);
+                        setTimeout(() => { window.location.href = 'admin.html'; }, 1500);
                     } else {
-                        // Default User (Customer) -> Store
                         ui.title.innerText = "Selamat Datang";
-                        ui.desc.innerText = "Masuk ke Aurorra Store...";
-                        ui.spinner.style.borderTopColor = "#10b981"; // Hijau
-                        setTimeout(() => {
-                            window.location.href = 'store.html';
-                        }, 1500);
+                        ui.spinner.style.borderTopColor = "#10b981";
+                        setTimeout(() => { window.location.href = 'store.html'; }, 1500);
                     }
 
                 } else {
-                    // TIDAK ADA SESSION -> TAMPILKAN TOMBOL LOGIN
-                    console.log("ℹ️ Belum login. Tampilkan tombol.");
-                    ui.title.innerText = "Aurora Storee";
-                    ui.desc.innerText = "Masuk untuk mengakses koleksi eksklusif.";
+                    console.log("ℹ️ Belum login.");
+                    // Perubahan: Hapus subtitle default yang mengganggu
+                    ui.title.innerText = "Aurorra"; 
+                    ui.desc.innerText = ""; 
                     ui.spinner.style.display = 'none';
                     document.querySelector('.pi-icon').style.display = 'none';
                     ui.btnGoogle.style.display = 'flex';
@@ -376,43 +369,32 @@
             }
         }
 
-        // --- 4. ANALYTICS TRACKER (TAMBAHAN) ---
+        // --- 4. ANALYTICS TRACKER ---
         async function trackPageView() {
             try {
                 await sb.from('page_views').insert([{
-                    page_url: window.location.pathname, // e.g., /login.html
+                    page_url: window.location.pathname,
                     user_agent: navigator.userAgent
                 }]);
-                console.log("📊 Analytics tracked: Login Page");
-            } catch (e) {
-                console.warn("Analytics error:", e.message);
-            }
+                console.log("📊 Analytics tracked");
+            } catch (e) { console.warn("Analytics error:", e.message); }
         }
 
-        // --- 5. LIVE ACTIVITY LOG (TAMBAHAN) ---
-        const dummyUsers = [
-            "Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko",
-            "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi",
-            "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu",
-            "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino",
-            "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga"
-        ];
-
-        const dummyProducts = [
-            "Aurorra Rouge", "Mystic Night", "Royal Oud", "Velvet Rose", "Ocean Breeze", 
-            "Golden Sunset", "Midnight Noir", "Cherry Blossom", "Amber Musk", "Fresh Citrus",
-            "Dark Desire", "Pure White", "Blue Ocean", "Pink Paradise", "Silver Rain"
-        ];
+        // --- 5. LIVE ACTIVITY LOG ---
+        const dummyUsers = ["Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko", "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi", "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu", "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino", "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga"];
+        const dummyProducts = ["Aurorra Rouge", "Mystic Night", "Royal Oud", "Velvet Rose", "Ocean Breeze", "Golden Sunset", "Midnight Noir", "Cherry Blossom", "Amber Musk", "Fresh Citrus", "Dark Desire", "Pure White", "Blue Ocean", "Pink Paradise", "Silver Rain"];
+        const placeholder = document.getElementById('log-placeholder');
 
         function showRandomActivity() {
             const container = document.getElementById('live-log-container');
             
-            // 1. Pilih data random
+            // Sembunyikan placeholder saat ada log
+            if(placeholder) placeholder.style.display = 'none';
+
             const name = dummyUsers[Math.floor(Math.random() * dummyUsers.length)];
             const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
-            const time = Math.floor(Math.random() * 5) + 1; // 1-5 menit lalu
+            const time = Math.floor(Math.random() * 5) + 1;
 
-            // 2. Buat elemen log
             const logItem = document.createElement('div');
             logItem.className = 'log-item';
             logItem.innerHTML = `
@@ -424,35 +406,32 @@
                 </div>
             `;
 
-            // 3. Tambahkan ke container
-            container.prepend(logItem); // Prepend agar yang baru di atas (posisi container bottom-up)
+            container.prepend(logItem); 
 
-            // 4. Trigger animasi masuk (sedikit delay untuk render)
-            setTimeout(() => {
-                logItem.classList.add('show');
-            }, 50);
+            setTimeout(() => { logItem.classList.add('show'); }, 50);
 
-            // 5. Hapus setelah beberapa detik
             setTimeout(() => {
                 logItem.classList.remove('show');
                 logItem.classList.add('fade-out');
-                // Hapus dari DOM setelah animasi selesai
                 setTimeout(() => {
                     logItem.remove();
+                    // Tampilkan placeholder lagi jika container kosong
+                    // Note: log placeholder akan muncul kembali dengan animasi fadeInOut
+                    if(container.querySelectorAll('.log-item').length === 0 && placeholder) {
+                        placeholder.style.display = 'flex';
+                    }
                 }, 500);
-            }, 4000); // Tampil selama 4 detik
+            }, 4000);
         }
 
         // --- INITIALIZATION ---
         window.onload = function() {
             checkSession();
-            trackPageView(); // Jalankan analytics
+            trackPageView();
             
-            // Jalankan Live Log dengan interval acak (antara 5 - 10 detik)
-            showRandomActivity(); // Langsung tampilkan pertama kali
-            setInterval(() => {
-                showRandomActivity();
-            }, (Math.floor(Math.random() * 6) + 5) * 1000); // Random interval 5-10 detik
+            // Jadwal log muncul
+            setTimeout(showRandomActivity, 2000); // Muncul pertama setelah 2 detik
+            setInterval(showRandomActivity, 8000); // Lanjut setiap 8 detik
         };
     </script>
 </body>
