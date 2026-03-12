@@ -25,6 +25,7 @@
             --error-red: #ef4444;
             --error-bg: rgba(239, 68, 68, 0.1);
             --success-green: #10b981;
+            --blockchain-glow: rgba(212, 175, 55, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -63,16 +64,37 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* --- MAIN LAYOUT WITH BLOCKCHAIN --- */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 40px 20px;
+        }
+
         /* --- CONTAINER --- */
         .login-container {
-            flex: 1;
+            position: relative;
+            z-index: 2;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
-            position: relative;
-            z-index: 2;
+            width: 100%;
+            max-width: 450px; /* Lebih kecil dari layar penuh agar muat samping */
         }
+
+        /* --- CARD --- */
+        .card {
+            background: var(--dark-card); width: 100%; padding: 45px 30px;
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- GLOW EFFECT --- */
         .glow-effect {
             position: absolute; width: 350px; height: 350px;
             background: radial-gradient(circle, var(--luxury-gold-dim) 0%, transparent 70%);
@@ -81,21 +103,80 @@
         }
         @keyframes pulseGlow { 0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); } }
         
-        .card {
-            background: var(--dark-card); width: 100%; max-width: 400px; padding: 45px 30px;
-            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+        /* --- MASCOT ANIMATION (BUTTERFLY) --- */
+        .mascot-container {
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
             position: relative;
-            overflow: hidden;
         }
-        .spinner-wrapper { margin: 0 auto 30px; height: 70px; display: flex; align-items: center; justify-content: center; position: relative; }
-        .spinner {
-            width: 50px; height: 50px; border: 3px solid rgba(212, 175, 55, 0.1);
-            border-top: 3px solid var(--luxury-gold); border-radius: 50%; animation: spin 1s linear infinite;
+        
+        /* Sayap Kupu-kupu menggunakan CSS Pure */
+        .butterfly {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            animation: fly 2s infinite ease-in-out;
         }
-        .pi-icon { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--luxury-gold); position: absolute; font-weight: bold; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .wing {
+            position: absolute;
+            width: 25px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--luxury-gold), #b8860b);
+            border-radius: 50% 50% 20% 50%;
+            box-shadow: 0 0 15px var(--luxury-gold);
+            opacity: 0.9;
+        }
+        
+        .wing-left {
+            left: 0;
+            top: 10px;
+            transform-origin: right center;
+            animation: flapLeft 0.2s infinite alternate ease-in-out;
+        }
+        
+        .wing-right {
+            right: 0;
+            top: 10px;
+            transform-origin: left center;
+            transform: scaleX(-1); /* Mirror */
+            animation: flapRight 0.2s infinite alternate ease-in-out;
+        }
+        
+        .wing::after { /* Pola sayap */
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #000;
+            border-radius: 50%;
+            top: 10px;
+            left: 8px;
+            opacity: 0.3;
+        }
 
+        .body-fly {
+            position: absolute;
+            width: 6px;
+            height: 30px;
+            background: #000;
+            left: 50%;
+            top: 15px;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            z-index: 2;
+        }
+
+        @keyframes flapLeft { from { transform: rotateY(0deg); } to { transform: rotateY(60deg); } }
+        @keyframes flapRight { from { transform: scaleX(-1) rotateY(0deg); } to { transform: scaleX(-1) rotateY(60deg); } }
+        @keyframes fly { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* Status Text */
         h2 { font-size: 1.5rem; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.5px; }
         p.subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; min-height: 45px;}
 
@@ -134,6 +215,49 @@
         .error-msg { color: #e5e7eb; word-break: break-word; }
         .spin-anim { animation: spin 1s linear infinite; }
 
+        /* --- BLOCKCHAIN LEDGER (RIGHT SIDE) --- */
+        .blockchain-ledger {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+            z-index: 1;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .block-item {
+            background: rgba(15, 12, 21, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-left: 4px solid var(--luxury-gold);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            animation: slideUp 5s linear infinite;
+            opacity: 0;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .block-item span { display: block; }
+        .block-id { color: var(--luxury-gold); font-weight: bold; margin-bottom: 2px; }
+        .block-hash { color: rgba(255,255,255,0.5); font-size: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        @keyframes slideUp {
+            0% { transform: translateY(100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-400px); opacity: 0; }
+        }
+
         /* --- LIVE ACTIVITY LOG STYLING --- */
         .live-activity-log {
             position: fixed;
@@ -144,23 +268,7 @@
             flex-direction: column;
             gap: 10px;
             pointer-events: none;
-            min-height: 60px; /* Pastikan area tidak collapse saat kosong */
-        }
-
-        /* Elemen placeholder saat tidak ada log */
-        .log-placeholder {
-            color: rgba(255,255,255,0.3);
-            font-size: 0.75rem;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-            animation: fadeInOut 4s infinite; /* Animasi halus */
-        }
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
+            min-height: 60px; 
         }
 
         .log-item {
@@ -211,11 +319,13 @@
         .log-action { color: var(--text-muted); font-size: 0.75rem; }
         .log-time { color: var(--success-green); font-size: 0.7rem; margin-top: 2px; }
 
-        /* Responsive untuk Log */
+        /* Responsive */
+        @media (max-width: 800px) {
+            .blockchain-ledger { display: none; } /* Sembunyikan blockchain di mobile */
+        }
         @media (max-width: 600px) {
             .live-activity-log { left: 10px; right: 10px; bottom: 10px; align-items: center; }
             .log-item { max-width: 100%; font-size: 0.75rem; padding: 10px 15px; }
-            .log-placeholder { display: none; } /* Sembunyikan placeholder di mobile jika ingin bersih */
         }
     </style>
 </head>
@@ -225,44 +335,54 @@
         <a href="index.html" class="logo">Aurorra ⚡</a>
     </header>
 
-    <div class="login-container">
-        <div class="glow-effect"></div>
-        <div class="card">
-            <div class="spinner-wrapper">
-                <div class="spinner" id="main-spinner"></div>
-                <div class="pi-icon">A</div>
-            </div>
+    <div class="main-wrapper">
+        <!-- BLOCKCHAIN LEDGER VISUAL -->
+        <div class="blockchain-ledger" id="blockchain-container">
+            <!-- Block items generated by JS -->
+        </div>
 
-            <h2 id="status-title">Menghubungkan...</h2>
-            <!-- PERBAIKAN 1: Subtitle dihapus untuk fokus ke tombol -->
-            <p class="subtitle" id="status-desc">Menyiapkan koneksi aman</p>
+        <div class="login-container">
+            <div class="glow-effect"></div>
+            <div class="card">
+                <div class="mascot-container">
+                    <!-- MASCOT: CYBER BUTTERFLY -->
+                    <div class="butterfly" id="mascot-icon">
+                        <div class="body-fly"></div>
+                        <div class="wing wing-left"></div>
+                        <div class="wing wing-right"></div>
+                    </div>
+                    <div id="loading-spinner" style="display:none; margin-top:15px;">
+                        <div class="spinner" style="width: 40px; height: 40px; border: 3px solid rgba(212, 175, 55, 0.1); border-top: 3px solid var(--luxury-gold); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    </div>
+                </div>
 
-            <!-- Tombol Google -->
-            <button id="btn-google" class="btn-google" onclick="handleGoogleLogin()">
-                <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                        <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                        <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                        <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.734 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.79 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                        <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
-                    </g>
-                </svg>
-                Masuk dengan Google
-            </button>
+                <h2 id="status-title">Selamat Datang</h2>
+                <p class="subtitle" id="status-desc">Masuk untuk melanjutkan</p>
 
-            <div id="error-box" class="error-box">
-                <span class="error-title">Kesalahan Sistem</span>
-                <span id="error-msg" class="error-msg">Deskripsi error.</span>
+                <!-- Tombol Google -->
+                <button id="btn-google" class="btn-google" onclick="handleGoogleLogin()">
+                    <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                        <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                            <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                            <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                            <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.734 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.79 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                            <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                        </g>
+                    </svg>
+                    Masuk dengan Google
+                </button>
+
+                <div id="error-box" class="error-box">
+                    <span class="error-title">Kesalahan Sistem</span>
+                    <span id="error-msg" class="error-msg">Deskripsi error.</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- CONTAINER LOG -->
     <div class="live-activity-log" id="live-log-container">
-        <!-- PERBAIKAN 2: Placeholder saat kosong -->
-        <div class="log-placeholder" id="log-placeholder">
-            <span>⏳</span> Menunggu aktivitas pembeli...
-        </div>
+        <!-- Log items will appear here -->
     </div>
 
     <script>
@@ -276,7 +396,8 @@
         const ui = {
             title: document.getElementById('status-title'),
             desc: document.getElementById('status-desc'),
-            spinner: document.getElementById('main-spinner'),
+            mascot: document.getElementById('mascot-icon'),
+            spinner: document.getElementById('loading-spinner'),
             btnGoogle: document.getElementById('btn-google'),
             errorBox: document.getElementById('error-box'),
             errorMsg: document.getElementById('error-msg')
@@ -316,7 +437,10 @@
                 if (session) {
                     console.log("✅ Login Terdeteksi.");
                     ui.title.innerText = "Verifikasi Akun...";
-                    ui.spinner.style.borderTopColor = "var(--luxury-gold)";
+                    ui.desc.innerText = "Mohon tunggu...";
+                    ui.btnGoogle.style.display = 'none';
+                    ui.mascot.style.display = 'none';
+                    ui.spinner.style.display = 'block';
 
                     const { data: userData, error: fetchError } = await sb
                         .from('ngebelusers') 
@@ -343,17 +467,15 @@
                         setTimeout(() => { window.location.href = 'admin.html'; }, 1500);
                     } else {
                         ui.title.innerText = "Selamat Datang";
-                        ui.spinner.style.borderTopColor = "#10b981";
                         setTimeout(() => { window.location.href = 'store.html'; }, 1500);
                     }
 
                 } else {
                     console.log("ℹ️ Belum login.");
-                    // Perubahan: Hapus subtitle default yang mengganggu
                     ui.title.innerText = "Aurorra"; 
-                    ui.desc.innerText = ""; 
+                    ui.desc.innerText = "Masuk untuk melanjutkan";
+                    ui.mascot.style.display = 'block'; // Tampilkan kupu-kupu
                     ui.spinner.style.display = 'none';
-                    document.querySelector('.pi-icon').style.display = 'none';
                     ui.btnGoogle.style.display = 'flex';
                 }
 
@@ -363,8 +485,8 @@
                 ui.desc.innerText = err.message;
                 ui.errorBox.style.display = 'block';
                 ui.errorMsg.innerText = err.message;
+                ui.mascot.style.display = 'none';
                 ui.spinner.style.display = 'none';
-                document.querySelector('.pi-icon').style.display = 'none';
                 ui.btnGoogle.style.display = 'flex';
             }
         }
@@ -380,17 +502,36 @@
             } catch (e) { console.warn("Analytics error:", e.message); }
         }
 
-        // --- 5. LIVE ACTIVITY LOG ---
+        // --- 5. BLOCKCHAIN VISUAL GENERATOR ---
+        function createBlock() {
+            const container = document.getElementById('blockchain-container');
+            if (!container) return;
+            
+            const block = document.createElement('div');
+            block.className = 'block-item';
+            const hash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const id = Math.floor(Math.random() * 9000) + 1000;
+            
+            block.innerHTML = `
+                <span class="block-id">BLOCK #${id}</span>
+                <span class="block-hash">Hash: ${hash}</span>
+                <span style="color: #10b981; font-size:0.6rem;">✓ Verified</span>
+            `;
+            
+            container.appendChild(block);
+            
+            // Hapus setelah animasi selesai (5s)
+            setTimeout(() => {
+                block.remove();
+            }, 5000);
+        }
+
+        // --- 6. LIVE ACTIVITY LOG ---
         const dummyUsers = ["Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko", "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi", "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu", "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino", "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga"];
         const dummyProducts = ["Aurorra Rouge", "Mystic Night", "Royal Oud", "Velvet Rose", "Ocean Breeze", "Golden Sunset", "Midnight Noir", "Cherry Blossom", "Amber Musk", "Fresh Citrus", "Dark Desire", "Pure White", "Blue Ocean", "Pink Paradise", "Silver Rain"];
-        const placeholder = document.getElementById('log-placeholder');
 
         function showRandomActivity() {
             const container = document.getElementById('live-log-container');
-            
-            // Sembunyikan placeholder saat ada log
-            if(placeholder) placeholder.style.display = 'none';
-
             const name = dummyUsers[Math.floor(Math.random() * dummyUsers.length)];
             const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
             const time = Math.floor(Math.random() * 5) + 1;
@@ -413,14 +554,7 @@
             setTimeout(() => {
                 logItem.classList.remove('show');
                 logItem.classList.add('fade-out');
-                setTimeout(() => {
-                    logItem.remove();
-                    // Tampilkan placeholder lagi jika container kosong
-                    // Note: log placeholder akan muncul kembali dengan animasi fadeInOut
-                    if(container.querySelectorAll('.log-item').length === 0 && placeholder) {
-                        placeholder.style.display = 'flex';
-                    }
-                }, 500);
+                setTimeout(() => { logItem.remove(); }, 500);
             }, 4000);
         }
 
@@ -429,9 +563,10 @@
             checkSession();
             trackPageView();
             
-            // Jadwal log muncul
-            setTimeout(showRandomActivity, 2000); // Muncul pertama setelah 2 detik
-            setInterval(showRandomActivity, 8000); // Lanjut setiap 8 detik
+            // Jalankan Visual
+            setInterval(createBlock, 2000); // Blockchain block setiap 2 detik
+            setTimeout(showRandomActivity, 2000); 
+            setInterval(showRandomActivity, 8000);
         };
     </script>
 </body>
