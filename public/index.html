@@ -650,17 +650,30 @@
         }
 
         // ==========================================
-        // 4. AUTO LOGOUT 4 JAM
+        // 4. AUTO LOGOUT - 20 MENIT (MODIFIKASI)
         // ==========================================
         let inactivityTime = function () {
             let time;
-            const logoutTime = 4 * 60 * 60 * 1000;
+            // Ubah waktu menjadi 20 menit (20 * 60 * 1000 ms)
+            const logoutTime = 20 * 60 * 1000; 
+            
+            // Event Listener untuk mendeteksi aktivitas
             window.onload = resetTimer;
             document.onmousemove = resetTimer;
             document.onkeypress = resetTimer;
-            document.ontouchstart = resetTimer;
-            function logout() { alert("Sesi Anda telah berakhir karena tidak aktif selama 4 jam."); supabaseClient.auth.signOut(); window.location.href = "login.html"; }
-            function resetTimer() { clearTimeout(time); time = setTimeout(logout, logoutTime); }
+            document.ontouchstart = resetTimer; // Sentuhan layar
+            window.onscroll = resetTimer; // Scroll di tambahkan sebagai aktivitas
+
+            async function logout() { 
+                alert("Sesi Anda telah berakhir karena tidak aktif selama 20 menit."); 
+                await supabaseClient.auth.signOut(); 
+                window.location.href = "login.html"; 
+            }
+            
+            function resetTimer() { 
+                clearTimeout(time); 
+                time = setTimeout(logout, logoutTime); 
+            }
         };
         inactivityTime();
 
