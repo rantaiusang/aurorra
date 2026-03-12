@@ -363,12 +363,18 @@
     </div>
 
     <script>
-        // Supabase Config
+        // ==========================================
+        // 1. KONFIGURASI SUPABASE
+        // ==========================================
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Cek Poin User
+        // ==========================================
+        // 2. FUNGSI UTAMA
+        // ==========================================
+        
+        // Cek Poin User (Fungsi Original)
         async function checkPoints() {
             const userBox = document.getElementById('userBox');
             const poinDisplay = document.getElementById('poinUser');
@@ -388,12 +394,32 @@
                     }
                 }
             } catch (e) {
-                console.log("Error fetching points", e);
+                console.warn("Error checking points:", e.message);
             }
         }
 
-        // Jalankan saat halaman dimuat
-        window.onload = checkPoints;
+        // ==========================================
+        // 3. ANALYTICS TRACKER (TAMBAHAN)
+        // ==========================================
+        async function trackPageView() {
+            try {
+                await supabase.from('page_views').insert([{
+                    page_url: window.location.pathname, // Merekam '/rewards.html'
+                    user_agent: navigator.userAgent
+                }]);
+                console.log("📊 Analytics tracked: Rewards Page");
+            } catch (e) {
+                console.warn("Analytics error:", e.message);
+            }
+        }
+
+        // ==========================================
+        // 4. INISIALISASI
+        // ==========================================
+        window.onload = function() {
+            checkPoints();      // Jalankan cek poin
+            trackPageView();    // Jalankan analytics
+        };
     </script>
 </body>
 </html>
