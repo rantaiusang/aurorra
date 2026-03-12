@@ -64,7 +64,7 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* --- MAIN LAYOUT WITH BLOCKCHAIN --- */
+        /* --- MAIN LAYOUT --- */
         .main-wrapper {
             flex: 1;
             display: flex;
@@ -74,7 +74,6 @@
             padding: 40px 20px;
         }
 
-        /* --- CONTAINER --- */
         .login-container {
             position: relative;
             z-index: 2;
@@ -82,10 +81,9 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 450px; /* Lebih kecil dari layar penuh agar muat samping */
+            max-width: 450px;
         }
 
-        /* --- CARD --- */
         .card {
             background: var(--dark-card); width: 100%; padding: 45px 30px;
             border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); text-align: center;
@@ -103,7 +101,7 @@
         }
         @keyframes pulseGlow { 0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); } }
         
-        /* --- MASCOT ANIMATION (BUTTERFLY) --- */
+        /* --- MASCOT ANIMATION --- */
         .mascot-container {
             height: 100px;
             display: flex;
@@ -114,7 +112,6 @@
             position: relative;
         }
         
-        /* Sayap Kupu-kupu menggunakan CSS Pure */
         .butterfly {
             position: relative;
             width: 60px;
@@ -133,56 +130,21 @@
             opacity: 0.9;
         }
         
-        .wing-left {
-            left: 0;
-            top: 10px;
-            transform-origin: right center;
-            animation: flapLeft 0.2s infinite alternate ease-in-out;
-        }
-        
-        .wing-right {
-            right: 0;
-            top: 10px;
-            transform-origin: left center;
-            transform: scaleX(-1); /* Mirror */
-            animation: flapRight 0.2s infinite alternate ease-in-out;
-        }
-        
-        .wing::after { /* Pola sayap */
-            content: '';
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #000;
-            border-radius: 50%;
-            top: 10px;
-            left: 8px;
-            opacity: 0.3;
-        }
-
-        .body-fly {
-            position: absolute;
-            width: 6px;
-            height: 30px;
-            background: #000;
-            left: 50%;
-            top: 15px;
-            transform: translateX(-50%);
-            border-radius: 5px;
-            z-index: 2;
-        }
+        .wing-left { left: 0; top: 10px; transform-origin: right center; animation: flapLeft 0.2s infinite alternate ease-in-out; }
+        .wing-right { right: 0; top: 10px; transform-origin: left center; transform: scaleX(-1); animation: flapRight 0.2s infinite alternate ease-in-out; }
+        .wing::after { content: ''; position: absolute; width: 10px; height: 10px; background: #000; border-radius: 50%; top: 10px; left: 8px; opacity: 0.3; }
+        .body-fly { position: absolute; width: 6px; height: 30px; background: #000; left: 50%; top: 15px; transform: translateX(-50%); border-radius: 5px; z-index: 2; }
 
         @keyframes flapLeft { from { transform: rotateY(0deg); } to { transform: rotateY(60deg); } }
         @keyframes flapRight { from { transform: scaleX(-1) rotateY(0deg); } to { transform: scaleX(-1) rotateY(60deg); } }
         @keyframes fly { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        /* Status Text */
         h2 { font-size: 1.5rem; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.5px; }
         p.subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; min-height: 45px;}
 
         /* --- BUTTON --- */
         .btn-google {
-            display: none; /* Hidden by default */
+            display: none; 
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -200,13 +162,7 @@
             margin-top: 10px;
             backdrop-filter: blur(10px);
         }
-        .btn-google:hover {
-            background: var(--luxury-gold);
-            color: black;
-            border-color: var(--luxury-gold);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
+        .btn-google:hover { background: var(--luxury-gold); color: black; border-color: var(--luxury-gold); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
         .btn-google:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-google svg { width: 20px; height: 20px; }
 
@@ -214,6 +170,7 @@
         .error-title { color: #fca5a5; font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         .error-msg { color: #e5e7eb; word-break: break-word; }
         .spin-anim { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* --- BLOCKCHAIN LEDGER (RIGHT SIDE) --- */
         .blockchain-ledger {
@@ -258,21 +215,24 @@
             100% { transform: translateY(-400px); opacity: 0; }
         }
 
-        /* --- LIVE ACTIVITY LOG STYLING --- */
+        /* --- LIVE ACTIVITY LOG STYLING (PERBAIKAN UTAMA) --- */
         .live-activity-log {
             position: fixed;
             bottom: 20px;
             left: 20px;
+            right: 20px; /* Agar memenuhi lebar layar secara responsif */
             z-index: 999;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            pointer-events: none;
-            min-height: 60px; 
+            pointer-events: none; /* Biar tidak menghalangi klik */
+            /* Membatasi tinggi agar tidak menutupi header jika banyak log */
+            max-height: 30vh; 
+            overflow: hidden;
         }
 
         .log-item {
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.90); /* Lebih solid agar terbaca jelas */
             backdrop-filter: blur(8px);
             padding: 12px 20px;
             border-radius: 8px;
@@ -281,20 +241,26 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            transform: translateX(-120%);
+            
+            /* PERBAIKAN ANIMASI: Mulai dari bawah, bukan dari kiri */
+            transform: translateY(20px); 
             opacity: 0;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            max-width: 300px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            
+            max-width: 350px; /* Batasi lebar biar tidak penuh di desktop */
             font-size: 0.8rem;
+            margin-left: 0; /* Penempatan otomatis */
         }
 
+        /* State Muncul */
         .log-item.show {
-            transform: translateX(0);
+            transform: translateY(0); /* Kembali ke posisi normal */
             opacity: 1;
         }
 
+        /* State Hilang */
         .log-item.fade-out {
-            transform: translateX(-120%);
+            transform: translateY(20px); /* Hilang ke bawah */
             opacity: 0;
         }
 
@@ -319,13 +285,23 @@
         .log-action { color: var(--text-muted); font-size: 0.75rem; }
         .log-time { color: var(--success-green); font-size: 0.7rem; margin-top: 2px; }
 
-        /* Responsive */
+        /* Responsive Khusus Mobile */
         @media (max-width: 800px) {
             .blockchain-ledger { display: none; } /* Sembunyikan blockchain di mobile */
         }
+        
         @media (max-width: 600px) {
-            .live-activity-log { left: 10px; right: 10px; bottom: 10px; align-items: center; }
-            .log-item { max-width: 100%; font-size: 0.75rem; padding: 10px 15px; }
+            .live-activity-log {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                align-items: flex-start; /* Log mulai dari kiri */
+            }
+            .log-item {
+                max-width: 100%; /* Lebar penuh di mobile tapi dengan padding */
+                font-size: 0.75rem;
+                padding: 10px 15px;
+            }
         }
     </style>
 </head>
@@ -345,7 +321,6 @@
             <div class="glow-effect"></div>
             <div class="card">
                 <div class="mascot-container">
-                    <!-- MASCOT: CYBER BUTTERFLY -->
                     <div class="butterfly" id="mascot-icon">
                         <div class="body-fly"></div>
                         <div class="wing wing-left"></div>
@@ -359,7 +334,6 @@
                 <h2 id="status-title">Selamat Datang</h2>
                 <p class="subtitle" id="status-desc">Masuk untuk melanjutkan</p>
 
-                <!-- Tombol Google -->
                 <button id="btn-google" class="btn-google" onclick="handleGoogleLogin()">
                     <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                         <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
@@ -474,7 +448,7 @@
                     console.log("ℹ️ Belum login.");
                     ui.title.innerText = "Aurorra"; 
                     ui.desc.innerText = "Masuk untuk melanjutkan";
-                    ui.mascot.style.display = 'block'; // Tampilkan kupu-kupu
+                    ui.mascot.style.display = 'block'; 
                     ui.spinner.style.display = 'none';
                     ui.btnGoogle.style.display = 'flex';
                 }
@@ -520,18 +494,19 @@
             
             container.appendChild(block);
             
-            // Hapus setelah animasi selesai (5s)
             setTimeout(() => {
                 block.remove();
             }, 5000);
         }
 
-        // --- 6. LIVE ACTIVITY LOG ---
+        // --- 6. LIVE ACTIVITY LOG (PERBAIKAN JS) ---
         const dummyUsers = ["Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko", "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi", "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu", "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino", "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga"];
         const dummyProducts = ["Aurorra Rouge", "Mystic Night", "Royal Oud", "Velvet Rose", "Ocean Breeze", "Golden Sunset", "Midnight Noir", "Cherry Blossom", "Amber Musk", "Fresh Citrus", "Dark Desire", "Pure White", "Blue Ocean", "Pink Paradise", "Silver Rain"];
 
         function showRandomActivity() {
             const container = document.getElementById('live-log-container');
+            if (!container) return;
+
             const name = dummyUsers[Math.floor(Math.random() * dummyUsers.length)];
             const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
             const time = Math.floor(Math.random() * 5) + 1;
@@ -547,14 +522,24 @@
                 </div>
             `;
 
-            container.prepend(logItem); 
+            // Menambahkan ke container (paling atas)
+            container.insertBefore(logItem, container.firstChild);
 
-            setTimeout(() => { logItem.classList.add('show'); }, 50);
+            // Trigger animasi masuk (sedikit delay untuk render)
+            setTimeout(() => { 
+                logItem.classList.add('show'); 
+            }, 50);
 
+            // Hapus item setelah beberapa detik
             setTimeout(() => {
                 logItem.classList.remove('show');
                 logItem.classList.add('fade-out');
-                setTimeout(() => { logItem.remove(); }, 500);
+                // Hapus dari DOM setelah animasi selesai
+                setTimeout(() => { 
+                    if (logItem.parentNode === container) {
+                        container.removeChild(logItem);
+                    }
+                }, 500);
             }, 4000);
         }
 
@@ -564,7 +549,7 @@
             trackPageView();
             
             // Jalankan Visual
-            setInterval(createBlock, 2000); // Blockchain block setiap 2 detik
+            setInterval(createBlock, 2000); 
             setTimeout(showRandomActivity, 2000); 
             setInterval(showRandomActivity, 8000);
         };
