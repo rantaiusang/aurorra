@@ -39,7 +39,7 @@
             align-items: center;
             border-bottom: 1px solid var(--border-color);
             position: sticky; top: 0;
-            background: rgba(15, 12, 21, 0.95);
+            background: rgba(15, 12, 21, 0.98);
             backdrop-filter: blur(10px);
             z-index: 100;
         }
@@ -49,8 +49,17 @@
             background: linear-gradient(45deg, #fff, var(--luxury-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        nav a { color: var(--text-muted); text-decoration: none; margin-left: 20px; font-size: 0.9rem; transition: 0.3s; }
-        nav a:hover { color: var(--luxury-gold); }
+        /* Back Button Style */
+        .back-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+        .back-btn:hover { color: var(--luxury-gold); }
 
         /* Layout */
         .article-container {
@@ -102,7 +111,7 @@
             margin-bottom: 15px;
         }
 
-        /* Product Card (Custom Styling) */
+        /* Product Card Styling */
         .product-block {
             background: var(--dark-card);
             border: 1px solid var(--border-color);
@@ -110,8 +119,21 @@
             padding: 30px;
             margin: 30px 0;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden; /* Agar gambar tidak keluar border */
         }
-        .product-block h3 { color: var(--luxury-gold); margin-top: 0; }
+        .product-block h3 { color: var(--luxury-gold); margin-top: 0; font-size: 1.5rem; }
+        
+        /* CSS GAMBAR PRODUK (BARU) */
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
         .product-highlight {
             background: rgba(212, 175, 55, 0.1);
             padding: 15px;
@@ -124,6 +146,8 @@
             font-weight: 700;
             color: #10b981; /* Green for price */
             font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: block;
         }
 
         /* Tips Box */
@@ -144,7 +168,8 @@
             border-top: 1px solid var(--border-color);
             text-align: center;
         }
-        .share-btn {
+        /* Button Styles */
+        .btn-main {
             display: inline-block;
             padding: 12px 30px;
             background: var(--luxury-gold);
@@ -152,7 +177,28 @@
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
-            margin-top: 20px;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        .btn-main:hover {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            display: inline-block;
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            border-color: var(--text-white);
+            color: var(--text-white);
         }
 
         /* Responsive */
@@ -160,17 +206,20 @@
             .article-hero h1 { font-size: 1.8rem; }
             .article-container { padding: 30px 15px; }
             .product-block { padding: 20px; }
+            .product-image { height: 200px; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="blog.html" class="logo">Aurorra Journal ⚡</a>
-        <nav>
-            <a href="index.html">Store</a>
-            <a href="blog.html">Journal</a>
-        </nav>
+        <!-- TOMBOL KEMBALI DI HEADER -->
+        <a href="../blog.html" class="back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Kembali
+        </a>
+        
+        <a href="../index.html" class="logo">Aurorra ⚡</a>
     </header>
 
     <article class="article-container">
@@ -191,9 +240,11 @@
 
             <p>Masalah jerawat umumnya disebabkan oleh penyumbatan pori-pori akibat minyak berlebih (sebum) dan bakteri <em>Cutibacterium acnes</em>. Solusinya adalah mencari kandungan aktif yang mampu menghentikan siklus tersebut.</p>
 
+            <!-- PRODUK 1 -->
             <h2>1. Haloskin Lab Acne Fighting Package</h2>
             <div class="product-block">
-                <p class="price-tag">Kisaran Harga: Rp148.000 - Rp160.000</p>
+                <img src="https://images.unsplash.com/photo-1629198735660-e39ea93f5c4c" alt="Haloskin Acne Fighting Package" class="product-image">
+                <span class="price-tag">Kisaran Harga: Rp148.000 - Rp160.000</span>
                 <p><strong>Haloskin</strong> kini menjadi primadona karena formulanya yang dikhususkan oleh dermatolog (dokter kulit). Keunggulannya terletak pada sistem "Day Cream" dan "Night Cream" yang berbeda fungsi.</p>
                 
                 <div class="product-highlight">
@@ -206,9 +257,11 @@
                 <p><strong>Cara Pakai:</strong> Oleskan tipis Day Cream pagi hari setelah moisturizer, dan Night Cream malam hari sebelum tidur. Selalu ikuti dengan sunscreen di pagi hari.</p>
             </div>
 
+            <!-- PRODUK 2 -->
             <h2>2. Vitacid 0.025% Cream</h2>
             <div class="product-block">
-                <p class="price-tag">Kisaran Harga: Rp35.000 - Rp40.000</p>
+                <img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5" alt="Vitacid Tretinoin Cream" class="product-image">
+                <span class="price-tag">Kisaran Harga: Rp35.000 - Rp40.000</span>
                 <p>Obat generik yang legendaris. Vitacid mengandung <strong>Tretinoin</strong>, salah satu kandungan emas (gold standard) untuk jerawat dan anti-aging.</p>
 
                 <div class="product-highlight">
@@ -218,27 +271,34 @@
                 <p><strong>Peringatan:</strong> Vitacid cukup keras. Awal penggunaan biasanya menimbulkan kulit mengelupas dan kemerahan. Wajib gunakan <strong>Sunscreen</strong> di pagi hari karena kulit akan lebih sensitif terhadap matahari.</p>
             </div>
 
+            <!-- PRODUK 3 -->
             <h2>3. Medi-Klin TR Gel</h2>
             <div class="product-block">
-                <p class="price-tag">Kisaran Harga: Rp65.000 - Rp70.000</p>
+                <img src="https://images.unsplash.com/photo-1606813907291-d86efa9b94db" alt="Medi Klin TR Gel Acne Treatment" class="product-image">
+                <span class="price-tag">Kisaran Harga: Rp65.000 - Rp70.000</span>
                 <p>Kombinasi sempurna antara <strong>Clindamycin</strong> (antibiotik) dan <strong>Tretinoin</strong>. Medi-Klin sering diresepkan dokter untuk jerawat yang meradang.</p>
                 <p>Kekuatan dual-action ini membunuh bakteri sambil mengangkat sel kulit mati. Efeknya lebih cepat terasa dibanding hanya antibiotik saja.</p>
             </div>
 
+            <!-- PRODUK 4 -->
             <h2>4. Dermatix Acne Spot Care</h2>
             <div class="product-block">
-                <p class="price-tag">Kisaran Harga: Rp178.000</p>
+                <img src="https://images.unsplash.com/photo-1608248597279-f99d160bfcbc" alt="Dermatix Acne Spot Care" class="product-image">
+                <span class="price-tag">Kisaran Harga: Rp178.000</span>
                 <p>Jika tujuan Anda adalah menghilangkan bekas jerawat (mark) sekaligus meredakan jerawat baru, produk ini jawabannya.</p>
                 <p>Mengandung silicone technology yang aman untuk semua jenis kulit. Bukan untuk jerawat batu yang parah, tapi sangat ampuh untuk jerawat pasir dan bekas hitam.</p>
             </div>
 
+            <!-- PRODUK 5 -->
             <h2>5. Acnes Sealing Jell</h2>
             <div class="product-block">
-                <p class="price-tag">Kisaran Harga: Rp30.000</p>
+                <img src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd" alt="Acnes Sealing Jell Acne Gel" class="product-image">
+                <span class="price-tag">Kisaran Harga: Rp30.000</span>
                 <p>Obat jerawat yang sudah lama dipercaya. Mengandung Benzoyl Peroxide yang efektif membunuh bakteri jerawat secara cepat.</p>
                 <p><strong>Ukuran kecil, harga terjangkau.</strong> Sangat cocok dibawa bepergian untuk dioleskan saat jerawat baru mulai tumbuh.</p>
             </div>
 
+            <!-- TIPS -->
             <h2>Tips Ampuh Menggunakan Obat Jerawat</h2>
             <div class="tips-box">
                 <h4>Supaya Cepat Sembuh, Ingat Aturan Ini:</h4>
@@ -255,9 +315,13 @@
 
         </div>
 
+        <!-- FOOTER NAVIGATION -->
         <div class="article-footer">
             <p>Temukan produk perawatan kulit premium lainnya di <strong>Aurorra Store</strong>.</p>
-            <a href="index.html" class="share-btn">Kunjungi Store</a>
+            <br>
+            <!-- TOMBOL KEMBALI DI FOOTER -->
+            <a href="../blog.html" class="btn-secondary">← Kembali ke Artikel</a>
+            <a href="../index.html" class="btn-main">Kunjungi Store</a>
         </div>
     </article>
 
