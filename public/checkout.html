@@ -53,6 +53,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; text-align: center;
         }
         
+        /* GANTI: Logo Visual (Bukan Pi Network) */
         .checkout-visual { 
             width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 30px; 
             background: linear-gradient(135deg, var(--luxury-gold), #b8860b); 
@@ -62,8 +63,7 @@
         .checkout-visual svg { width: 28px; height: 28px; stroke: white; stroke-width: 2; fill: none; }
 
         .payment-logo { width: 80px; height: 80px; margin: 0 auto 30px; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #FFD700, #FDB931); border-radius: 50%; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
-        /* FIX: SVG fill diubah ke none, stroke hitam agar terlihat */
-        .payment-logo svg { width: 50%; height: 50%; fill: none; stroke: #000; stroke-width: 2; }
+        .payment-logo svg { width: 50%; height: 50%; fill: #000; }
 
         h2 { font-family: 'Playfair Display', serif; text-align: center; color: var(--luxury-gold); margin-bottom: 10px; }
         .sub-text { text-align: center; color: #aaa; margin-bottom: 25px; font-size: 0.9rem; }
@@ -84,14 +84,24 @@
         .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--luxury-gold); border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .custom-select-options.open { display: block; }
         
+        /* PERBAIKAN: Search Box Lebih Besar */
         .search-box { 
-            padding: 15px; position: sticky; top: 0; background: #1e1e1e; 
-            z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.1); 
+            padding: 15px; /* Padding container diperbesar */
+            position: sticky; 
+            top: 0; 
+            background: #1e1e1e; 
+            z-index: 1; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
         }
         .search-box input { 
-            width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.1); 
-            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; 
-            color: white; box-sizing: border-box; font-size: 1rem; 
+            width: 100%; 
+            padding: 12px 15px; /* Padding input diperbesar */
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 6px; 
+            color: white; 
+            box-sizing: border-box; 
+            font-size: 1rem; /* Font size diperbesar agar mudah dibaca */
         }
 
         .option { padding: 10px 15px; cursor: pointer; transition: background 0.2s; color: #ddd; }
@@ -211,6 +221,7 @@
             
             <!-- VIEW 1: CHECKOUT FORM -->
             <div id="checkoutView">
+                <!-- PERBAIKAN: Logo diganti Shopping Bag -->
                 <div class="checkout-visual">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -249,13 +260,7 @@
 
             <!-- VIEW 2: CONFIRMATION & PAYMENT -->
             <div id="paymentView" class="hidden">
-                <!-- FIX: SVG Payment Logo agar tidak kotak hitam -->
-                <div class="payment-logo">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </svg>
-                </div>
+                <div class="payment-logo"><svg viewBox="0 0 24 24"><path d="M20 4H4C2.9 4 2 6.9 2 9V10H4V9C4 7.34 5.34 6 8 6H16C18.66 6 20 7.34 20 9V15H22V9C22 6.34 20.66 4 18 4H20ZM19 9H18V18H5V9H4V18H3V9H19ZM12 13H11V15H12V13ZM12 11H11V12H12V11ZM12 17H13V19H12V17ZM8 11H9V12H8V11ZM8 13H9V14H8V13Z" fill="#000000"/></svg></div>
                 <h2>Pembayaran Aman</h2>
                 <p class="sub-text">Sistem pembayaran otomatis via DOKU.</p>
                 <div id="error-message-payment" class="error-box"></div>
@@ -300,7 +305,6 @@
         let selectedShippingData = null;
         let finalPayload = null; 
         let isVoucherApplied = false;
-        let hasClaimedReviewInDB = false; 
 
         // ==========================================
         // 2. HELPER FUNCTIONS
@@ -336,40 +340,17 @@
 
         async function loadShippingCost() {
             const city = cityInputHidden.value; if(!city) return;
-            try { 
-                // FIX: Gunakan maybeSingle dan limit untuk menghindari error jika data ganda
-                const { data } = await supabaseClient
-                    .from("ongkir")
-                    .select("tarif, ekspedisi, estimasi")
-                    .eq("tujuan", city)
-                    .eq("ekspedisi", "jne")
-                    .limit(1)
-                    .maybeSingle();
-                    
-                if(data) { 
-                    shippingCost = parseInt(data.tarif) || 0; 
-                    selectedShippingData = data; 
-                    document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost); 
-                    updateFinalTotal(); 
-                } else {
-                    // Handle jika kota tidak ditemukan di ongkir
-                    shippingCost = 0;
-                    selectedShippingData = null;
-                    document.getElementById("shippingCostDisplay").value = "Ongkir tidak ditemukan";
-                }
-            } catch (e) { console.error(e); }
+            try { const { data } = await supabaseClient.from("ongkir").select("tarif, ekspedisi, estimasi").eq("tujuan", city).eq("ekspedisi", "jne").single(); if(data) { shippingCost = parseInt(data.tarif) || 0; selectedShippingData = data; document.getElementById("shippingCostDisplay").value = formatPrice(shippingCost); updateFinalTotal(); } } catch (e) { console.error(e); }
         }
 
         function updateFinalTotal() {
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
-            
-            if (savedVoucher && hasClaimedReviewInDB) {
+            if (savedVoucher) {
                 try {
                     const v = JSON.parse(savedVoucher);
-                    // FIX: Pastikan discount adalah angka, jika undefined pakai 0
-                    if (v.active && v.discount) discount = parseInt(v.discount) || 0;
-                } catch(e) { console.error("Parse voucher error", e); }
+                    if (v.active && v.discount) discount = v.discount;
+                } catch(e) {}
             }
 
             const finalTotal = (currentTotal + shippingCost) - discount;
@@ -398,26 +379,7 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session) { errorBox.style.display = "block"; errorBox.innerHTML = "Sesi habis. <a href='login.html'>Login</a>."; payBtn.disabled = true; return; }
                 currentUser = session.user;
-
-                // Cek status klaim voucher di DB
-                try {
-                    const { data: reviewData } = await supabaseClient
-                        .from("google_reviews")
-                        .select("claimed")
-                        .eq("user_id", currentUser.id)
-                        .maybeSingle(); // Lebih aman dari single()
-
-                    if (reviewData && reviewData.claimed) {
-                        hasClaimedReviewInDB = true;
-                        localStorage.setItem('aurorraVoucher', JSON.stringify({ active: false, used: true }));
-                    } else {
-                        hasClaimedReviewInDB = false;
-                    }
-                } catch (dbError) {
-                    console.log("Info: Data review tidak ditemukan, user dianggap belum klaim.");
-                    hasClaimedReviewInDB = false;
-                }
-
+                
                 const successLoad = loadCartAndCalculateTotal();
                 if (successLoad && parseFloat(currentTotal) > 0) { payBtn.disabled = false; payBtn.innerText = "Lanjut ke Pembayaran"; } 
                 else { payBtn.innerText = "Keranjang Kosong"; payBtn.disabled = true; }
@@ -430,19 +392,10 @@
             const checkoutRaw = localStorage.getItem('aurora_checkout');
             if (!checkoutRaw) return false;
             try {
-                const checkout = JSON.parse(checkoutRaw); 
-                cartItems = checkout.items || []; 
-                if (!cartItems.length) return false; // FIX: Validasi array kosong
-
+                const checkout = JSON.parse(checkoutRaw); cartItems = checkout.items || []; 
                 const summaryList = document.getElementById('summaryList'); let html = ''; let total = 0;
-                
-                cartItems.forEach(item => { 
-                    const price = parseFloat(item.price) || 0; 
-                    const qty = parseInt(item.qty) || 1; 
-                    total += price * qty; 
-                    html += `<div class="item-row"><span>${item.name || 'Produk'} <small>(x${qty})</small></span><span>${formatPrice(price * qty)}</span></div>`; 
-                });
-                
+                if (cartItems.length === 0) return false;
+                cartItems.forEach(item => { const price = parseFloat(item.price) || 0; const qty = parseInt(item.qty) || 1; total += price * qty; html += `<div class="item-row"><span>${item.name || 'Produk'} <small>(x${qty})</small></span><span>${formatPrice(price * qty)}</span></div>`; });
                 summaryList.innerHTML = html; currentTotal = total; return true;
             } catch (e) { return false; }
         }
@@ -462,41 +415,22 @@
             if (phone.length < 10) return showError("Nomor HP minimal 10 digit.");
             if (address.length < 10) return showError("Alamat minimal 10 karakter.");
             if (!city) return showError("Pilih kota tujuan.");
-            
-            // FIX: Validasi ongkir sebelum lanjut
-            if (!selectedShippingData) return showError("Maaf, ongkir untuk kota ini belum tersedia. Pilih kota lain atau hubungi admin.");
 
             document.getElementById('checkoutView').classList.add('hidden');
             document.getElementById('paymentView').classList.remove('hidden');
 
             const savedVoucher = localStorage.getItem('aurorraVoucher');
             let discount = 0;
-            
-            if (savedVoucher && hasClaimedReviewInDB) { 
-                try { 
-                    const v = JSON.parse(savedVoucher); 
-                    if(v.active && v.discount) discount = parseInt(v.discount) || 0; 
-                } catch(e){} 
-            }
+            if (savedVoucher) { try { const v = JSON.parse(savedVoucher); if(v.active) discount = v.discount; } catch(e){} }
             
             const finalBill = (currentTotal + shippingCost) - discount;
-            // FIX: Invoice number lebih unik menggunakan timestamp
-            const invoiceNumber = `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const invoiceNumber = `INV-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.floor(Math.random() * 10000)}`;
 
             finalPayload = {
-                invoiceNumber, 
-                amount: finalBill, 
-                customerName: fullName, 
-                customerEmail: currentUser.email,
-                customerPhone: phone, 
-                customerAddress: `${address}, ${city}`, 
-                shippingCost,
-                ekspedisi: selectedShippingData.ekspedisi, // Sudah divalidasi di atas
-                estimasi: selectedShippingData.estimasi, 
-                kota: city,
-                items: cartItems, 
-                userId: currentUser.id, 
-                discount
+                invoiceNumber, amount: finalBill, customerName: fullName, customerEmail: currentUser.email,
+                customerPhone: phone, customerAddress: `${address}, ${city}`, shippingCost,
+                ekspedisi: selectedShippingData?.ekspedisi, estimasi: selectedShippingData?.estimasi, kota: city,
+                items: cartItems, userId: currentUser.id, discount
             };
 
             localStorage.setItem('aurora_pending_order', JSON.stringify({...finalPayload, status: 'pending'}));
@@ -527,32 +461,13 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const savedVoucherRaw = localStorage.getItem('aurorraVoucher');
-            let savedVoucher = null;
+            const savedVoucher = localStorage.getItem('aurorraVoucher');
             
-            try {
-                if(savedVoucherRaw) savedVoucher = JSON.parse(savedVoucherRaw);
-            } catch(e) {}
-
-            // FIX: Logika popup diperbaiki
-            // Jika tidak ada data voucher SAMA SEKALI di local storage
-            if (!savedVoucherRaw) {
-                if (hasClaimedReviewInDB) {
-                    proceedToPaymentGateway(); 
-                } else {
-                    voucherPopup.classList.add('show');
-                }
+            if (!savedVoucher) {
+                voucherPopup.classList.add('show');
                 return;
             }
 
-            // Jika ada data, tapi statusnya tidak aktif
-            if (savedVoucher && savedVoucher.active === false) {
-                // Jika sudah pernah klaim di DB tapi local inactive (sudah dipakai/di skip), langsung bayar
-                proceedToPaymentGateway();
-                return;
-            }
-
-            // Default: Langsung bayar
             proceedToPaymentGateway();
         });
 
@@ -569,13 +484,8 @@
             btnPay.disabled = true;
             document.getElementById('error-message-payment').style.display = 'none';
 
-            // FIX: Tambahkan AbortController untuk timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-
             try {
                 if (!finalPayload) throw new Error("Data pesanan hilang. Ulangi checkout.");
-                if (!selectedShippingData) throw new Error("Data ongkir tidak valid."); // Double check
 
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session) throw new Error("Sesi habis. Login ulang.");
@@ -587,15 +497,10 @@
                         "Authorization": `Bearer ${session.access_token}`, 
                         "apikey": SUPABASE_KEY
                     },
-                    body: JSON.stringify(finalPayload),
-                    signal: controller.signal // Tambahkan signal
+                    body: JSON.stringify(finalPayload)
                 });
 
-                clearTimeout(timeoutId); // Clear timeout jika sukses
-
                 const result = await response.json();
-                console.log("Payment response:", result); // DEBUG LOG
-
                 if (!response.ok) throw new Error(result.message || "Gagal memproses pembayaran.");
                 
                 const paymentUrl = result.payment?.url || result.paymentUrl;
@@ -610,13 +515,7 @@
                 console.error(err);
                 const errBox = document.getElementById('error-message-payment');
                 errBox.style.display = "block"; 
-                // Handle error abort/timeut spesifik
-                if(err.name === 'AbortError') {
-                    errBox.innerText = "Waktu permintaan habas (timeout). Cek koneksi internet Anda.";
-                } else {
-                    errBox.innerText = err.message;
-                }
-                
+                errBox.innerText = err.message;
                 if(btnSpan) btnSpan.innerText = originalText;
                 btnPay.disabled = false;
             }
