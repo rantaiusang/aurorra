@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal & Insights | Aurorra Store</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- AURORRA BLOG THEME --- */
+        :root {
+            --luxury-gold: #d4af37;
+            --luxury-gold-dim: rgba(212, 175, 55, 0.15);
+            --dark-bg: #0f0c15;
+            --dark-card: rgba(25, 23, 28, 0.98);
+            --text-white: #ffffff;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
+        }
+
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        /* --- HEADER --- */
+        header {
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: rgba(15, 12, 21, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.4rem; color: var(--text-white); text-decoration: none;
+            font-weight: 700; letter-spacing: 1px;
+            background: linear-gradient(45deg, #fff, var(--luxury-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        nav a {
+            color: var(--text-muted); text-decoration: none; margin-left: 20px;
+            font-size: 0.9rem; transition: color 0.3s;
+        }
+        nav a:hover { color: var(--luxury-gold); }
+
+        /* --- HERO BLOG --- */
+        .blog-hero {
+            text-align: center;
+            padding: 80px 20px 60px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .blog-hero h1 { font-size: 3rem; margin-bottom: 15px; color: var(--luxury-gold); }
+        .blog-hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+        /* --- LAYOUT UTAMA --- */
+        .blog-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            display: grid;
+            grid-template-columns: 1fr; /* Default Mobile */
+            gap: 40px;
+        }
+
+        /* Desktop: 2 Kolom (Artikel + Sidebar) */
+        @media (min-width: 900px) {
+            .blog-container {
+                grid-template-columns: 2fr 1fr;
+                padding: 60px 40px;
+            }
+        }
+
+        /* --- ARTIKEL GRID --- */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        /* --- CARD STYLE --- */
+        .article-card {
+            background: var(--dark-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.1);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .card-category {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.8);
+            color: var(--luxury-gold);
+            font-size: 0.7rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .card-content { padding: 25px; }
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            color: var(--text-white);
+        }
+        .card-excerpt {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .read-more {
+            color: var(--luxury-gold);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            display: none; /* Hidden di mobile */
+        }
+        @media (min-width: 900px) {
+            .sidebar {
+                display: block;
+                padding-left: 20px;
+                border-left: 1px solid var(--border-color);
+            }
+        }
+
+        .sidebar-widget {
+            margin-bottom: 40px;
+        }
+        .widget-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--luxury-gold);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .widget-list { list-style: none; }
+        .widget-list li { margin-bottom: 15px; }
+        .widget-list a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .widget-list a:hover { color: var(--text-white); }
+        .widget-list .dot { width: 6px; height: 6px; background: var(--luxury-gold); border-radius: 50%; }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 30px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 50px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <a href="index.html" class="logo">Aurorra ⚡</a>
+        <nav>
+            <a href="index.html">Store</a>
+            <a href="blog.html" style="color: var(--luxury-gold);">Journal</a>
+            <a href="#">Tentang</a>
+        </nav>
+    </header>
+
+    <!-- HERO BLOG -->
+    <section class="blog-hero">
+        <h1>The Journal</h1>
+        <p>Panduan perawatan, tren parfum, dan wawasan gaya hidup mewah dari Aurorra.</p>
+    </section>
+
+    <!-- KONTEN UTAMA -->
+    <div class="blog-container">
+        
+        <!-- DAFTAR ARTIKEL (MAIN CONTENT) -->
+        <main class="articles-grid">
+            
+            <!-- Artikel 1 -->
+            <a href="artikel-1.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Oud+Guide');">
+                    <span class="card-category">Perawatan</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Cara Merawat Parfum Oud Agar Tahan Hingga Puluhan Tahun</h3>
+                    <p class="card-excerpt">Parfum dengan bahan dasar Oud memiliki karakter unik. Simpan di tempat lembab atau kering? Temukan jawabannya di sini.</p>
+                    <div class="card-meta">
+                        <span>12 Okt 2023</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Artikel 2 -->
+            <a href="artikel-2.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Diffuser');">
+                    <span class="card-category">Interior</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Memilih Diffuser yang Tepat untuk Ruang Keluarga</h3>
+                    <p class="card-excerpt">Jangan sembarangan memilih aroma untuk ruang keluarga. Kenali jenis-jenis diffuser ultrasonik dan reed diffuser.</p>
+                    <div class="card-meta">
+                        <span>05 Okt 2023</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Artikel 3 -->
+            <a href="artikel-3.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Business');">
+                    <span class="card-category">Lifestyle</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Rekomendasi Aroma Parfum untuk Meeting Bisnis</h3>
+                    <p class="card-excerpt">Kesan pertama sangat penting. Aroma yang tepat bisa meningkatkan kepercayaan diri dan profesionalisme Anda.</p>
+                    <div class="card-meta">
+                        <span>28 Sept 2023</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Artikel 4 -->
+            <a href="artikel-4.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=EDT+vs+EDP');">
+                    <span class="card-category">Edukasi</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">EDT vs EDP: Mana yang Lebih Awet?</h3>
+                    <p class="card-excerpt">Sering bingung bedanya Eau de Toilette dan Eau de Parfum? Mari kita bahas konsentrasi dan ketahanannya.</p>
+                    <div class="card-meta">
+                        <span>15 Sept 2023</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+        </main>
+
+        <!-- SIDEBAR (Tampil di Desktop) -->
+        <aside class="sidebar">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">Kategori</h3>
+                <ul class="widget-list">
+                    <li><a href="#"><span class="dot"></span> Perawatan Parfum</a></li>
+                    <li><a href="#"><span class="dot"></span> Panduan Gaya</a></li>
+                    <li><a href="#"><span class="dot"></span> Review Produk</a></li>
+                    <li><a href="#"><span class="dot"></span> Tips & Trik</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-widget">
+                <h3 class="widget-title">Artikel Populer</h3>
+                <ul class="widget-list">
+                    <li><a href="#">1. Cara Membedakan Parfum Original...</a></li>
+                    <li><a href="#">2. Layering Parfum untuk Pemula...</a></li>
+                    <li><a href="#">3. Jenis Aroma yang Disukai Wanita...</a></li>
+                </ul>
+            </div>
+        </aside>
+
+    </div>
+
+    <footer>
+        &copy; 2023 Aurorra Store. All Rights Reserved.
+    </footer>
+
+</body>
+</html>
