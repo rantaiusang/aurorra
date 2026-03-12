@@ -23,7 +23,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background-color: var(--dark-bg);
-            color: #e0e0e0; /* Sedikit lebih terang dari abu-abu */
+            color: #e0e0e0;
             font-family: 'Poppins', sans-serif;
             line-height: 1.8;
             font-size: 16px;
@@ -217,6 +217,18 @@
             color: #000;
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
         }
+        
+        /* Secondary Button for Back */
+        .cta-btn.secondary {
+            border-color: rgba(255,255,255,0.2);
+            color: var(--text-muted);
+            margin-right: 10px;
+        }
+        .cta-btn.secondary:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border-color: rgba(255,255,255,0.4);
+        }
 
         /* Responsive */
         @media (max-width: 600px) {
@@ -358,7 +370,8 @@
         </div>
 
         <div class="article-footer">
-            <p>Ingin tahu produk perawatan kulit lainnya?</p>
+            <!-- TOMBOL NAVIGASI -->
+            <a href="../blog.html" class="cta-btn secondary">← Kembali ke Daftar Artikel</a>
             <a href="../index.html" class="cta-btn">Kunjungi Aurorra Store</a>
         </div>
     </article>
