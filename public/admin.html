@@ -1047,7 +1047,6 @@
                     <div class="table-container"><table><thead><tr><th>Asal</th><th>Tujuan</th><th>Ekspedisi</th><th>Estimasi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div>
                 </div>`;
             
-            // Mengambil data dengan error handling
             const { data, error } = await sb.from('ongkir').select('*');
             if(error){
                 console.error("Gagal ambil data ongkir:", error);
@@ -1111,21 +1110,91 @@
         }
 
         // ==========================================
-        // 7. MODALS & ACTIONS
+        // 7. MODALS & ACTIONS (PERBAIKAN PRODUK)
         // ==========================================
         
         function openModal(title, content) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalContent').innerHTML = content; document.getElementById('modalBox').classList.add('show'); }
         function closeModal() { document.getElementById('modalBox').classList.remove('show'); }
         
         async function openProductModal(id = null) {
-            let prod = { name: '', price: '', image_url: '', category: 'unisex' };
+            // Default values disesuaikan dengan struktur tabel (stock wajib, size_ml, dll)
+            let prod = { name: '', price: '', stock: 0, image_url: '', category: 'unisex', description: '', size_ml: '' };
             if(id) { const { data } = await sb.from('products').select('*').eq('id', id).single(); if(data) prod = data; }
-            openModal(id ? 'Edit Produk' : 'Tambah Produk', `<form onsubmit="saveProduct(event, '${id || ''}')"><div class="form-group"><label>Nama</label><input type="text" class="form-input" id="inpName" value="${prod.name}" required></div><div class="form-group"><label>Harga</label><input type="number" class="form-input" id="inpPrice" value="${prod.price}" required></div><div class="form-group"><label>Image URL</label><input type="text" class="form-input" id="inpImage" value="${prod.image_url}"></div><div class="form-group"><label>Kategori</label><select class="form-input" id="inpCat"><option value="women" ${prod.category==='women'?'selected':''}>Women</option><option value="men" ${prod.category==='men'?'selected':''}>Men</option><option value="unisex" ${prod.category==='unisex'?'selected':''}>Unisex</option></select></div><button type="submit" class="btn btn-primary" style="width:100%">Simpan</button></form>`);
+            
+            openModal(id ? 'Edit Produk' : 'Tambah Produk', `
+                <form onsubmit="saveProduct(event, '${id || ''}')">
+                    <div class="form-group">
+                        <label>Nama Produk</label>
+                        <input type="text" class="form-input" id="inpName" value="${prod.name}" required>
+                    </div>
+                    <div style="display:flex; gap:15px;">
+                        <div class="form-group" style="flex:1">
+                            <label>Harga (IDR)</label>
+                            <input type="number" class="form-input" id="inpPrice" value="${prod.price}" required>
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label>Stok (Wajib)</label>
+                            <input type="number" class="form-input" id="inpStock" value="${prod.stock}" required min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Ukuran (ml)</label>
+                        <input type="number" class="form-input" id="inpSize" value="${prod.size_ml || ''}" placeholder="Contoh: 100">
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select class="form-input" id="inpCat">
+                            <option value="women" ${prod.category==='women'?'selected':''}>Women</option>
+                            <option value="men" ${prod.category==='men'?'selected':''}>Men</option>
+                            <option value="unisex" ${prod.category==='unisex'?'selected':''}>Unisex</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="text" class="form-input" id="inpImage" value="${prod.image_url || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi</label>
+                        <textarea class="form-input" id="inpDesc" rows="3">${prod.description || ''}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">Simpan</button>
+                </form>
+            `);
         }
 
         async function saveProduct(e, id) {
-            e.preventDefault(); const payload = { name: document.getElementById('inpName').value, price: parseFloat(document.getElementById('inpPrice').value), image_url: document.getElementById('inpImage').value, category: document.getElementById('inpCat').value };
-            if(id) { await sb.from('products').update(payload).eq('id', id); } else { await sb.from('products').insert([payload]); } closeModal(); renderProducts();
+            e.preventDefault(); 
+            
+            // Payload disesuaikan dengan kolom tabel pertama
+            const payload = { 
+                name: document.getElementById('inpName').value, 
+                price: parseFloat(document.getElementById('inpPrice').value), 
+                stock: parseInt(document.getElementById('inpStock').value), // PERBAIKAN: Stock ditambahkan
+                image_url: document.getElementById('inpImage').value, 
+                category: document.getElementById('inpCat').value,
+                description: document.getElementById('inpDesc').value,
+                size_ml: document.getElementById('inpSize').value ? parseInt(document.getElementById('inpSize').value) : null,
+                updated_at: new Date().toISOString()
+            };
+
+            let error = null;
+            
+            if(id) { 
+                const res = await sb.from('products').update(payload).eq('id', id); 
+                error = res.error;
+            } else { 
+                // Tambahkan created_at untuk data baru
+                payload.created_at = new Date().toISOString();
+                const res = await sb.from('products').insert([payload]); 
+                error = res.error;
+            } 
+            
+            if(error) {
+                alert("Gagal menyimpan produk!\n\nPesan Error: " + error.message);
+            } else {
+                closeModal(); 
+                renderProducts();
+            }
         }
 
         async function openOrderDetail(id) {
@@ -1155,7 +1224,6 @@
         }
         
         async function openOngkirModal(id = null) {
-            // Set default values sesuai struktur tabel terakhir
             let data = { asal: 'jakarta', tujuan: '', ekspedisi: 'jne', tarif: '', estimasi: '2-3 hari' };
             if(id) { 
                 const res = await sb.from('ongkir').select('*').eq('id', id).single(); 
@@ -1188,7 +1256,6 @@
             `);
         }
         
-        // PERBAIKAN UTAMA: Menambahkan ID generator dan updated_at
         async function saveOngkir(e, id) { 
             e.preventDefault(); 
             
@@ -1198,25 +1265,23 @@
                 ekspedisi: document.getElementById('ongkEksp').value, 
                 estimasi: document.getElementById('ongkEst').value, 
                 tarif: parseInt(document.getElementById('ongkTarif').value) || 0,
-                updated_at: new Date().toISOString() // Tambahkan timestamp
+                updated_at: new Date().toISOString()
             }; 
 
             let error = null;
 
             if(id) { 
-                // Mode Edit
                 const res = await sb.from('ongkir').update(payload).eq('id', id); 
                 error = res.error;
             } else { 
-                // Mode Tambah - Generate UUID manual jika DB tidak otomatis
-                const newId = crypto.randomUUID(); // Generate UUID v4
+                const newId = crypto.randomUUID(); 
                 const res = await sb.from('ongkir').insert([{ ...payload, id: newId }]); 
                 error = res.error;
             } 
             
             if(error) {
                 console.error("Save Error:", error);
-                alert("Gagal menyimpan data ongkir!\n\nPesan Error: " + error.message + "\n\nPastikan RLS Policy di Supabase diizinkan untuk INSERT.");
+                alert("Gagal menyimpan data ongkir!\n\nPesan Error: " + error.message);
             } else {
                 closeModal(); 
                 renderOngkir();
