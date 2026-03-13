@@ -158,7 +158,7 @@
             width: 100%; padding: 8px 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #fff; font-family: inherit; font-size: 0.85rem; transition: 0.2s;
         }
         .search-input:focus { outline: none; border-color: var(--luxury-gold); background: rgba(0,0,0,0.3); }
-        .search-input::placeholder { color: #666; }
+        .search-input::placeholder { color: '#666'; }
 
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -409,8 +409,8 @@
                 dashboard: 'Dashboard', 
                 analytics: 'Analitik Pengunjung', 
                 products: 'Manajemen Produk', 
-                parfum: 'Stok Parfum',
-                purchasing: 'Stok Masuk', 
+                parfum: 'Stok Parfum (Realita)',
+                purchasing: 'Stok Masuk (Purchasing)', 
                 orders: 'Pesanan', 
                 shipping: 'Pengiriman', 
                 customers: 'Pelanggan', 
@@ -640,19 +640,20 @@
         async function deleteProduct(id) { if(!confirm("Hapus?")) return; await sb.from('products').delete().eq('id', id); renderProducts(); }
 
         // ==========================================
-        // PARFUM STOCK IMPLEMENTATION
+        // PARFUM STOCK IMPLEMENTATION (PERBAIKAN LOGIKA)
+        // Sumber data: tabel products (stok realita)
         // ==========================================
         let allParfum = [];
         async function renderParfum() {
             document.getElementById('contentArea').innerHTML = `
                 <div class="card-section">
                     <div class="section-header">
-                        <h3 class="section-title">Stok Parfum</h3>
+                        <h3 class="section-title">Stok Parfum (Tabel Products)</h3>
                         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                             <div class="search-wrapper">
                                 <input type="text" class="search-input" id="searchParfum" placeholder="Cari nama parfum..." onkeyup="filterParfum()">
                             </div>
-                            <button class="btn btn-primary" onclick="openParfumModal()">+ Tambah</button>
+                            <!-- Tombol tambah disembunyikan karena seharusnya tambah stok lewat Purchasing -->
                         </div>
                     </div>
                     <div class="table-container">
@@ -660,11 +661,9 @@
                             <thead>
                                 <tr>
                                     <th>Nama Parfum</th>
-                                    <th>Volume</th>
-                                    <th>Qty</th>
-                                    <th>Harga</th>
-                                    <th>Catatan</th>
-                                    <th>Aksi</th>
+                                    <th>Ukuran (ml)</th>
+                                    <th>Stok Tersedia</th>
+                                    <th>Harga Jual</th>
                                 </tr>
                             </thead>
                             <tbody id="parfumTable"></tbody>
@@ -672,11 +671,12 @@
                     </div>
                 </div>`;
             
-            const { data, error } = await sb.from('stok_parfum').select('*').order('created_at', { ascending: false });
+            // Ambil data dari tabel 'products'
+            const { data, error } = await sb.from('products').select('id, name, stock, price, size_ml').order('name', { ascending: true });
             
             if (error) {
                 console.error(error);
-                document.getElementById('parfumTable').innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Gagal memuat data.</td></tr>`;
+                document.getElementById('parfumTable').innerHTML = `<tr><td colspan="4" style="color:var(--danger)">Gagal memuat data.</td></tr>`;
                 return;
             }
             
@@ -689,103 +689,37 @@
             const filtered = getFilteredRows(allParfum, q);
             const tbody = filtered?.map(p => `
                 <tr>
-                    <td>${p.nama_parfum}</td>
-                    <td>${p.volume_ml}</td>
-                    <td>${p.qty}</td>
-                    <td>${formatPrice(p.harga)}</td>
-                    <td>${p.catatan || '-'}</td>
-                    <td>
-                        <button class="btn btn-outline btn-sm" onclick="openParfumModal('${p.id}')">Edit</button> 
-                        <button class="btn btn-danger btn-sm" onclick="deleteParfum('${p.id}')">Hapus</button>
-                    </td>
+                    <td>${p.name}</td>
+                    <td>${p.size_ml || '-'}</td>
+                    <td style="color:${p.stock < 5 ? 'var(--danger)' : 'var(--success)'}; font-weight:bold;">${p.stock}</td>
+                    <td>${formatPrice(p.price)}</td>
                 </tr>
-            `).join('') || '<tr><td colspan="6">Tidak ada data.</td></tr>';
+            `).join('') || '<tr><td colspan="4">Tidak ada data.</td></tr>';
             document.getElementById('parfumTable').innerHTML = tbody;
         }
 
-        async function openParfumModal(id = null) {
-            let data = { nama_parfum: '', volume_ml: '', harga: '', qty: 0, catatan: '', product_id: '' };
-            if(id) { 
-                const res = await sb.from('stok_parfum').select('*').eq('id', id).single(); 
-                if(res.data) data = res.data; 
-            }
-            
-            openModal(id ? 'Edit Parfum' : 'Tambah Parfum', `
-                <form onsubmit="saveParfum(event, '${id || ''}')">
-                    <div class="form-group">
-                        <label class="form-label">Nama Parfum</label>
-                        <input type="text" class="form-input" id="parfNama" value="${data.nama_parfum}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Volume (ml)</label>
-                        <input type="text" class="form-input" id="parfVolume" value="${data.volume_ml}" placeholder="contoh: 100ml" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Kuantitas (Qty)</label>
-                        <input type="number" class="form-input" id="parfQty" value="${data.qty}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Harga</label>
-                        <input type="number" class="form-input" id="parfHarga" value="${data.harga}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Catatan</label>
-                        <textarea class="form-input" id="parfCatatan" rows="2">${data.catatan || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Product ID (Opsional)</label>
-                        <input type="number" class="form-input" id="parfProdId" value="${data.product_id || ''}" placeholder="ID Produk Terkait">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%">Simpan</button>
-                </form>
-            `);
-        }
-
-        async function saveParfum(e, id) { 
-            e.preventDefault(); 
-            const payload = { 
-                nama_parfum: document.getElementById('parfNama').value, 
-                volume_ml: document.getElementById('parfVolume').value, 
-                qty: parseInt(document.getElementById('parfQty').value), 
-                harga: parseFloat(document.getElementById('parfHarga').value),
-                catatan: document.getElementById('parfCatatan').value,
-                product_id: document.getElementById('parfProdId').value ? parseInt(document.getElementById('parfProdId').value) : null
-            }; 
-            
-            if(id) { 
-                await sb.from('stok_parfum').update(payload).eq('id', id); 
-            } else { 
-                await sb.from('stok_parfum').insert([payload]); 
-            } 
-            closeModal(); 
-            renderParfum(); 
-        }
-
-        async function deleteParfum(id) { 
-            if(!confirm("Hapus data parfum ini?")) return; 
-            await sb.from('stok_parfum').delete().eq('id', id); 
-            renderParfum(); 
-        }
-
         // ==========================================
-        // PURCHASING (UPDATED - TANPA NAMA PRODUK)
+        // PURCHASING (PERBAIKAN LOGIKA)
+        // Sumber data: tabel purchasing + JOIN products
+        // Aksi: Insert purchasing + Update stok products
         // ==========================================
         let allPurchasing = [];
         async function renderPurchasing() {
             document.getElementById('contentArea').innerHTML = `
                 <div class="card-section">
                     <div class="section-header">
-                        <h3 class="section-title">Stok Masuk (Purchasing)</h3>
+                        <h3 class="section-title">Riwayat Pembelian Stok (Purchasing)</h3>
                         <div style="display:flex; gap:10px; align-items:center;">
-                             <div class="search-wrapper"><input type="text" class="search-input" id="searchPurchasing" placeholder="Cari data..." onkeyup="filterPurchasing()"></div>
-                             <button class="btn btn-primary" onclick="openPurchaseModal()">+ Tambah</button>
+                             <div class="search-wrapper"><input type="text" class="search-input" id="searchPurchasing" placeholder="Cari nama produk..." onkeyup="filterPurchasing()"></div>
+                             <button class="btn btn-primary" onclick="openPurchaseModal()">+ Tambah Pembelian</button>
                         </div>
                     </div>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Qty</th>
+                                    <th>Produk</th>
+                                    <th>Qty Masuk</th>
                                     <th>Harga Beli</th>
                                     <th>Tanggal</th>
                                     <th>Aksi</th>
@@ -796,11 +730,18 @@
                     </div>
                 </div>`;
             
-            const { data, error } = await sb.from('purchasing').select('id, qty, harga, created_at').order('created_at', { ascending: false });
+            // Query dengan JOIN ke tabel products
+            const { data, error } = await sb.from('purchasing').select(`
+                id, 
+                qty, 
+                harga, 
+                created_at, 
+                products ( name )
+            `).order('created_at', { ascending: false });
             
             if (error) {
                 console.error(error);
-                document.getElementById('purchaseTable').innerHTML = `<tr><td colspan="4" style="color:var(--danger)">Gagal memuat data.</td></tr>`;
+                document.getElementById('purchaseTable').innerHTML = `<tr><td colspan="5" style="color:var(--danger)">Gagal memuat data.</td></tr>`;
                 return;
             }
 
@@ -814,7 +755,8 @@
 
             const tbody = filtered?.map(p => `
                 <tr>
-                    <td>+${p.qty}</td>
+                    <td>${p.products?.name || 'Unknown'}</td>
+                    <td style="color:var(--success)">+${p.qty}</td>
                     <td>${formatPrice(p.harga)}</td>
                     <td>${new Date(p.created_at).toLocaleDateString()}</td>
                     <td>
@@ -822,16 +764,17 @@
                         <button class="btn btn-danger btn-sm" onclick="deletePurchase('${p.id}')">Hapus</button>
                     </td>
                 </tr>
-            `).join('') || '<tr><td colspan="4">No data</td></tr>';
+            `).join('') || '<tr><td colspan="5">No data</td></tr>';
             document.getElementById('purchaseTable').innerHTML = tbody;
         }
 
         async function openPurchaseModal(id = null) {
-            let data = { qty: '', harga: '' };
+            let data = { qty: '', harga: '', product_id: '' };
             
             if (id) {
+                // Mode Edit
                 const found = allPurchasing.find(p => p.id === id);
-                if (found) data = found;
+                if (found) data = { ...found, product_id: found.product_id }; // Ambil product_id asli
                 
                 openModal('Edit Pembelian', `
                     <form onsubmit="savePurchase(event, '${id}')">
@@ -847,6 +790,7 @@
                     </form>
                 `);
             } else {
+                // Mode Tambah
                 const { data: prods } = await sb.from('products').select('id, name'); 
                 const options = prods.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
                 
@@ -867,7 +811,7 @@
                             <label>Harga Beli</label>
                             <input type="number" class="form-input" id="purPrice" required>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%">Simpan</button>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Simpan & Update Stok</button>
                     </form>
                 `);
             }
@@ -878,20 +822,47 @@
             
             const qty = parseInt(document.getElementById('purQty').value);
             const harga = parseFloat(document.getElementById('purPrice').value);
+            let product_id = null;
 
             if (id) {
+                // Logika Edit (Hanya update catatan, tidak mengubah stok otomatis agar tidak kacau)
                 await sb.from('purchasing').update({ qty, harga }).eq('id', id);
+                alert("Catatan pembelian diupdate. Stok produk tidak diubah otomatis saat edit.");
             } else {
-                const product_id = document.getElementById('purProd').value;
-                await sb.from('purchasing').insert([{ product_id, qty, harga }]);
+                // Logika Tambah
+                product_id = document.getElementById('purProd').value;
+                
+                // 1. Simpan ke tabel purchasing
+                const { error: insertError } = await sb.from('purchasing').insert([{ product_id, qty, harga }]);
+                
+                if (insertError) {
+                    alert("Gagal menyimpan pembelian: " + insertError.message);
+                    return;
+                }
+
+                // 2. Update stok di tabel products (Increment)
+                // Kita perlu ambil stok lama dulu
+                const { data: prodData } = await sb.from('products').select('stock').eq('id', product_id).single();
+                const currentStock = prodData?.stock || 0;
+                const newStock = currentStock + qty;
+
+                const { error: updateError } = await sb.from('products').update({ stock: newStock }).eq('id', product_id);
+                
+                if (updateError) {
+                    alert("Pembelian tercatat, tapi gagal update stok: " + updateError.message);
+                } else {
+                    alert("Sukses! Stok produk bertambah " + qty);
+                }
             }
             
             closeModal(); 
             renderPurchasing();
+            // Refresh juga stok parfum jika sedang terbuka
+            if(document.querySelector('.nav-link.active').getAttribute('data-tab') === 'parfum') renderParfum();
         }
 
         async function deletePurchase(id) { 
-            if(!confirm("Hapus data pembelian ini?")) return; 
+            if(!confirm("Hapus data pembelian ini? (Stok produk tidak akan berkurang otomatis)")) return; 
             await sb.from('purchasing').delete().eq('id', id); 
             renderPurchasing(); 
         }
@@ -1047,7 +1018,6 @@
                     <div class="table-container"><table><thead><tr><th>Asal</th><th>Tujuan</th><th>Ekspedisi</th><th>Estimasi</th><th>Tarif</th><th>Aksi</th></tr></thead><tbody id="ongkirTable"></tbody></table></div>
                 </div>`;
             
-            // Mengambil data dengan error handling
             const { data, error } = await sb.from('ongkir').select('*');
             if(error){
                 console.error("Gagal ambil data ongkir:", error);
@@ -1118,7 +1088,6 @@
         function closeModal() { document.getElementById('modalBox').classList.remove('show'); }
         
         async function openProductModal(id = null) {
-            // PERBAIKAN: Tambahkan stock, size_ml, description ke default
             let prod = { name: '', price: '', stock: 0, image_url: '', category: 'unisex', description: '', size_ml: '' };
             if(id) { const { data } = await sb.from('products').select('*').eq('id', id).single(); if(data) prod = data; }
             
@@ -1166,11 +1135,10 @@
         async function saveProduct(e, id) {
             e.preventDefault(); 
             
-            // PERBAIKAN: Sertakan 'stock' di payload karena kolom ini NOT NULL di DB
             const payload = { 
                 name: document.getElementById('inpName').value, 
                 price: parseFloat(document.getElementById('inpPrice').value), 
-                stock: parseInt(document.getElementById('inpStock').value), // WAJIB
+                stock: parseInt(document.getElementById('inpStock').value),
                 image_url: document.getElementById('inpImage').value, 
                 category: document.getElementById('inpCat').value,
                 description: document.getElementById('inpDesc').value,
@@ -1224,7 +1192,6 @@
         }
         
         async function openOngkirModal(id = null) {
-            // Set default values sesuai struktur tabel terakhir
             let data = { asal: 'jakarta', tujuan: '', ekspedisi: 'jne', tarif: '', estimasi: '2-3 hari' };
             if(id) { 
                 const res = await sb.from('ongkir').select('*').eq('id', id).single(); 
@@ -1257,7 +1224,6 @@
             `);
         }
         
-        // PERBAIKAN UTAMA: Menambahkan ID generator dan updated_at
         async function saveOngkir(e, id) { 
             e.preventDefault(); 
             
@@ -1267,25 +1233,23 @@
                 ekspedisi: document.getElementById('ongkEksp').value, 
                 estimasi: document.getElementById('ongkEst').value, 
                 tarif: parseInt(document.getElementById('ongkTarif').value) || 0,
-                updated_at: new Date().toISOString() // Tambahkan timestamp
+                updated_at: new Date().toISOString()
             }; 
 
             let error = null;
 
             if(id) { 
-                // Mode Edit
                 const res = await sb.from('ongkir').update(payload).eq('id', id); 
                 error = res.error;
             } else { 
-                // Mode Tambah - Generate UUID manual jika DB tidak otomatis
-                const newId = crypto.randomUUID(); // Generate UUID v4
+                const newId = crypto.randomUUID(); 
                 const res = await sb.from('ongkir').insert([{ ...payload, id: newId }]); 
                 error = res.error;
             } 
             
             if(error) {
                 console.error("Save Error:", error);
-                alert("Gagal menyimpan data ongkir!\n\nPesan Error: " + error.message + "\n\nPastikan RLS Policy di Supabase diizinkan untuk INSERT.");
+                alert("Gagal menyimpan data ongkir!\n\nPesan Error: " + error.message);
             } else {
                 closeModal(); 
                 renderOngkir();
