@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journal & Insights | Aurorra Store</title>
-    <meta name="description" content="Temukan artikel terbaru seputar kesehatan, perawatan kulit, dan gaya hidup mewah dari Aurorra Journal.">
+    <meta name="description" content="Temukan artikel terbaru seputar kesehatan, perawatan kulit, momen spiritual, dan gaya hidup mewah dari Aurorra Journal.">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -30,6 +30,17 @@
         }
 
         h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+
+        /* --- ANIMASI SCROLL --- */
+        .anim-elem {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .anim-elem.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         /* --- HEADER --- */
         header {
@@ -123,7 +134,13 @@
             background-position: center;
             position: relative;
             background-color: #1a1820;
+            transition: transform 0.5s ease;
+            overflow: hidden;
         }
+        .article-card:hover .card-image {
+            transform: scale(1.05);
+        }
+        
         .card-category {
             position: absolute;
             top: 15px;
@@ -136,6 +153,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             border: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 2;
         }
 
         .card-content { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
@@ -222,36 +240,93 @@
 
     <!-- HEADER -->
     <header>
-        <!-- Link Logo: Kembali ke Halaman Utama (Root) -->
         <a href="index.html" class="logo">Aurorra ⚡</a>
         <nav>
-            <!-- Link Store: Kembali ke Halaman Utama -->
             <a href="index.html">Store</a>
-            <!-- Link Journal: Halaman Ini Sendiri -->
             <a href="blog.html" class="active">Journal</a>
         </nav>
     </header>
 
     <!-- HERO BLOG -->
-    <section class="blog-hero">
+    <section class="blog-hero anim-elem">
         <h1>The Journal</h1>
-        <p>Panduan perawatan kulit, tren parfum, dan wawasan gaya hidup mewah dari Aurorra.</p>
+        <p>Panduan perawatan kulit, momen spiritual, dan wawasan gaya hidup mewah dari Aurorra.</p>
     </section>
 
     <!-- KONTEN UTAMA -->
     <div class="blog-container">
         
-        <!-- DAFTAR ARTIKEL (MAIN CONTENT) -->
+        <!-- DAFTAR ARTIKEL -->
         <main class="articles-grid">
             
-            <!-- ARTIKEL 1: Diet Sehat (Target Utama SEO) -->
-            <a href="artikel/diet-sehat-tanpa-olahraga.html" class="article-card">
+            <!-- ARTIKEL BARU: Lailatul Qadar -->
+            <a href="artikel/lailatul-qadar-kapan.html" class="article-card anim-elem">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1591608971362-f08b2a75731a?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Spiritual</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Kapan Malam Lailatul Qadar Terjadi? Tanda dan Amalan</h3>
+                    <p class="card-excerpt">Mengulas waktu terjadinya malam seribu bulan, tanda-tandanya, dan amalan utama di 10 hari terakhir Ramadhan.</p>
+                    <div class="card-meta">
+                        <span>25 Mar 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL: Skincare Pemula -->
+            <a href="artikel/skincare-pemula-wajib-tahu.html" class="article-card anim-elem">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Panduan</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Panduan Lengkap Skincare untuk Pemula</h3>
+                    <p class="card-excerpt">Bingung mulai merawat kulit? Pelajari 3 langkah dasar yang wajib dilakukan sebelum pakai produk mahal.</p>
+                    <div class="card-meta">
+                        <span>28 Mei 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL: Flek Hitam -->
+            <a href="artikel/menghilangkan-flek-hitam.html" class="article-card anim-elem">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Problem Solving</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Cara Ampuh Menghilangkan Flek Hitam Bekas Jerawat</h3>
+                    <p class="card-excerpt">Bingung dengan noda membandel pasca jerawat? Simak panduan bahan aktif yang tepat untuk memutihkan flek hitam.</p>
+                    <div class="card-meta">
+                        <span>26 Mei 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL: Parfum Oud -->
+            <a href="artikel/parfum-oud-kemewahan.html" class="article-card anim-elem">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Life Style</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Mengenal Parfum Oud: Aroma Kemewahan dari Timur Tengah</h3>
+                    <p class="card-excerpt">Apa itu Oud? Pelajari karakteristik aroma 'liquid gold' yang identik dengan kemewahan dan ketahanan tinggi.</p>
+                    <div class="card-meta">
+                        <span>27 Mei 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL: Diet Sehat -->
+            <a href="artikel/diet-sehat-tanpa-olahraga.html" class="article-card anim-elem">
                 <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop');">
                     <span class="card-category">Gaya Hidup</span>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Cara Diet Sehat Tanpa Olahraga yang Efektif dan Aman</h3>
-                    <p class="card-excerpt">Ingin tubuh ideal tanpa lelah di gym? Simak panduan diet sehat tanpa olahraga yang fokus pada pola makan dan hidrasi.</p>
+                    <p class="card-excerpt">Ingin tubuh ideal tanpa lelah di gym? Simak panduan diet sehat tanpa olahraga yang fokus pada pola makan.</p>
                     <div class="card-meta">
                         <span>24 Mei 2024</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
@@ -259,8 +334,8 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 2: Benzoyl vs Salicylic -->
-            <a href="artikel/benzoyl-vs-salicylic.html" class="article-card">
+            <!-- ARTIKEL: Benzoyl vs Salicylic -->
+            <a href="artikel/benzoyl-vs-salicylic.html" class="article-card anim-elem">
                 <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop');">
                     <span class="card-category">Edukasi</span>
                 </div>
@@ -274,8 +349,8 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 3: Obat Jerawat Apotek -->
-            <a href="artikel/obat-jerawat-ampuh.html" class="article-card">
+            <!-- ARTIKEL: Obat Jerawat Apotek -->
+            <a href="artikel/obat-jerawat-ampuh.html" class="article-card anim-elem">
                 <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?q=80&w=800&auto=format&fit=crop');">
                     <span class="card-category">Kesehatan</span>
                 </div>
@@ -289,71 +364,26 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 4: Parfum Oud -->
-            <a href="#" class="article-card">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Perawatan</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Cara Merawat Parfum Oud Agar Tahan Hingga Puluhan Tahun</h3>
-                    <p class="card-excerpt">Parfum dengan bahan dasar Oud memiliki karakter unik. Simpan di tempat lembab atau kering?</p>
-                    <div class="card-meta">
-                        <span>12 Okt 2023</span>
-                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-                    </div>
-                </div>
-            </a>
-
-            <!-- ARTIKEL 5: Diffuser -->
-            <a href="#" class="article-card">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Interior</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Memilih Diffuser yang Tepat untuk Ruang Keluarga</h3>
-                    <p class="card-excerpt">Jangan sembarangan memilih aroma untuk ruang keluarga. Kenali jenis-jenis diffuser ultrasonik.</p>
-                    <div class="card-meta">
-                        <span>05 Okt 2023</span>
-                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-                    </div>
-                </div>
-            </a>
-
-            <!-- ARTIKEL 6: Skincare Pria -->
-            <a href="#" class="article-card">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Pria</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Dasar Skincare Pria: Simpel tapi Efektif</h3>
-                    <p class="card-excerpt">Pria tidak butuh rangkaian rumit. Cukup 3 langkah ini untuk kulit bersih dan sehat.</p>
-                    <div class="card-meta">
-                        <span>01 Okt 2023</span>
-                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-                    </div>
-                </div>
-            </a>
-
         </main>
 
-        <!-- SIDEBAR (Tampil di Desktop) -->
-        <aside class="sidebar">
+        <!-- SIDEBAR -->
+        <aside class="sidebar anim-elem">
             <div class="sidebar-widget">
                 <h3 class="widget-title">Kategori</h3>
                 <ul class="widget-list">
                     <li><a href="#"><span class="dot"></span> Kesehatan & Kulit</a></li>
+                    <li><a href="#"><span class="dot"></span> Spiritual</a></li>
                     <li><a href="#"><span class="dot"></span> Perawatan Parfum</a></li>
                     <li><a href="#"><span class="dot"></span> Panduan Gaya</a></li>
-                    <li><a href="#"><span class="dot"></span> Review Produk</a></li>
                 </ul>
             </div>
 
             <div class="sidebar-widget">
                 <h3 class="widget-title">Artikel Populer</h3>
                 <ul class="widget-list">
-                    <li><a href="artikel/diet-sehat-tanpa-olahraga.html">1. Diet Sehat Tanpa Olahraga</a></li>
-                    <li><a href="artikel/benzoyl-vs-salicylic.html">2. Benzoyl vs Salicylic Acid</a></li>
-                    <li><a href="artikel/obat-jerawat-ampuh.html">3. Obat Jerawat Ampuh di Apotek</a></li>
+                    <li><a href="artikel/lailatul-qadar-kapan.html">1. Malam Lailatul Qadar</a></li>
+                    <li><a href="artikel/skincare-pemula-wajib-tahu.html">2. Skincare untuk Pemula</a></li>
+                    <li><a href="artikel/menghilangkan-flek-hitam.html">3. Cara Hilangkan Flek Hitam</a></li>
                 </ul>
             </div>
         </aside>
@@ -363,6 +393,27 @@
     <footer>
         &copy; 2024 Aurorra Store. All Rights Reserved.
     </footer>
+
+    <!-- JAVASCRIPT UNTUK ANIMASI -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.anim-elem');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            animatedElements.forEach((el) => {
+                observer.observe(el);
+            });
+        });
+    </script>
 
 </body>
 </html>
