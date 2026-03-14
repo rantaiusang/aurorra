@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>Mengenal Parfum Oud: Aroma Kemewahan dari Timur Tengah | Aurorra Journal</title>
+    <meta name="description" content="Apa itu Parfum Oud? Pelajari karakteristik aroma 'liquid gold' dari Timur Tengah, mengapa disebut mewah, dan cara memilih Oud yang tepat untuk pemula.">
+    <meta name="keywords" content="parfum oud, minyak oud, aroma mewah, parfum tahan lama, pewangi pria, agarwood">
+    <meta name="author" content="Tim Aurorra">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Mengenal Parfum Oud: Aroma Kemewahan dari Timur Tengah">
+    <meta property="og:description" content="Panduan lengkap mengenal Parfum Oud, aroma yang identik dengan kemewahan dan ketahanan tinggi.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop">
+    <meta property="og:type" content="article">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Mengenal Parfum Oud: Aroma Kemewahan dari Timur Tengah",
+      "image": ["https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop"],
+      "author": { "@type": "Person", "name": "Tim Aurorra" },
+      "publisher": { "@type": "Organization", "name": "Aurorra Journal" },
+      "datePublished": "2024-05-27",
+      "dateModified": "2024-05-27"
+    }
+    </script>
+
+    <style>
+        /* --- AURORRA ARTICLE THEME --- */
+        :root {
+            --luxury-gold: #d4af37;
+            --dark-bg: #0f0c15;
+            --dark-card: rgba(25, 23, 28, 0.98);
+            --text-white: #ffffff;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+
+        /* ANIMASI SCROLL */
+        .anim-elem {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .anim-elem.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Header */
+        header {
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0;
+            background: rgba(15, 12, 21, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.4rem; color: var(--text-white); text-decoration: none;
+            font-weight: 700; letter-spacing: 1px;
+            background: linear-gradient(45deg, #fff, var(--luxury-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .back-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+        .back-btn:hover { color: var(--luxury-gold); }
+
+        /* Layout */
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        .article-hero { text-align: center; margin-bottom: 50px; }
+        .article-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            background: linear-gradient(45deg, #fff, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .meta-info {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-info span { display: flex; align-items: center; gap: 5px; }
+        .meta-info .author { color: var(--luxury-gold); font-weight: 600; }
+
+        /* Images */
+        .hero-image-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            border: 1px solid var(--border-color);
+        }
+        .hero-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .content-image-block {
+            margin: 30px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .content-image-block img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+        .img-caption {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Content Styling */
+        .article-content p {
+            color: #e0e0e0;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+        .article-content h2 {
+            color: var(--luxury-gold);
+            margin-top: 50px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        .article-content h3 {
+            color: #fff;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        .article-content a {
+            color: var(--luxury-gold);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--luxury-gold);
+            transition: color 0.3s;
+        }
+        .article-content a:hover { color: #fff; }
+
+        /* Oud Character List */
+        .oud-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 600px) {
+            .oud-list { grid-template-columns: 1fr 1fr; }
+        }
+        .oud-list li {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 3px solid var(--luxury-gold);
+        }
+        .oud-list li strong {
+            color: var(--luxury-gold);
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .highlight-box h3 { color: var(--luxury-gold); margin-top: 0; font-size: 1.5rem; }
+
+        /* Footer */
+        .article-footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .btn-main {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--luxury-gold);
+            color: #000;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        .btn-main:hover {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            display: inline-block;
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover { border-color: var(--text-white); color: var(--text-white); }
+
+        /* FIXED BUTTON */
+        .fixed-store-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--luxury-gold);
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .fixed-store-btn:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .article-hero h1 { font-size: 1.8rem; }
+            .article-container { padding: 30px 15px; }
+            .hero-image-container { height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="../blog.html" class="back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Kembali ke Journal
+        </a>
+        <a href="../index.html" class="logo">Aurorra ⚡</a>
+    </header>
+
+    <!-- FLOATING STORE BUTTON -->
+    <a href="../index.html" class="fixed-store-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        Kunjungi Store
+    </a>
+
+    <article class="article-container">
+        <!-- HERO SECTION -->
+        <div class="article-hero anim-elem">
+            <h1>Mengenal Parfum Oud: Aroma Kemewahan dari Timur Tengah</h1>
+            <div class="meta-info">
+                <span>Ditulis oleh <span class="author">Tim Aurorra</span></span>
+                <span>📅 27 Mei 2024</span>
+                <span>⏱️ 5 Menit Baca</span>
+            </div>
+        </div>
+
+        <!-- HERO IMAGE -->
+        <div class="hero-image-container anim-elem">
+            <img src="https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop" alt="Botol parfum Oud mewah dengan pencahayaan gelap" loading="eager">
+        </div>
+
+        <!-- CONTENT -->
+        <div class="article-content">
+            
+            <div class="anim-elem">
+                <p><strong>Di dunia parfum, ada satu bahan yang sering disebut sebagai "Black Gold" atau Emas Hitam:</strong> Oud. Aroma ini memiliki karakter yang kuat, tebal, dan misterius, menjadikannya favorit bagi pecinta wewangian mewah. Namun, tidak semua orang cocok dengan Oud, dan tidak semua orang tahu cara memilih Oud yang berkualitas.</p>
+                <p>Mari kita bahas lebih dalam tentang Oud, mengapa harganya selangit, dan bagaimana menikmatinya.</p>
+            </div>
+
+            <!-- APA ITU OUD -->
+            <h2 class="anim-elem">Apa Itu Oud?</h2>
+            <div class="anim-elem">
+                <p>Oud (atau Agarwood) berasal dari pohon <em>Aquilaria</em>. Ketika pohon ini terinfeksi jamur tertentu, pohon tersebut akan memproduksi resin gelap dan harum sebagai mekanisme pertahanan. Resin inilah yang kemudian disuling menjadi minyak Oud.</p>
+            </div>
+
+            <div class="content-image-block anim-elem">
+                <img src="https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?q=80&w=800&auto=format&fit=crop" alt="Kayu Gaharu sumber parfum oud" loading="lazy">
+                <div class="img-caption">Kayu Gaharu terinfeksi yang menjadi sumber minyak Oud.</div>
+            </div>
+
+            <!-- KARAKTER AROMA -->
+            <h2 class="anim-elem">Karakter Aroma Oud</h2>
+            <div class="anim-elem">
+                <p>Oud dikenal dengan karakter yang sangat kompleks. Ia tidak sekadar wangi "kayu", tapi memiliki banyak lapisan (facets). Berikut adalah karakteristik utama Oud:</p>
+            </div>
+
+            <ul class="oud-list">
+                <li class="anim-elem">
+                    <strong>Woody & Smoky</strong>
+                    Kesan kayu bakar dan asap yang tebal, memberikan kesan maskulin dan hangat.
+                </li>
+                <li class="anim-elem">
+                    <strong>Animalic</strong>
+                    Nadis "hewan" yang tipis (seperti musk), memberikan kesan sensual dan dalam.
+                </li>
+                <li class="anim-elem">
+                    <strong>Sweet & Balsamic</strong>
+                    Seringkali dicampur dengan aroma manis seperti madu atau vanilla untuk menyeimbangkan kegarangannya.
+                </li>
+                <li class="anim-elem">
+                    <strong>Long Lasting</strong>
+                    Oud adalah parfum dengan ketahanan paling lama, bisa bertahan hingga 12-24 jam di kulit.
+                </li>
+            </ul>
+
+            <!-- TIPS MEMILIH -->
+            <h2 class="anim-elem">Tips Memilih Parfum Oud untuk Pemula</h2>
+            <div class="anim-elem">
+                <p>Oud asli dengan kualitas premium harganya sangat mahal. Namun, banyak parfum modern yang menggunakan Oud sintetis atau kombinasi bahan lain untuk menciptakan aroma yang lebih ramah bagi pemula.</p>
+            </div>
+
+            <div class="highlight-box anim-elem">
+                <h3>Panduan Pemula:</h3>
+                <ul style="padding-left: 20px; color: #e0e0e0; margin-top: 10px;">
+                    <li><strong>Hindari Oud "Medicinal":</strong> Beberapa Oud murahan beraroma obat-obatan atau band-aid. Carilah Oud yang bercampur dengan bunga (Rose Oud) atau buah.</li>
+                    <li><strong>Campurkan dengan Moisturizer:</strong> Jika aroma terlalu kuat, semprotkan Oud di atas lotion tubuh tanpa wangi untuk meredam proyeksinya.</li>
+                    <li><strong>Jangan menyemprotkan terlalu banyak:</strong> 1-2 semprotan saja sudah cukup karena konsentrasinya sangat pekat.</li>
+                </ul>
+            </div>
+
+            <div class="anim-elem">
+                <p>Oud bukan sekadar wewangian, ia adalah pernyataan gaya hidup. Bagi Anda yang ingin tampil berbeda, maskulin, dan elegan, Oud adalah pilihan yang sempurna. Temukan koleksi parfum Oud premium di <a href="../index.html">Aurorra Store</a>.</p>
+            </div>
+
+        </div>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="article-footer anim-elem">
+            <p>Jelajahi koleksi Parfum Oud mewah di <strong>Aurorra Store</strong>.</p>
+            <br>
+            <a href="../blog.html" class="btn-secondary">← Artikel Lainnya</a>
+            <a href="../index.html" class="btn-main">Lihat Koleksi</a>
+        </div>
+    </article>
+
+    <!-- JAVASCRIPT ANIMASI -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.anim-elem');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            animatedElements.forEach((el) => {
+                observer.observe(el);
+            });
+        });
+    </script>
+
+</body>
+</html>
