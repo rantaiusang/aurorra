@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journal & Insights | Aurorra Store</title>
+    <meta name="description" content="Temukan artikel terbaru seputar kesehatan, perawatan kulit, dan gaya hidup mewah dari Aurorra Journal.">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -28,7 +29,7 @@
             background-image: radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
         }
 
-        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
         /* --- HEADER --- */
         header {
@@ -49,8 +50,9 @@
             background: linear-gradient(45deg, #fff, var(--luxury-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
+        nav { display: flex; gap: 15px; }
         nav a {
-            color: var(--text-muted); text-decoration: none; margin-left: 20px;
+            color: var(--text-muted); text-decoration: none;
             font-size: 0.9rem; transition: color 0.3s;
         }
         nav a:hover { color: var(--luxury-gold); }
@@ -62,7 +64,12 @@
             padding: 80px 20px 60px;
             border-bottom: 1px solid var(--border-color);
         }
-        .blog-hero h1 { font-size: 2.8rem; margin-bottom: 15px; color: var(--luxury-gold); }
+        .blog-hero h1 { 
+            font-size: 2.8rem; 
+            margin-bottom: 15px; 
+            background: linear-gradient(45deg, #fff, #d4af37);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
         .blog-hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
 
         /* --- LAYOUT UTAMA --- */
@@ -71,11 +78,11 @@
             margin: 0 auto;
             padding: 50px 20px;
             display: grid;
-            grid-template-columns: 1fr; /* Default Mobile */
+            grid-template-columns: 1fr; 
             gap: 40px;
         }
 
-        /* Desktop: 2 Kolom (Artikel + Sidebar) */
+        /* Desktop: 2 Kolom */
         @media (min-width: 900px) {
             .blog-container {
                 grid-template-columns: 2fr 1fr;
@@ -100,7 +107,8 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             text-decoration: none;
             color: inherit;
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
         .article-card:hover {
             transform: translateY(-5px);
@@ -110,7 +118,7 @@
 
         .card-image {
             width: 100%;
-            height: 180px;
+            height: 200px;
             background-size: cover;
             background-position: center;
             position: relative;
@@ -130,7 +138,7 @@
             border: 1px solid rgba(212, 175, 55, 0.3);
         }
 
-        .card-content { padding: 25px; }
+        .card-content { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
         .card-title {
             font-size: 1.2rem;
             margin-bottom: 10px;
@@ -145,6 +153,7 @@
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            flex-grow: 1;
         }
         .card-meta {
             display: flex;
@@ -154,6 +163,7 @@
             color: rgba(255,255,255,0.4);
             border-top: 1px solid var(--border-color);
             padding-top: 15px;
+            margin-top: auto;
         }
         .read-more {
             color: var(--luxury-gold);
@@ -165,7 +175,7 @@
 
         /* --- SIDEBAR --- */
         .sidebar {
-            display: none; /* Hidden di mobile */
+            display: none;
         }
         @media (min-width: 900px) {
             .sidebar {
@@ -175,9 +185,7 @@
             }
         }
 
-        .sidebar-widget {
-            margin-bottom: 40px;
-        }
+        .sidebar-widget { margin-bottom: 40px; }
         .widget-title {
             font-size: 1.2rem;
             margin-bottom: 20px;
@@ -215,10 +223,10 @@
     <!-- HEADER -->
     <header>
         <!-- Link Logo: Kembali ke Halaman Utama (Root) -->
-        <a href="../index.html" class="logo">Aurorra ⚡</a>
+        <a href="index.html" class="logo">Aurorra ⚡</a>
         <nav>
             <!-- Link Store: Kembali ke Halaman Utama -->
-            <a href="../index.html">Store</a>
+            <a href="index.html">Store</a>
             <!-- Link Journal: Halaman Ini Sendiri -->
             <a href="blog.html" class="active">Journal</a>
         </nav>
@@ -236,14 +244,14 @@
         <!-- DAFTAR ARTIKEL (MAIN CONTENT) -->
         <main class="articles-grid">
             
-            <!-- ARTIKEL 1: Benzoyl vs Salicylic (BARU) -->
-            <a href="blog/benzoyl-vs-salicylic.html" class="article-card">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348');">
-                    <span class="card-category">Edukasi</span>
+            <!-- ARTIKEL 1: Diet Sehat (Target Utama SEO) -->
+            <a href="artikel/diet-sehat-tanpa-olahraga.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Gaya Hidup</span>
                 </div>
                 <div class="card-content">
-                    <h3 class="card-title">Benzoyl Peroxide vs Salicylic Acid: Mana Lebih Ampuh?</h3>
-                    <p class="card-excerpt">Dua bahan aktif ini terkenal ampuh, tapi mana yang seharusnya kamu pilih untuk jenis jerawatmu?</p>
+                    <h3 class="card-title">Cara Diet Sehat Tanpa Olahraga yang Efektif dan Aman</h3>
+                    <p class="card-excerpt">Ingin tubuh ideal tanpa lelah di gym? Simak panduan diet sehat tanpa olahraga yang fokus pada pola makan dan hidrasi.</p>
                     <div class="card-meta">
                         <span>24 Mei 2024</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
@@ -251,14 +259,14 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 2: Obat Jerawat Apotek (BARU) -->
-            <a href="blog/obat-jerawat-ampuh.html" class="article-card">
-                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Obat+Jerawat');">
-                    <span class="card-category">Kesehatan</span>
+            <!-- ARTIKEL 2: Benzoyl vs Salicylic -->
+            <a href="artikel/benzoyl-vs-salicylic.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Edukasi</span>
                 </div>
                 <div class="card-content">
-                    <h3 class="card-title">5 Rekomendasi Obat Jerawat Apotek Paling Ampuh (2024)</h3>
-                    <p class="card-excerpt">Rangkuman obat jerawat paling efektif dari apotek seperti Haloskin, Vitacid, dan Medi-Klin.</p>
+                    <h3 class="card-title">Benzoyl Peroxide vs Salicylic Acid: Mana Lebih Ampuh?</h3>
+                    <p class="card-excerpt">Dua bahan aktif ini terkenal ampuh, tapi mana yang seharusnya kamu pilih untuk jenis jerawatmu?</p>
                     <div class="card-meta">
                         <span>20 Mei 2024</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
@@ -266,9 +274,24 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 3: Parfum Oud -->
+            <!-- ARTIKEL 3: Obat Jerawat Apotek -->
+            <a href="artikel/obat-jerawat-ampuh.html" class="article-card">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Kesehatan</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">5 Rekomendasi Obat Jerawat Apotek Paling Ampuh (2024)</h3>
+                    <p class="card-excerpt">Rangkuman obat jerawat paling efektif dari apotek seperti Haloskin, Vitacid, dan Medi-Klin.</p>
+                    <div class="card-meta">
+                        <span>18 Mei 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL 4: Parfum Oud -->
             <a href="#" class="article-card">
-                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Oud+Care');">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop');">
                     <span class="card-category">Perawatan</span>
                 </div>
                 <div class="card-content">
@@ -281,9 +304,9 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 4: Diffuser -->
+            <!-- ARTIKEL 5: Diffuser -->
             <a href="#" class="article-card">
-                <div class="card-image" style="background-image: url('https://placehold.co/600x400/1a1820/d4af37?text=Diffuser');">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800&auto=format&fit=crop');">
                     <span class="card-category">Interior</span>
                 </div>
                 <div class="card-content">
@@ -291,6 +314,21 @@
                     <p class="card-excerpt">Jangan sembarangan memilih aroma untuk ruang keluarga. Kenali jenis-jenis diffuser ultrasonik.</p>
                     <div class="card-meta">
                         <span>05 Okt 2023</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL 6: Skincare Pria -->
+            <a href="#" class="article-card">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop');">
+                    <span class="card-category">Pria</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Dasar Skincare Pria: Simpel tapi Efektif</h3>
+                    <p class="card-excerpt">Pria tidak butuh rangkaian rumit. Cukup 3 langkah ini untuk kulit bersih dan sehat.</p>
+                    <div class="card-meta">
+                        <span>01 Okt 2023</span>
                         <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
                     </div>
                 </div>
@@ -313,9 +351,9 @@
             <div class="sidebar-widget">
                 <h3 class="widget-title">Artikel Populer</h3>
                 <ul class="widget-list">
-                    <li><a href="blog/benzoyl-vs-salicylic.html">1. Benzoyl vs Salicylic Acid</a></li>
-                    <li><a href="blog/obat-jerawat-ampuh.html">2. Obat Jerawat Ampuh di Apotek</a></li>
-                    <li><a href="#">3. Jenis Aroma yang Disukai Wanita...</a></li>
+                    <li><a href="artikel/diet-sehat-tanpa-olahraga.html">1. Diet Sehat Tanpa Olahraga</a></li>
+                    <li><a href="artikel/benzoyl-vs-salicylic.html">2. Benzoyl vs Salicylic Acid</a></li>
+                    <li><a href="artikel/obat-jerawat-ampuh.html">3. Obat Jerawat Ampuh di Apotek</a></li>
                 </ul>
             </div>
         </aside>
