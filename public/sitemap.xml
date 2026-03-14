@@ -1,86 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-<!-- 
-  INSTRUKSI: 
-  Ganti 'https://www.aurorrastore.com' dengan domain asli website Anda.
-  Contoh: http://localhost:5500 atau https://aurorra.my.id
--->
+<url>
+<loc>https://www.aurorra.my.id/</loc>
+<lastmod>2026-03-14</lastmod>
+<priority>1.0</priority>
+</url>
 
-  <!-- 1. Halaman Utama -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/index.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.00</priority>
-  </url>
+<url>
+<loc>https://www.aurorra.my.id/store.html</loc>
+<lastmod>2026-03-14</lastmod>
+<priority>0.9</priority>
+</url>
 
-  <!-- 2. Halaman Toko -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/store.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.90</priority>
-  </url>
-
-  <!-- 3. Halaman Blog -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/blog.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.80</priority>
-  </url>
-
-  <!-- 4. Halaman Rewards -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/rewards.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.70</priority>
-  </url>
-
-  <!-- 5. Halaman About Us -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/about.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.70</priority>
-  </url>
-
-  <!-- 6. Halaman Checkout -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/checkout.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.50</priority>
-  </url>
-
-  <!-- 7. Halaman Contact -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/contact.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.60</priority>
-  </url>
-
-  <!-- 8. Halaman Privacy Policy -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/privacy.html</loc>
-    <lastmod>2024-05-20</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.30</priority>
-  </url>
-
-  <!-- 9. Halaman Terms & Conditions -->
-  <url>
-    <loc>https://www.aurorrastore.my.id/terms.html</loc>
-    <lastmod>2026-05-20</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.30</priority>
-  </url>
+<url>
+<loc>https://www.aurorra.my.id/blog.html</loc>
+<lastmod>2026-03-14</lastmod>
+<priority>0.8</priority>
+</url>
 
 </urlset>
