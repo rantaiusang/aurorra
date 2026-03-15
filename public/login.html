@@ -215,24 +215,23 @@
             100% { transform: translateY(-400px); opacity: 0; }
         }
 
-        /* --- LIVE ACTIVITY LOG STYLING (PERBAIKAN UTAMA) --- */
+        /* --- LIVE ACTIVITY LOG STYLING --- */
         .live-activity-log {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            right: 20px; /* Agar memenuhi lebar layar secara responsif */
+            right: 20px; 
             z-index: 999;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            pointer-events: none; /* Biar tidak menghalangi klik */
-            /* Membatasi tinggi agar tidak menutupi header jika banyak log */
+            pointer-events: none; 
             max-height: 30vh; 
             overflow: hidden;
         }
 
         .log-item {
-            background: rgba(0, 0, 0, 0.90); /* Lebih solid agar terbaca jelas */
+            background: rgba(0, 0, 0, 0.90); 
             backdrop-filter: blur(8px);
             padding: 12px 20px;
             border-radius: 8px;
@@ -241,26 +240,21 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            
-            /* PERBAIKAN ANIMASI: Mulai dari bawah, bukan dari kiri */
             transform: translateY(20px); 
             opacity: 0;
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            
-            max-width: 350px; /* Batasi lebar biar tidak penuh di desktop */
+            max-width: 350px; 
             font-size: 0.8rem;
-            margin-left: 0; /* Penempatan otomatis */
+            margin-left: 0; 
         }
 
-        /* State Muncul */
         .log-item.show {
-            transform: translateY(0); /* Kembali ke posisi normal */
+            transform: translateY(0); 
             opacity: 1;
         }
 
-        /* State Hilang */
         .log-item.fade-out {
-            transform: translateY(20px); /* Hilang ke bawah */
+            transform: translateY(20px); 
             opacity: 0;
         }
 
@@ -287,7 +281,7 @@
 
         /* Responsive Khusus Mobile */
         @media (max-width: 800px) {
-            .blockchain-ledger { display: none; } /* Sembunyikan blockchain di mobile */
+            .blockchain-ledger { display: none; } 
         }
         
         @media (max-width: 600px) {
@@ -295,10 +289,10 @@
                 left: 10px;
                 right: 10px;
                 bottom: 10px;
-                align-items: flex-start; /* Log mulai dari kiri */
+                align-items: flex-start; 
             }
             .log-item {
-                max-width: 100%; /* Lebar penuh di mobile tapi dengan padding */
+                max-width: 100%; 
                 font-size: 0.75rem;
                 padding: 10px 15px;
             }
@@ -499,17 +493,41 @@
             }, 5000);
         }
 
-        // --- 6. LIVE ACTIVITY LOG (PERBAIKAN JS) ---
-        const dummyUsers = ["Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko", "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi", "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu", "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino", "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga"];
-        const dummyProducts = ["Aurorra Rouge", "Mystic Night", "Royal Oud", "Velvet Rose", "Ocean Breeze", "Golden Sunset", "Midnight Noir", "Cherry Blossom", "Amber Musk", "Fresh Citrus", "Dark Desire", "Pure White", "Blue Ocean", "Pink Paradise", "Silver Rain"];
+        // --- 6. LIVE ACTIVITY LOG (DENGAN DATA DUMMY SESUAI DB) ---
+        
+        // Data Nama Pembeli (60 nama)
+        const dummyUsers = [
+            "Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko", 
+            "Kiki", "Lina", "Maya", "Nadia", "Oscar", "Putri", "Qori", "Rina", "Sari", "Tomi", 
+            "Umi", "Vina", "Wawan", "Xena", "Yudi", "Zahra", "Arif", "Bella", "Chika", "Danu", 
+            "Elsa", "Farhan", "Gisela", "Hendra", "Ina", "Jihan", "Karlina", "Leo", "Mira", "Nino", 
+            "Oline", "Pandu", "Quincy", "Rendi", "Sinta", "Tasya", "Ucok", "Vera", "Winda", "Yoga",
+            "Astrid", "Bagas", "Cahya", "Dewi", "Evan", "Fitri", "Gilang", "Hana", "Indra", "Jasmine"
+        ];
+
+        // Data Produk Sesuai Database (Nama diambil dari kolom 'name')
+        const dbProducts = [
+            "Aventus Creed", "Good girl", "Coco Chanel", "Baccarat Rouge 540", "Bleu de Chanel",
+            "Lost Cherry", "Ombre Nomade", "Paco Rabanne 1 Million", "LV Rose des Vents", "YSL MYSLF Eau de Parfum",
+            "Prada Paradoxe", "Ysl Libre Eau de Parfum", "Tom Ford Tobacco vanille", "Tom Ford Ombre Leather", "Giorgio Armani My Way",
+            "Affan", "Scandal Jean Paul Gaultier", "212 VIP Black Carolina Herrera", "Dior Sauvage", "Black Opium",
+            "Ysl Libre Eau de Parfum Intens", "Miss Dior EDP", "Lattafa Yara", "Afnan 9pm Hitam", "Twilly d Hermes",
+            "Giorgio Armani Si", "Giorgio Armani Si Passion Red", "Afnan 9pm Elixir", "Afnan 9PM Rebel", "Creed Irish Tweed",
+            "Jean Paul Gaultier Elixir", "Kayali Apple", "Lattafa Asad", "Chanel No 5", "Kay Ali Vanilla",
+            "Gucci Bloom", "Bvlgari Man In Black", "Chanel Coco Mademoiselle", "Giorgio Armani Stronger With You"
+        ];
+
+        // Variabel untuk melacak index agar pemilihan data lebih terkontrol (opsional, tapi di sini kita pakai random murni)
+        let activityIndex = 0;
 
         function showRandomActivity() {
             const container = document.getElementById('live-log-container');
             if (!container) return;
 
+            // Random Pilihan
             const name = dummyUsers[Math.floor(Math.random() * dummyUsers.length)];
-            const product = dummyProducts[Math.floor(Math.random() * dummyProducts.length)];
-            const time = Math.floor(Math.random() * 5) + 1;
+            const product = dbProducts[Math.floor(Math.random() * dbProducts.length)];
+            const time = Math.floor(Math.random() * 5) + 1; // 1-5 menit lalu
 
             const logItem = document.createElement('div');
             logItem.className = 'log-item';
@@ -540,7 +558,7 @@
                         container.removeChild(logItem);
                     }
                 }, 500);
-            }, 4000);
+            }, 5000); // Durasi tampil sedikit lebih lama (5 detik)
         }
 
         // --- INITIALIZATION ---
@@ -550,8 +568,14 @@
             
             // Jalankan Visual
             setInterval(createBlock, 2000); 
+            
+            // Tampilkan aktivitas pertama kali
             setTimeout(showRandomActivity, 2000); 
-            setInterval(showRandomActivity, 8000);
+            
+            // Ulangi secara periodik (setiap 6-10 detik random)
+            setInterval(() => {
+                showRandomActivity();
+            }, 6000 + Math.random() * 4000);
         };
     </script>
 </body>
