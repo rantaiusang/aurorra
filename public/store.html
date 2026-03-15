@@ -193,15 +193,28 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); padding: 15px; }
         .modal-overlay.show { display: flex; }
         
+        /* Quick View Content - Updated for Scroll */
         .quick-view-content { background: var(--panel-bg); width: 100%; max-width: 500px; border-radius: 12px; border: 1px solid var(--glass-border); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; animation: slideUpFade 0.3s ease-out; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .quick-view-img { width: 100%; height: 250px; object-fit: cover; }
-        .quick-view-body { padding: 25px; overflow-y: auto; text-align: left; }
+        .quick-view-body { padding: 25px; overflow-y: auto; text-align: left; flex: 1; }
         .quick-view-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--luxury-gold); margin-bottom: 10px; }
         .quick-view-size { display: inline-block; background: rgba(212, 175, 55, 0.15); color: var(--luxury-gold-light); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 15px; font-weight: 600; }
         .quick-view-desc { font-size: 0.9rem; color: #aaa; line-height: 1.6; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
         .quick-view-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
         .meta-item span { display: block; font-size: 0.7rem; color: #666; }
         .meta-item strong { font-size: 1rem; color: #fff; }
+
+        /* --- NEW: Comment Section Styles --- */
+        .comment-section { margin-top: 25px; border-top: 1px solid var(--glass-border); padding-top: 20px; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .comment-title { font-family: 'Playfair Display', serif; color: #fff; font-size: 1.1rem; }
+        .comment-list { display: flex; flex-direction: column; gap: 12px; max-height: 200px; overflow-y: auto; padding-right: 5px; }
+        .comment-item { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .comment-user { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .comment-avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--luxury-gold); color: #000; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
+        .comment-name { font-size: 0.8rem; font-weight: 600; color: #fff; }
+        .comment-text { font-size: 0.8rem; color: #aaa; line-height: 1.4; }
+        .comment-date { font-size: 0.65rem; color: #555; margin-top: 4px; text-align: right; }
 
         .modal-content { background: #1a1a1a; border: 1px solid rgba(212, 175, 55, 0.3); padding: 30px; width: 90%; max-width: 600px; border-radius: 12px; color: #fff; position: relative; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         .modal-header { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--luxury-gold); margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
@@ -300,6 +313,17 @@
                     <div class="meta-item"><span>Stok</span><strong id="qvStock">0</strong></div>
                 </div>
                 <button class="btn-buy" id="qvBuyBtn" style="margin-top:0;">Beli Sekarang</button>
+                
+                <!-- SECTION KOMENTAR BARU -->
+                <div class="comment-section">
+                    <div class="comment-header">
+                        <span class="comment-title">Ulasan Pelanggan</span>
+                    </div>
+                    <div class="comment-list" id="qvComments">
+                        <!-- Komentar dummy akan dimuat di sini -->
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -367,10 +391,7 @@
 
         async init() {
             this.supabase = supabase.createClient(this.config.SUPABASE_URL, this.config.SUPABASE_KEY);
-            
-            // PENTING: Catat kunjungan halaman ini ke Page Views
             this.trackPageView(); 
-            
             this.setupEventListeners();
             this.startActivityMonitor();
             
@@ -380,26 +401,12 @@
             this.cart.render();
         },
 
-        // ==========================================
-        // FUNGSI TRACKING PAGE VIEWS (SUPABASE)
-        // ==========================================
         async trackPageView() {
             try {
-                const pageInfo = {
-                    page_url: window.location.pathname + window.location.search,
-                    user_agent: navigator.userAgent,
-                    // Jika user sudah login, bisa tambahkan user_id di sini
-                };
-
-                // Kirim ke tabel 'page_views'
+                const pageInfo = { page_url: window.location.pathname + window.location.search, user_agent: navigator.userAgent };
                 const { error } = await this.supabase.from('page_views').insert([pageInfo]);
-                
-                if (error) {
-                    console.warn("Gagal mencatat page view (mungkin tabel belum ada):", error.message);
-                }
-            } catch (e) {
-                console.error("Error tracking page view:", e);
-            }
+                if (error) console.warn("Gagal mencatat page view:", error.message);
+            } catch (e) { console.error("Error tracking page view:", e); }
         },
 
         utils: {
@@ -434,6 +441,35 @@
                 const fullStars = Math.floor(rating);
                 for (let i = 0; i < fullStars; i++) { stars += '★'; }
                 return stars;
+            },
+            // --- NEW: Helper untuk komentar dummy ---
+            generateComments(productName) {
+                const names = ["Anisa", "Budi", "Citra", "Dimas", "Eka", "Fajar", "Gita", "Hadi", "Irma", "Joko", "Kiki", "Lina", "Maya", "Nadia", "Oscar"];
+                const comments = [
+                    `Wanginya tahan lama banget, saya suka ${productName}!`,
+                    `Pengiriman cepat, packing aman. Original pastinya.`,
+                    `Sudah repeat order kali ke-3. Wangi khas ${productName} tetap terjaga.`,
+                    `Buat Hadiah pas banget. Pas banget buat nightly routine.`,
+                    `Kualitas terbaik dengan harga terjangkau. Recommended seller!`,
+                    `Parfumnya original, wanginya premium banget. Top deh!`,
+                    `Pelayanannya ramah, produknya juga bagus. Pasti repeat order.`
+                ];
+
+                let result = [];
+                // Generate 5 komentar
+                for (let i = 0; i < 5; i++) {
+                    const name = names[Math.floor(Math.random() * names.length)];
+                    const comment = comments[Math.floor(Math.random() * comments.length)];
+                    const date = new Date();
+                    date.setDate(date.getDate() - Math.floor(Math.random() * 30)); // Random date dalam 30 hari terakhir
+                    
+                    result.push({
+                        name: name,
+                        text: comment,
+                        date: date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                    });
+                }
+                return result;
             }
         },
 
@@ -834,7 +870,8 @@
                 const isBlur = !AuroraStore.state.isLoggedIn;
 
                 document.getElementById('qvImg').src = product.image_url || 'https://via.placeholder.com/400';
-                document.getElementById('qvName').innerText = product.name || 'Produk';
+                const productName = product.name || 'Produk';
+                document.getElementById('qvName').innerText = productName;
                 document.getElementById('qvDesc').innerText = product.description || 'Tidak ada deskripsi tersedia.';
                 
                 const sizeML = product.size_ml ? `${product.size_ml} mL` : 'Ukuran tidak tersedia';
@@ -854,7 +891,30 @@
                     AuroraStore.ui.closeModal('quickViewModal');
                 };
 
+                // --- NEW: Load Dummy Comments ---
+                this.loadComments(productName);
+
                 modal.classList.add('show');
+            },
+
+            // --- NEW: Function to load comments ---
+            loadComments(productName) {
+                const container = document.getElementById('qvComments');
+                const comments = AuroraStore.utils.generateComments(productName);
+                let html = '';
+                comments.forEach(c => {
+                    html += `
+                        <div class="comment-item">
+                            <div class="comment-user">
+                                <div class="comment-avatar">${c.name.charAt(0)}</div>
+                                <span class="comment-name">${c.name}</span>
+                            </div>
+                            <div class="comment-text">${c.text}</div>
+                            <div class="comment-date">${c.date}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
             },
 
             openProfileModal() {
