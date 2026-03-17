@@ -13,6 +13,7 @@
         /* --- AURORRA BLOG THEME --- */
         :root {
             --luxury-gold: #d4af37;
+            --luxury-gold-light: #e8c967;
             --dark-bg: #0f0c15;
             --dark-card: rgba(25, 23, 28, 0.98);
             --text-white: #ffffff;
@@ -26,7 +27,9 @@
             color: var(--text-white);
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
-            background-image: radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
+            background-image: 
+                radial-gradient(circle at 80% 10%, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.02) 0%, transparent 40%);
         }
 
         h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
@@ -41,6 +44,18 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Stagger animation delay */
+        .anim-elem:nth-child(1) { transition-delay: 0.05s; }
+        .anim-elem:nth-child(2) { transition-delay: 0.1s; }
+        .anim-elem:nth-child(3) { transition-delay: 0.15s; }
+        .anim-elem:nth-child(4) { transition-delay: 0.2s; }
+        .anim-elem:nth-child(5) { transition-delay: 0.25s; }
+        .anim-elem:nth-child(6) { transition-delay: 0.3s; }
+        .anim-elem:nth-child(7) { transition-delay: 0.35s; }
+        .anim-elem:nth-child(8) { transition-delay: 0.4s; }
+        .anim-elem:nth-child(9) { transition-delay: 0.45s; }
+        .anim-elem:nth-child(10) { transition-delay: 0.5s; }
 
         /* --- HEADER --- */
         header {
@@ -60,28 +75,65 @@
             font-weight: 700; letter-spacing: 1px;
             background: linear-gradient(45deg, #fff, var(--luxury-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            transition: transform 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.02);
         }
         nav { display: flex; gap: 15px; }
         nav a {
             color: var(--text-muted); text-decoration: none;
             font-size: 0.9rem; transition: color 0.3s;
+            position: relative;
+        }
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--luxury-gold);
+            transition: width 0.3s ease;
         }
         nav a:hover { color: var(--luxury-gold); }
+        nav a:hover::after { width: 100%; }
         nav a.active { color: var(--luxury-gold); font-weight: 600; }
+        nav a.active::after { width: 100%; }
 
         /* --- HERO BLOG --- */
         .blog-hero {
             text-align: center;
             padding: 80px 20px 60px;
             border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+        .blog-hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
         .blog-hero h1 { 
             font-size: 2.8rem; 
             margin-bottom: 15px; 
             background: linear-gradient(45deg, #fff, #d4af37);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            position: relative;
         }
-        .blog-hero p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .blog-hero p { 
+            color: var(--text-muted); 
+            font-size: 1.1rem; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            position: relative;
+        }
 
         /* --- LAYOUT UTAMA --- */
         .blog-container {
@@ -115,18 +167,37 @@
             border-radius: 16px;
             border: 1px solid var(--border-color);
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             text-decoration: none;
             color: inherit;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--luxury-gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.1);
-            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.4);
+        }
+        .article-card:hover::before {
+            opacity: 1;
         }
 
+        .card-image-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
         .card-image {
             width: 100%;
             height: 200px;
@@ -134,34 +205,56 @@
             background-position: center;
             position: relative;
             background-color: #1a1820;
-            transition: transform 0.5s ease;
-            overflow: hidden;
+            transition: transform 0.6s ease;
         }
         .article-card:hover .card-image {
-            transform: scale(1.05);
+            transform: scale(1.08);
+        }
+        .card-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(15, 12, 21, 0.6) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .article-card:hover .card-image-overlay {
+            opacity: 1;
         }
         
         .card-category {
             position: absolute;
             top: 15px;
             left: 15px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             color: var(--luxury-gold);
             font-size: 0.7rem;
             padding: 5px 12px;
             border-radius: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border: 1px solid rgba(212, 175, 55, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.4);
             z-index: 2;
+            backdrop-filter: blur(4px);
         }
 
-        .card-content { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-content { 
+            padding: 25px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+        }
         .card-title {
             font-size: 1.2rem;
             margin-bottom: 10px;
             line-height: 1.4;
             color: var(--text-white);
+            transition: color 0.3s ease;
+        }
+        .article-card:hover .card-title {
+            color: var(--luxury-gold-light);
         }
         .card-excerpt {
             font-size: 0.9rem;
@@ -189,6 +282,48 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            transition: gap 0.3s ease;
+        }
+        .article-card:hover .read-more {
+            gap: 10px;
+        }
+
+        /* --- FEATURED CARD --- */
+        .article-card.featured {
+            grid-column: span 2;
+        }
+        .article-card.featured .card-image {
+            height: 300px;
+        }
+        .article-card.featured .card-title {
+            font-size: 1.5rem;
+        }
+        .article-card.featured::after {
+            content: 'Featured';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, var(--luxury-gold) 0%, var(--luxury-gold-light) 100%);
+            color: #0f0c15;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 3;
+            font-family: 'Poppins', sans-serif;
+        }
+        @media (max-width: 899px) {
+            .article-card.featured {
+                grid-column: span 1;
+            }
+            .article-card.featured .card-image {
+                height: 200px;
+            }
+            .article-card.featured .card-title {
+                font-size: 1.2rem;
+            }
         }
 
         /* --- SIDEBAR --- */
@@ -210,19 +345,38 @@
             color: var(--luxury-gold);
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
+            position: relative;
+        }
+        .widget-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 40px;
+            height: 1px;
+            background: var(--luxury-gold);
         }
         .widget-list { list-style: none; }
         .widget-list li { margin-bottom: 15px; }
         .widget-list a {
             color: var(--text-muted);
             text-decoration: none;
-            transition: color 0.3s;
+            transition: color 0.3s, padding-left 0.3s;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .widget-list a:hover { color: var(--text-white); }
-        .widget-list .dot { width: 6px; height: 6px; background: var(--luxury-gold); border-radius: 50%; }
+        .widget-list a:hover { 
+            color: var(--text-white); 
+            padding-left: 5px;
+        }
+        .widget-list .dot { 
+            width: 6px; 
+            height: 6px; 
+            background: var(--luxury-gold); 
+            border-radius: 50%; 
+            flex-shrink: 0;
+        }
 
         /* --- FOOTER --- */
         footer {
@@ -234,13 +388,44 @@
             margin-top: 50px;
         }
 
+        /* Scroll to top button */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 45px;
+            height: 45px;
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 99;
+        }
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .scroll-top:hover {
+            border-color: var(--luxury-gold);
+            transform: translateY(-3px);
+        }
+        .scroll-top svg {
+            color: var(--luxury-gold);
+        }
+
     </style>
 </head>
 <body>
 
     <!-- HEADER -->
     <header>
-        <a href="index.html" class="logo">Aurorra ⚡</a>
+        <a href="index.html" class="logo">Aurorra</a>
         <nav>
             <a href="index.html">Store</a>
             <a href="blog.html" class="active">Journal</a>
@@ -259,10 +444,31 @@
         <!-- DAFTAR ARTIKEL -->
         <main class="articles-grid">
             
-            <!-- ARTIKEL BARU: AI Tools 2026 -->
+            <!-- ARTIKEL BARU: 50+ Ucapan Idul Fitri 2026 (FEATURED) -->
+            <a href="blog/ucapan-idul-fitri-2026.html" class="article-card featured anim-elem">
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1590070888221-0a34c7d7e255?q=80&w=1200&auto=format&fit=crop');">
+                        <span class="card-category">Moments</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">50+ Ucapan Idul Fitri 2026 Terbaru, Menyentuh dan Penuh Makna</h3>
+                    <p class="card-excerpt">Kumpulan lengkap ucapan Idul Fitri 2026 untuk keluarga, sahabat, rekan kerja, islami, singkat dan kekinian. Saling memaafkan di hari yang fitri.</p>
+                    <div class="card-meta">
+                        <span>15 Maret 2026</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- ARTIKEL: AI Tools 2026 -->
             <a href="blog/ai-tools-gratis-2026.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Teknologi</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Teknologi</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">10 AI Tools Gratis yang Bisa Menggantikan Kerja Manual di 2026</h3>
@@ -274,25 +480,13 @@
                 </div>
             </a>
 
-            <!-- ARTIKEL 1: Lailatul Qadar -->
-            <a href="blog/lailatul-qadar-kapan.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1591608971362-f08b2a75731a?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Spiritual</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">Kapan Malam Lailatul Qadar Terjadi? Tanda dan Amalan</h3>
-                    <p class="card-excerpt">Mengulas waktu terjadinya malam seribu bulan, tanda-tandanya, dan amalan utama di 10 hari terakhir Ramadhan.</p>
-                    <div class="card-meta">
-                        <span>25 Mar 2024</span>
-                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-                    </div>
-                </div>
-            </a>
-
             <!-- ARTIKEL: Persiapan Lebaran 2026 -->
             <a href="blog/persiapan-lebaran-2026.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1591608971362-f08b2a75731a?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Moments</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1591608971362-f08b2a75731a?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Moments</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Persiapan Lebaran 2026: Panduan Menuju Idul Fitri Sempurna</h3>
@@ -304,10 +498,31 @@
                 </div>
             </a>
 
+            <!-- ARTIKEL: Lailatul Qadar -->
+            <a href="blog/lailatul-qadar-kapan.html" class="article-card anim-elem">
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1591608971362-f08b2a75731a?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Spiritual</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Kapan Malam Lailatul Qadar Terjadi? Tanda dan Amalan</h3>
+                    <p class="card-excerpt">Mengulas waktu terjadinya malam seribu bulan, tanda-tandanya, dan amalan utama di 10 hari terakhir Ramadhan.</p>
+                    <div class="card-meta">
+                        <span>25 Mar 2024</span>
+                        <span class="read-more">Baca <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                    </div>
+                </div>
+            </a>
+
             <!-- ARTIKEL: Skincare Pemula -->
             <a href="blog/skincare-pemula-wajib-tahu.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Panduan</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Panduan</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Panduan Lengkap Skincare untuk Pemula</h3>
@@ -321,8 +536,11 @@
 
             <!-- ARTIKEL: Flek Hitam -->
             <a href="blog/menghilangkan-flek-hitam.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Problem Solving</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Problem Solving</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Cara Ampuh Menghilangkan Flek Hitam Bekas Jerawat</h3>
@@ -336,8 +554,11 @@
 
             <!-- ARTIKEL: Parfum Oud -->
             <a href="blog/parfum-oud-kemewahan.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Life Style</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Life Style</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Mengenal Parfum Oud: Aroma Kemewahan dari Timur Tengah</h3>
@@ -351,8 +572,11 @@
 
             <!-- ARTIKEL: Diet Sehat -->
             <a href="blog/diet-sehat-tanpa-olahraga.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Gaya Hidup</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Gaya Hidup</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Cara Diet Sehat Tanpa Olahraga yang Efektif dan Aman</h3>
@@ -366,8 +590,11 @@
 
             <!-- ARTIKEL: Benzoyl vs Salicylic -->
             <a href="blog/benzoyl-vs-salicylic.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Edukasi</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Edukasi</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">Benzoyl Peroxide vs Salicylic Acid: Mana Lebih Ampuh?</h3>
@@ -381,8 +608,11 @@
 
             <!-- ARTIKEL: Obat Jerawat Apotek -->
             <a href="blog/obat-jerawat-ampuh.html" class="article-card anim-elem">
-                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?q=80&w=800&auto=format&fit=crop');">
-                    <span class="card-category">Kesehatan</span>
+                <div class="card-image-wrapper">
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?q=80&w=800&auto=format&fit=crop');">
+                        <span class="card-category">Kesehatan</span>
+                    </div>
+                    <div class="card-image-overlay"></div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">5 Rekomendasi Obat Jerawat Apotek Paling Ampuh (2024)</h3>
@@ -411,9 +641,10 @@
             <div class="sidebar-widget">
                 <h3 class="widget-title">Artikel Populer</h3>
                 <ul class="widget-list">
-                    <li><a href="blog/ai-tools-gratis-2026.html">1. 10 AI Tools Gratis 2026</a></li>
-                    <li><a href="blog/persiapan-lebaran-2026.html">2. Persiapan Lebaran 2026</a></li>
-                    <li><a href="blog/lailatul-qadar-kapan.html">3. Malam Lailatul Qadar</a></li>
+                    <li><a href="blog/ucapan-idul-fitri-2026.html"><span class="dot"></span> 50+ Ucapan Idul Fitri 2026</a></li>
+                    <li><a href="blog/ai-tools-gratis-2026.html"><span class="dot"></span> 10 AI Tools Gratis 2026</a></li>
+                    <li><a href="blog/persiapan-lebaran-2026.html"><span class="dot"></span> Persiapan Lebaran 2026</a></li>
+                    <li><a href="blog/lailatul-qadar-kapan.html"><span class="dot"></span> Malam Lailatul Qadar</a></li>
                 </ul>
             </div>
         </aside>
@@ -424,11 +655,20 @@
         &copy; 2024 Aurorra Store. All Rights Reserved.
     </footer>
 
-    <!-- JAVASCRIPT UNTUK ANIMASI -->
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <!-- JAVASCRIPT -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const animatedElements = document.querySelectorAll('.anim-elem');
+            const scrollTopBtn = document.getElementById('scrollTop');
             
+            // Intersection Observer for scroll animations
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
@@ -436,11 +676,29 @@
                     }
                 });
             }, {
-                threshold: 0.1
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
             });
 
             animatedElements.forEach((el) => {
                 observer.observe(el);
+            });
+
+            // Show/hide scroll to top button
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 400) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+            }, { passive: true });
+
+            // Scroll to top functionality
+            scrollTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             });
         });
     </script>
