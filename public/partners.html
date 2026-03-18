@@ -16,6 +16,7 @@
             --dark-card: #161216;
             --text-gray: #a0a0a0;
             --text-white: #ffffff;
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,11 +30,11 @@
             line-height: 1.6;
         }
 
+        /* Header Style (Mengikuti style store) */
         header {
-            background: rgba(15, 12, 21, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            padding: 15px 8%;
+            background: rgba(15, 12, 21, 0.98);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 15px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -41,7 +42,21 @@
             top: 0;
             width: 100%;
             z-index: 100;
+            backdrop-filter: blur(10px);
         }
+
+        /* Tombol Kembali Style (Mengikuti style store) */
+        .back-link {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+        .back-link:hover { color: var(--luxury-gold); }
 
         .logo {
             font-family: 'Playfair Display', serif;
@@ -96,7 +111,7 @@
             transform: translateY(0);
         }
 
-        /* PERUBAHAN: Kartu dibuat Flex agar tinggi seragam */
+        /* Partner Card */
         .partner-card {
             background: var(--dark-card);
             border: 1px solid rgba(212, 175, 55, 0.1);
@@ -107,11 +122,10 @@
             overflow: hidden;
             transition: border-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
             
-            /* Tambahkan Flex Layout */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100%; /* Pastikan mengisi grid */
+            height: 100%;
         }
 
         .partner-card:hover {
@@ -120,10 +134,10 @@
             box-shadow: 0 15px 40px rgba(212, 175, 55, 0.1);
         }
 
-        /* PERUBAHAN: Logo Fixed Size */
+        /* Logo Fixed Size */
         .partner-logo {
             width: 100%;
-            height: 100px; /* Tinggi tetap untuk area logo */
+            height: 100px;
             margin-bottom: 25px;
             display: flex;
             justify-content: center;
@@ -133,7 +147,7 @@
         
         .partner-logo img {
             max-width: 140px;
-            max-height: 80px; /* Batasi tinggi gambar */
+            max-height: 80px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -169,19 +183,18 @@
             color: var(--text-white);
         }
 
-        /* PERUBAHAN: Deskripsi Rapi (Limit 3 Baris) */
+        /* Deskripsi Rapi */
         .partner-desc {
             font-size: 0.9rem;
             color: var(--text-gray);
             margin-bottom: 20px;
             line-height: 1.7;
             
-            /* Magic untuk memotong teks */
             display: -webkit-box;
-            -webkit-line-clamp: 3; /* Maksimal 3 baris */
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis; /* Tambah ... jika terpotong */
+            text-overflow: ellipsis;
         }
 
         .partner-status {
@@ -193,9 +206,10 @@
             color: var(--luxury-gold);
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: auto; /* Dorong ke bawah jika kartu flex */
+            margin-top: auto;
         }
 
+        /* Legal Section */
         .legal-section { margin-top: 80px; padding: 50px 40px; background: linear-gradient(145deg, rgba(22, 18, 22, 0.8), rgba(15, 12, 21, 0.9)); border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
         .legal-section h3 { color: var(--text-white); margin-bottom: 10px; font-size: 1.2rem; }
         .nib-number { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--luxury-gold); letter-spacing: 3px; margin: 15px 0; }
@@ -206,6 +220,7 @@
         .nib-badge { position: absolute; top: -12px; right: 20px; background: linear-gradient(135deg, var(--luxury-gold), #b8963a); color: #0f0c15; padding: 6px 16px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
         .verified-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 25px; padding: 12px 24px; background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 30px; font-size: 0.85rem; color: var(--luxury-gold); }
         
+        /* Lightbox */
         .lightbox-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; cursor: zoom-out; }
         .lightbox-overlay.active { opacity: 1; visibility: visible; }
         .lightbox-content { max-width: 90%; max-height: 90%; transform: scale(0.9); transition: transform 0.3s ease; }
@@ -226,10 +241,13 @@
 </head>
 <body>
 
+    <!-- Header dengan Tombol Kembali -->
     <header>
-        <div style="width: 20px;"></div>
+        <a href="index.html" class="back-link">
+            <span>&larr;</span> Back
+        </a>
         <a href="index.html" class="logo">Aurorra</a>
-        <div style="width: 20px;"></div>
+        <div style="width: 60px;"></div> <!-- Spacer untuk menyeimbangkan header -->
     </header>
 
     <div class="partner-wrapper">
