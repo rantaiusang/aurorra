@@ -91,8 +91,7 @@
             margin-bottom: 60px;
         }
 
-        /* --- PERBAIKAN ANIMASI --- */
-        /* Class .fade-on-scroll sekarang memiliki definisi yang jelas */
+        /* --- ANIMASI --- */
         .fade-on-scroll {
             opacity: 0;
             transform: translateY(30px);
@@ -112,13 +111,12 @@
             text-align: center;
             position: relative;
             overflow: hidden;
-            /* Transisi hover dipisah agar tidak konflik dengan animasi masuk */
             transition: border-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
         }
 
         .partner-card:hover {
             border-color: var(--luxury-gold);
-            transform: translateY(-5px); /* Efek angkat saat hover */
+            transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(212, 175, 55, 0.1);
         }
 
@@ -130,7 +128,6 @@
             align-items: center;
         }
 
-        /* Styling untuk Logo SVG */
         .partner-logo svg {
             max-width: 140px;
             max-height: 100%;
@@ -170,7 +167,7 @@
         /* --- LEGAL SECTION --- */
         .legal-section {
             margin-top: 80px;
-            padding: 40px;
+            padding: 50px 40px;
             background: linear-gradient(145deg, rgba(22, 18, 22, 0.8), rgba(15, 12, 21, 0.9));
             border-radius: 15px;
             border: 1px solid rgba(255,255,255,0.05);
@@ -196,6 +193,175 @@
             color: var(--text-gray);
         }
 
+        /* --- NIB IMAGE CONTAINER --- */
+        .nib-image-container {
+            margin: 40px auto 30px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .nib-image-wrapper {
+            position: relative;
+            background: linear-gradient(135deg, #1a1520 0%, #0d0a12 100%);
+            border: 2px solid var(--luxury-gold);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(212, 175, 55, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            cursor: pointer;
+        }
+
+        .nib-image-wrapper:hover {
+            transform: scale(1.02);
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                0 0 60px rgba(212, 175, 55, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .nib-image-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(135deg, var(--luxury-gold), transparent 50%, var(--luxury-gold));
+            border-radius: 8px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .nib-image {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            display: block;
+            filter: brightness(1) contrast(1.05);
+        }
+
+        .nib-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--luxury-gold), #b8963a);
+            color: #0f0c15;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .nib-label {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .nib-label svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--luxury-gold);
+        }
+
+        /* --- VERIFIED BADGE --- */
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 25px;
+            padding: 12px 24px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: var(--luxury-gold);
+        }
+
+        .verified-badge svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--luxury-gold);
+        }
+
+        /* --- MODAL LIGHTBOX --- */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            cursor: zoom-out;
+        }
+
+        .lightbox-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .lightbox-overlay.active .lightbox-content {
+            transform: scale(1);
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .lightbox-close svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-white);
+        }
+
         /* --- MINI FOOTER --- */
         .mini-footer {
             margin-top: 80px;
@@ -210,6 +376,9 @@
             .partner-grid { grid-template-columns: 1fr; }
             .nib-number { font-size: 1.5rem; letter-spacing: 1px; }
             .partner-wrapper { padding-top: 120px; }
+            .nib-image-container { max-width: 100%; }
+            .legal-section { padding: 40px 25px; }
+            .lightbox-close { top: 15px; right: 15px; width: 40px; height: 40px; }
         }
     </style>
 </head>
@@ -218,7 +387,7 @@
     <!-- Header -->
     <header>
         <div style="width: 20px;"></div>
-        <a href="index.html" class="logo">Aurorra ⚡</a>
+        <a href="index.html" class="logo">Aurorra</a>
         <div style="width: 20px;"></div>
     </header>
 
@@ -236,7 +405,6 @@
             <!-- Kartu 1: DOKU -->
             <div class="partner-card fade-on-scroll">
                 <div class="partner-logo">
-                    <!-- Logo DOKU SVG Custom -->
                     <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
                         <path d="M0,5h10v20H0V5z M5,7v16 M12,5h8c4,0,7,3,7,7v6c0,4-3,7-7,7h-8V5z M17,10v10c2,0,3-1,3-3v-4C20,11,19,10,17,10z"/>
                         <text x="26" y="22" font-family="Poppins, sans-serif" font-weight="700" font-size="20">DOKU</text>
@@ -250,7 +418,6 @@
             <!-- Kartu 2: iPaymu -->
             <div class="partner-card fade-on-scroll">
                 <div class="partner-logo">
-                    <!-- Logo iPaymu SVG Custom -->
                     <svg viewBox="0 0 120 35" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="15" cy="17.5" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
                         <path d="M12 13 L12 22 M18 13 L18 22 M12 17.5 L18 17.5" stroke="currentColor" stroke-width="1.5"/>
@@ -271,13 +438,46 @@
             
             <div class="nib-number">NIB: 2411210001927</div>
             
-            <p class="legal-desc" style="font-size: 0.8rem; margin-top: 10px; opacity: 0.7;">
-                Nomor Induk Berusaha (NIB) yang diterbitkan melalui sistem OSS (Online Single Submission).
+            <!-- NIB Image -->
+            <div class="nib-image-container">
+                <div class="nib-image-wrapper" onclick="openLightbox()">
+                    <span class="nib-badge">Dokumen Resmi</span>
+                    <img src="https://dikapquhusbwjccbqcsb.supabase.co/storage/v1/object/public/images/aurorra-afnan.jpg" alt="NIB Aurorra Store" class="nib-image">
+                </div>
+                <p class="nib-label">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 0 0-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 0 0 5.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    Klik untuk memperbesar
+                </p>
+            </div>
+            
+            <div class="verified-badge">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+                Terverifikasi di OSS (Online Single Submission)
+            </div>
+            
+            <p class="legal-desc" style="font-size: 0.8rem; margin-top: 20px; opacity: 0.7;">
+                Nomor Induk Berusaha (NIB) diterbitkan melalui sistem OSS RBA.
             </p>
         </div>
 
         <div class="mini-footer fade-on-scroll">
-            <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
+            <p>2026 Aurorra Store. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+            </svg>
+        </button>
+        <div class="lightbox-content">
+            <img src="https://dikapquhusbwjccbqcsb.supabase.co/storage/v1/object/public/images/aurorra-afnan.jpg" alt="NIB Aurorra Store">
         </div>
     </div>
 
@@ -305,6 +505,24 @@
 
             document.querySelectorAll('.fade-on-scroll').forEach(el => observer.observe(el));
         }
+
+        // Lightbox Functions
+        function openLightbox() {
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close lightbox with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
     </script>
 
 </body>
