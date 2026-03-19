@@ -21,11 +21,16 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* --- PERBAIKAN SCROLL: Mencegah geser kanan kiri --- */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--dark-bg);
             color: var(--text-white);
             font-family: 'Poppins', sans-serif;
-            overflow-x: hidden;
             line-height: 1.6;
         }
 
@@ -52,21 +57,6 @@
             text-decoration: none;
             letter-spacing: 1px;
         }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-gray);
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-        .nav-links a:hover { color: var(--luxury-gold); }
 
         .btn-home {
             padding: 10px 25px;
@@ -115,6 +105,24 @@
             animation: fadeInUp 1s ease 0.6s forwards;
         }
 
+        /* --- ANIMASI SCROLL (Fade In) --- */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Penundaan animasi untuk efek bertahap (staggering) */
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+
         /* --- STORY SECTION --- */
         .story-section {
             padding: 80px 8%;
@@ -130,12 +138,9 @@
             width: 100%;
             border-radius: 15px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            opacity: 0;
-            transform: translateX(-30px);
-            animation: fadeInRight 1s ease 0.8s forwards;
             transition: 0.5s;
         }
-        .story-img:hover { transform: scale(1.02) translateX(-25px); }
+        .story-img:hover { transform: scale(1.02); }
 
         .story-content h2 {
             font-family: 'Playfair Display', serif;
@@ -218,14 +223,10 @@
         }
         footer p { color: #555; font-size: 0.9rem; }
 
-        /* --- ANIMATIONS --- */
+        /* --- KEYFRAMES --- */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(-50px); }
-            to { opacity: 1; transform: translateX(0); }
         }
 
         /* --- RESPONSIVE --- */
@@ -244,11 +245,9 @@
 
     <!-- Header -->
     <header>
+        <a href="index.html" class="btn-home">Beranda</a>
         <a href="index.html" class="logo">Aurora ⚡</a>
-        <nav class="nav-links">
-            <a href="store.html">Koleksi</a>
-            <a href="index.html" class="btn-home">Beranda</a>
-        </nav>
+        <div style="width: 83px;"></div> 
     </header>
 
     <!-- Hero Page -->
@@ -259,8 +258,9 @@
     </section>
 
     <!-- Story Section -->
+    <!-- Menambahkan class 'scroll-reveal' untuk animasi -->
     <section class="story-section">
-        <div class="story-content" style="opacity: 0; animation: fadeInUp 1s ease 0.2s forwards;">
+        <div class="story-content scroll-reveal">
             <h2>Mewujudkan Karakter Melalui Aroma</h2>
             <p>
                 Didirikan pada tahun 2023, <span class="highlight">Aurora Parfumerie</span> lahir dari hasrat sederhana: menghadirkan parfum kelas dunia ke tangan Anda tanpa batasan geografis. Kami percaya bahwa aroma adalah bahasa paling universal yang dapat meninggalkan kesan mendalam.
@@ -272,40 +272,40 @@
                 Sebagai pelopor pembayaran digital, kami mengintegrasikan pembayaran yang aman  <span class="highlight">Doku Payment Gateway</span> untuk memberikan pengalaman transaksi yang aman, transparan, dan bebas hambatan bagi konsumen.
             </p>
         </div>
-        <img src="https://images.unsplash.com/photo-1541643600914-78b084683601?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Membuat Parfum" class="story-img">
+        <img src="https://images.unsplash.com/photo-1541643600914-78b084683601?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Membuat Parfum" class="story-img scroll-reveal delay-2">
     </section>
 
     <!-- Values Section -->
     <section class="values-section">
-        <div class="section-title-center">
+        <div class="section-title-center scroll-reveal">
             <h2>Nilai Kami</h2>
             <p style="color:var(--text-gray)">Prinsip yang menjaga kami tetap terdepan.</p>
         </div>
 
         <div class="values-grid">
             <!-- Value 1 -->
-            <div class="value-card">
+            <div class="value-card scroll-reveal delay-1">
                 <div class="value-icon">✨</div>
                 <h3>Eksklusivitas</h3>
                 <p>Kami hanya menjual koleksi terbatas. Saat Anda memakai Aurora, Anda memakai sesuatu yang langka dan istimewa.</p>
             </div>
 
             <!-- Value 2 -->
-            <div class="value-card">
+            <div class="value-card scroll-reveal delay-2">
                 <div class="value-icon">🛡️</div>
                 <h3>Kepercayaan</h3>
                 <p>Privasi dan keamanan data Anda adalah prioritas utama. Setiap transaksi dienkripsi dan setiap pengiriman diasuransikan.</p>
             </div>
 
             <!-- Value 3 -->
-            <div class="value-card">
+            <div class="value-card scroll-reveal delay-3">
                 <div class="value-icon">🌍</div>
                 <h3>Inovasi</h3>
                 <p>Kami terus beradaptasi dengan tren teknologi dan gaya hidup modern, memberikan cara belanja yang lebih efisien.</p>
             </div>
 
             <!-- Value 4 -->
-            <div class="value-card">
+            <div class="value-card scroll-reveal delay-4">
                 <div class="value-icon">🤝</div>
                 <h3>Pelayanan Prima</h3>
                 <p>Tim support kami siap membantu Anda menemukan aroma yang tepat kapanpun Anda membutuhkannya.</p>
@@ -323,27 +323,40 @@
         <p>&copy; 2026 Aurora Store. All rights reserved.</p>
     </footer>
 
-    <!-- ==========================================
-         TAMBAHAN: ANALYTICS SCRIPT
-         ========================================== -->
+    <!-- SCRIPT ANIMASI & ANALYTICS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // 1. Konfigurasi Supabase (Sama seperti di Admin)
+        // 1. Script Animasi Scroll (Intersection Observer)
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15 // Animasi aktif saat 15% elemen terlihat
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            // Pilih semua elemen dengan class .scroll-reveal
+            const elements = document.querySelectorAll('.scroll-reveal');
+            elements.forEach(el => observer.observe(el));
+        });
+
+        // 2. Script Analytics (Supabase)
         const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 2. Fungsi untuk mengirim data kunjungan
         async function trackPageView() {
-            // Data yang akan dikirim ke tabel 'page_views'
             const data = {
-                page_url: window.location.pathname, // Contoh: /about.html
-                user_agent: navigator.userAgent,    // Info browser pengunjung
-                // 'created_at' akan otomatis terisi oleh database jika default value now() sudah diset
+                page_url: window.location.pathname,
+                user_agent: navigator.userAgent,
             };
-
-            // Kirim data ke Supabase
-            // Menggunakan try-catch agar jika error, tidak mengganggu tampilan website
             try {
                 await sb.from('page_views').insert([data]);
                 console.log("Analytics: Page view tracked.");
@@ -352,7 +365,6 @@
             }
         }
 
-        // 3. Jalankan fungsi saat halaman selesai dimuat
         window.onload = function() {
             trackPageView();
         };
