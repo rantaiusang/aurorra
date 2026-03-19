@@ -11,10 +11,10 @@
     <meta name="author" content="Aurorra Parfumerie">
     <meta name="robots" content="index, follow">
     
-    <!-- Canonical URL (Penting agar tidak duplikat konten) -->
-    <link rel="canonical" href="https://aurorrastore.com/" /> <!-- Ganti dengan domain Anda -->
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://aurorrastore.com/" />
 
-    <!-- Open Graph (Facebook & Sosmed) -->
+    <!-- Open Graph -->
     <meta property="og:title" content="Aurorra Store - Exclusive Fragrances">
     <meta property="og:description" content="Temukan aroma yang mendefinisikan karakter. Koleksi parfum eksklusif dengan kualitas dunia.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80">
@@ -544,7 +544,7 @@
             <span>Home</span>
         </a>
         
-        <!-- 2. Partner (DIGANTI DARI REWARDS) -->
+        <!-- 2. Partner -->
         <a href="partners.html" class="nav-item">
             <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span>Partner</span>
@@ -555,7 +555,6 @@
             <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             <span>Kontak</span>
         </a>
-        <!-- MENU SYARAT & PRIVACY DIHAPUS -->
         
         <!-- 4. Login (Dynamic) -->
         <a href="login.html" class="nav-item nav-login" id="navLoginBtn">
@@ -667,7 +666,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ==========================================
-        // 2. LOGIKA NAVIGASI (SIMPLIFIED FOR FIT)
+        // 2. LOGIKA NAVIGASI
         // ==========================================
         const navElement = document.getElementById('mainNav');
         let lastScrollTop = 0;
@@ -846,7 +845,8 @@
         document.addEventListener("DOMContentLoaded", function() {
             initNewsletter();
             loadProducts();
-            trackVisitor(); 
+            trackVisitor();
+            initPopup(); // <- Pemanggilan Popup ditambahkan di sini
         });
 
         window.onload = function() { window.scrollTo(0, 0); };
@@ -883,6 +883,95 @@
             } catch (e) {
                 console.log('Tracker error:', e);
             }
+        }
+
+        // ==========================================
+        // 11. POPUP PROMO / LEBARAN (TAMBAHAN)
+        // ==========================================
+        
+        // Ambil data popup aktif dari tabel 'popups'
+        async function getPopup() {
+            const { data, error } = await supabaseClient
+                .from('popups')
+                .select('*')
+                .eq('is_active', true)
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                console.error('Popup error:', error);
+                return null;
+            }
+            return data;
+        }
+
+        // Render popup ke layar
+        function showPopup(popup) {
+            const wrapper = document.createElement('div');
+
+            wrapper.innerHTML = `
+            <div style="
+                position:fixed;
+                top:0;left:0;
+                width:100%;height:100%;
+                background:rgba(0,0,0,0.6);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                z-index:99999;
+            ">
+                <div style="
+                    background:#fff;
+                    padding:10px;
+                    border-radius:12px;
+                    max-width:320px;
+                    width:90%;
+                    position:relative;
+                ">
+                    <a href="${popup.link_url}" target="_blank">
+                        <img src="${popup.image_url}" 
+                             style="width:100%;border-radius:10px;cursor:pointer"/>
+                    </a>
+
+                    <button id="closePopup" style="
+                        position:absolute;
+                        top:5px;
+                        right:8px;
+                        border:none;
+                        background:#000;
+                        color:#fff;
+                        border-radius:50%;
+                        width:25px;
+                        height:25px;
+                        cursor:pointer;
+                    ">×</button>
+                </div>
+            </div>
+            `;
+
+            document.body.appendChild(wrapper);
+
+            // Tombol close manual
+            document.getElementById('closePopup').onclick = () => {
+                wrapper.remove();
+            };
+
+            // Auto close setelah 10 detik
+            setTimeout(() => {
+                if (document.body.contains(wrapper)) {
+                    wrapper.remove();
+                }
+            }, 10000);
+        }
+
+        // Inisialisasi popup (delay 2 detik)
+        async function initPopup() {
+            const popup = await getPopup();
+            if (!popup) return;
+
+            setTimeout(() => {
+                showPopup(popup);
+            }, 2000);
         }
     </script>
 </body>
