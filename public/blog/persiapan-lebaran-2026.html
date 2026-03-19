@@ -45,6 +45,13 @@
             --border-color: rgba(255, 255, 255, 0.08);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* --- PERBAIKAN SCROLL: Mencegah geser kanan kiri --- */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--dark-bg);
             color: var(--text-white);
