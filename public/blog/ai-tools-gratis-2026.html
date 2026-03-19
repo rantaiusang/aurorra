@@ -44,7 +44,15 @@
             --text-muted: #9ca3af;
             --border-color: rgba(255, 255, 255, 0.08);
         }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* PERBAIKAN SCROLL: Mencegah geser kanan kiri */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--dark-bg);
             color: var(--text-white);
@@ -89,19 +97,6 @@
             margin: 0 auto;
             padding: 50px 20px;
         }
-        
-        /* ANIMASI SCROLL (KEYFRAMES) */
-        .anim-elem {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .anim-elem.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Hero Article */
         .article-hero { text-align: center; margin-bottom: 50px; }
         .article-hero h1 {
             font-size: 2.5rem;
@@ -186,6 +181,36 @@
         }
         .article-content a:hover { color: #fff; }
 
+        /* Checklist Box */
+        .checklist-box {
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .checklist-box h3 { color: var(--luxury-gold); margin-top: 0; font-size: 1.5rem; }
+        
+        .check-list {
+            list-style: none;
+            padding: 0;
+        }
+        .check-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .check-list li:last-child { border-bottom: none; }
+        .check-list li::before {
+            content: '✓';
+            color: var(--luxury-gold);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
         /* Step List Styling */
         .step-list {
             list-style: none;
@@ -216,42 +241,17 @@
             justify-content: center;
             font-family: 'Playfair Display', serif;
         }
-        .step-list li strong {
-            color: var(--text-white);
-            display: block;
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
 
         /* Highlight Box */
         .highlight-box {
-            background: var(--dark-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            margin: 30px 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(212, 175, 55, 0.05);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--luxury-gold);
+            margin-top: 40px;
         }
-        .highlight-box h3 { color: var(--luxury-gold); margin-top: 0; font-size: 1.5rem; }
-
-        /* Checkmark List */
-        .check-list {
-            list-style: none;
-            padding: 0;
-        }
-        .check-list li {
-            position: relative;
-            padding-left: 30px;
-            margin-bottom: 10px;
-            color: #e0e0e0;
-        }
-        .check-list li::before {
-            content: '✅';
-            position: absolute;
-            left: 0;
-            top: 2px;
-            font-size: 1rem;
-        }
+        .highlight-box h4 { color: var(--luxury-gold); margin-bottom: 10px; font-size: 1.2rem; }
+        .highlight-box p { color: #e0e0e0; font-size: 0.95rem; margin-bottom: 0; }
 
         /* Footer */
         .article-footer {
@@ -289,12 +289,23 @@
         }
         .btn-secondary:hover { border-color: var(--text-white); color: var(--text-white); }
 
+        /* Animasi Scroll */
+        .anim-elem {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .anim-elem.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* Responsive */
         @media (max-width: 600px) {
             .article-hero h1 { font-size: 1.8rem; }
             .article-container { padding: 30px 15px; }
             .hero-image-container { height: 250px; }
-            .highlight-box { padding: 20px; }
+            .checklist-box { padding: 20px; }
         }
     </style>
 </head>
@@ -305,7 +316,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             Kembali
         </a>
-        <a href="../index.html" class="logo">Aurorra ⚡</a>
+        <a href="../index.html" class="logo">Aurorra</a>
     </header>
 
     <article class="article-container">
@@ -314,43 +325,43 @@
             <h1>10 AI Tools Gratis yang Bisa Menggantikan Kerja Manual di 2026</h1>
             <div class="meta-info">
                 <span>Ditulis oleh <span class="author">Tim Aurorra</span></span>
-                <span>📅 15 Januari 2026</span>
-                <span>⏱️ 7 Menit Baca</span>
+                <span>15 Januari 2026</span>
+                <span>7 Menit Baca</span>
             </div>
         </div>
 
         <!-- HERO IMAGE -->
         <div class="hero-image-container anim-elem">
-            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop" alt="Ilustrasi Kecerdasan Buatan dan Teknologi Masa Depan" loading="eager">
+            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop" alt="Ilustrasi AI Technology" loading="eager">
         </div>
 
         <!-- CONTENT -->
         <div class="article-content">
             
             <div class="anim-elem">
-                <p><strong>Di era digital saat ini, kecerdasan buatan atau Artificial Intelligence (AI) semakin berkembang pesat.</strong> Banyak pekerjaan yang dulu membutuhkan waktu berjam-jam kini dapat diselesaikan hanya dalam beberapa menit menggunakan AI.</p>
-                <p>Mulai dari menulis artikel, membuat desain, hingga mengedit video, semua bisa dilakukan dengan bantuan berbagai tools AI gratis. Artikel ini akan membahas 10 AI tools gratis yang dapat membantu menggantikan pekerjaan manual dan meningkatkan produktivitas Anda.</p>
+                <p><strong>Teknologi Kecerdasan Buatan (AI)</strong> berkembang sangat pesat. Di tahun 2026, banyak pekerjaan manual yang bisa digantikan oleh tools AI gratis. Mulai dari menulis artikel, membuat desain, hingga mengedit video, kini bisa dilakukan lebih cepat dengan bantuan AI.</p>
+                <p>Berikut adalah daftar 10 AI tools gratis yang wajib Anda coba untuk meningkatkan produktivitas.</p>
             </div>
 
-            <!-- LIST TOOLS -->
-            <h2 class="anim-elem">Rekomendasi Tools AI Terbaik</h2>
+            <!-- TOOLS LIST -->
+            <h2 class="anim-elem">Daftar Tools AI Gratis</h2>
             
             <ul class="step-list">
                 <li class="anim-elem">
                     <strong>ChatGPT</strong>
-                    ChatGPT merupakan salah satu tools AI paling populer saat ini. AI ini mampu membantu berbagai pekerjaan seperti menulis artikel, membuat caption media sosial, menjawab pertanyaan dan riset, hingga membuat skrip video. Dengan bantuan AI này, pekerjaan menulis yang biasanya memakan waktu berjam-jam bisa diselesaikan dalam hitungan menit.
+                    ChatGPT adalah AI chatbot yang bisa menjawab pertanyaan, menulis artikel, meringkas teks, hingga membantu koding. Tools ini sangat berguna untuk menulis draft blog, email, atau brainstorming ide.
                 </li>
                 <li class="anim-elem">
                     <strong>Canva AI</strong>
-                    Canva kini memiliki fitur AI yang memudahkan pembuatan desain secara otomatis. Fitur unggulannya meliputi AI text to image, Magic design, Background remover, và AI presentation generator. Bahkan orang yang tidak memiliki kemampuan desain pun bisa membuat konten visual profesional.
+                    Canva kini memiliki fitur AI yang memudahkan pembuatan desain. Fitur unggulannya meliputi AI text to image, Magic Design, Background Remover, dan AI Presentation Generator. Bahkan orang tanpa skill desain pun bisa membuat visual profesional.
                 </li>
                 <li class="anim-elem">
                     <strong>Grammarly</strong>
-                    Grammarly membantu memperbaiki tulisan secara otomatisch. Fungsi utamanya adalah mengecek grammar, memperbaiki struktur kalimat, memberikan saran gaya penulisan, hingga mendeteksi plagiarisme. Tools ini sangat membantu bagi blogger, penulis, và mahasiswa.
+                    Grammarly membantu memperbaiki tulisan secara otomatis. Fungsi utamanya adalah mengecek grammar, memperbaiki struktur kalimat, memberikan saran gaya penulisan, hingga mendeteksi plagiarisme. Tools ini sangat membantu bagi blogger dan penulis.
                 </li>
                 <li class="anim-elem">
                     <strong>Notion AI</strong>
-                    Notion AI membantu mengatur pekerjaan và meningkatkan produktivitas. Kelebihannya meliputi membuat ringkasan otomatis, menulis konten, meng arranging tugas dan proyek, serta membuat ide brainstorming. Dengan AI ini, manajemen kerja menjadi lebih rapi dan efisien.
+                    Notion AI membantu mengatur pekerjaan dan meningkatkan produktivitas. Kelebihannya meliputi membuat ringkasan otomatis, menghasilkan ide brainstorming, menyusun tugas dan proyek, serta membuat ide konten.
                 </li>
                 <li class="anim-elem">
                     <strong>Runway ML</strong>
@@ -358,7 +369,7 @@
                 </li>
                 
                 <!-- Ilustrasi di tengah list -->
-                <div class="content-image-block anim-elem" style="margin: 40px 0;">
+                <div class="content-image-block anim-elem" style="margin: 40px 0; border-radius: 12px; overflow: hidden;">
                     <img src="https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=800&auto=format&fit=crop" alt="Ilustrasi Robot AI Bekerja" loading="lazy">
                     <div class="img-caption">AI membantu mengotomatisasi tugas-tugas repetitif manusia.</div>
                 </div>
@@ -369,11 +380,11 @@
                 </li>
                 <li class="anim-elem">
                     <strong>Midjourney</strong>
-                    Midjourney adalah AI yang dapat menghasilkan gambar dari teks. Contohnya untuk ilustrasi blog, desain konsep produk, artwork digital, hingga thumbnail YouTube. Banyak kreator menggunakan AI này untuk membuat visual unik.
+                    Midjourney adalah AI yang dapat menghasilkan gambar dari teks. Contohnya untuk ilustrasi blog, desain konsep produk, artwork digital, hingga thumbnail YouTube. Banyak kreator menggunakan AI ini untuk membuat visual unik.
                 </li>
                 <li class="anim-elem">
                     <strong>Pictory</strong>
-                    Pictory memungkinkan Anda membuat video hanya dari teks atau artikel. Fitur menariknya là mengubah artikel thành video, menambahkan subtitle otomatis, voice over AI, và stock footage otomatis. Đây sangat berguna untuk membuat konten video tanpa harus merekam sendiri.
+                    Pictory memungkinkan Anda membuat video hanya dari teks atau artikel. Fitur menariknya adalah mengubah artikel menjadi video, menambahkan subtitle otomatis, voice over AI, dan stock footage otomatis.
                 </li>
                 <li class="anim-elem">
                     <strong>Remove.bg</strong>
@@ -403,7 +414,7 @@
             <div class="highlight-box anim-elem">
                 <h3>Adaptasi atau Tertinggal</h3>
                 <p style="color: #e0e0e0;">Perkembangan teknologi AI telah mengubah cara kita bekerja. Dengan menggunakan berbagai AI tools gratis, banyak pekerjaan manual dapat digantikan secara otomatis.</p>
-                <p style="color: #e0e0e0; margin-top: 15px;">Mulai dari menulis, desain, hingga editing video, semuanya bisa dilakukan lebih nhanh menggunakan AI. Jika Anda ingin meningkatkan produktivitas dan bekerja lebih efisient, mencoba tools AI di atas bisa menjadi langkah yang tepat.</p>
+                <p style="color: #e0e0e0; margin-top: 15px;">Mulai dari menulis, desain, hingga editing video, semuanya bisa dilakukan lebih cepat menggunakan AI. Jika Anda ingin meningkatkan produktivitas dan bekerja lebih efisient, mencoba tools AI di atas bisa menjadi langkah yang tepat.</p>
             </div>
 
         </div>
