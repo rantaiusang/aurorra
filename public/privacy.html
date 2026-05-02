@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kebijakan Privasi - Aurorra Store</title>
     
-    <!-- Font (Sama dengan Index & Store) -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- TAMBAHAN: SDK SUPABASE UNTUK ANALYTICS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        /* --- VARIABLES (SAMA DENGAN STORE & INDEX) --- */
         :root {
             --luxury-gold: #d4af37;
             --luxury-gold-light: #f3e5ab;
@@ -22,7 +17,6 @@
             --text-white: #ffffff;
         }
 
-        /* --- RESET & BODY --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -34,7 +28,6 @@
             line-height: 1.6;
         }
 
-        /* --- HEADER (SESUAIKAN DENGAN STORE) --- */
         header {
             background: rgba(15, 12, 21, 0.95);
             backdrop-filter: blur(10px);
@@ -63,15 +56,10 @@
         }
         .logo:hover { color: var(--luxury-gold); }
 
-        .nav-placeholder {
-            width: 80px; /* Placeholder agar logo tetap di tengah */
-        }
-
-        /* --- CONTAINER --- */
         .legal-wrapper {
             max-width: 900px;
             margin: 0 auto;
-            padding: 140px 20px 80px; /* Padding atas besar karena header sticky */
+            padding: 140px 20px 80px;
             width: 100%;
             box-sizing: border-box;
         }
@@ -84,22 +72,13 @@
             text-decoration: none;
             font-size: 0.95rem;
             margin-bottom: 30px;
-            transition: color 0.3s;
-            opacity: 0; /* Initial state untuk animasi */
+            opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.6s ease, transform 0.6s ease, color 0.3s;
         }
-        
-        .back-link.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .back-link.visible { opacity: 1; transform: translateY(0); }
+        .back-link:hover { color: var(--luxury-gold); }
 
-        .back-link:hover {
-            color: var(--luxury-gold);
-        }
-
-        /* --- CONTENT CARD --- */
         .legal-container {
             background: var(--dark-card);
             padding: 50px;
@@ -108,34 +87,25 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
 
-        /* --- ANIMASI FADE IN SCROLL (INTERSECTION OBSERVER) --- */
-        /* Kelas ini akan ditambahkan oleh JavaScript saat elemen terlihat */
         .fade-on-scroll {
             opacity: 0;
             transform: translateY(30px);
             transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
+        .fade-on-scroll.visible { opacity: 1; transform: translateY(0); }
 
-        .fade-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* --- TYPOGRAPHY --- */
         .page-header {
             text-align: center;
             margin-bottom: 50px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             padding-bottom: 30px;
         }
-
         .page-header h1 {
             font-family: 'Playfair Display', serif;
             font-size: 3rem;
             color: var(--luxury-gold);
             margin-bottom: 10px;
         }
-
         .page-header .date {
             color: var(--text-gray);
             font-size: 0.85rem;
@@ -152,7 +122,6 @@
             padding-left: 15px;
             border-left: 3px solid var(--luxury-gold);
         }
-
         .legal-content p, .legal-content ul {
             color: var(--text-gray);
             margin-bottom: 25px;
@@ -160,20 +129,10 @@
             font-size: 1rem;
             text-align: justify;
         }
+        .legal-content ul { padding-left: 25px; }
+        .legal-content li { margin-bottom: 10px; color: #ccc; }
 
-        .legal-content ul {
-            padding-left: 25px;
-        }
-
-        .legal-content li {
-            margin-bottom: 10px;
-            color: #ccc;
-        }
-
-        .highlight {
-            color: var(--luxury-gold);
-            font-weight: 500;
-        }
+        .highlight { color: var(--luxury-gold); font-weight: 500; }
 
         .mini-footer {
             margin-top: 80px;
@@ -184,12 +143,8 @@
             transform: translateY(20px);
             transition: 1s ease;
         }
-        .mini-footer.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .mini-footer.visible { opacity: 1; transform: translateY(0); }
 
-        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
             header { padding: 15px 5%; }
             .logo { font-size: 1.2rem; }
@@ -201,29 +156,25 @@
 </head>
 <body>
 
-    <!-- Header (Sama dengan Store) -->
     <header>
-        <div style="width: 20px;"></div> <!-- Spacer kiri -->
-        <a href="index.html" class="logo">Aurorra ⚡</a>
-        <div style="width: 20px;"></div> <!-- Spacer kanan agar logo di tengah -->
+        <div style="width: 20px;"></div>
+        <a href="index.html" class="logo">Aurorra</a>
+        <div style="width: 20px;"></div>
     </header>
 
     <div class="legal-wrapper">
         
-        <!-- Tombol Kembali -->
         <a href="index.html" class="back-link fade-on-scroll">
             <span>&larr;</span>Beranda
         </a>
 
         <div class="legal-container">
             
-            <!-- Judul Halaman -->
             <div class="page-header fade-on-scroll">
                 <h1>Kebijakan Privasi</h1>
                 <p class="date">Efektif sejak: Januari 2026</p>
             </div>
 
-            <!-- Konten Baru Sesuai Permintaan -->
             <div class="legal-content">
                 <p class="fade-on-scroll">
                     Privasi Anda merupakan prioritas utama bagi <strong class="highlight">Aurorra Store</strong>. Dokumen Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi pribadi pengguna saat mengakses atau menggunakan layanan pada website kami.
@@ -289,42 +240,18 @@
                 </p>
             </div>
 
-            <!-- Mini Footer -->
             <div class="mini-footer fade-on-scroll">
                 <p>&copy; 2026 Aurorra Store. All rights reserved.</p>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT SCROLL ANIMATION, RESET & ANALYTICS -->
     <script>
-        // --- 1. KONFIGURASI SUPABASE (TAMBAHAN) ---
-        const SUPABASE_URL = 'https://dikapquhusbwjccbqcsb.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpa2FwcXVodXNid2pjY2JxY3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxNjQ1NTQsImV4cCI6MjA4NDc0MDU1NH0.X278oHDF0be7oa25484eliSukSYAYvDbJyU6ysz83zA';
-        const { createClient } = supabase;
-        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // --- 2. FUNGSI TRACKER ANALYTICS ---
-        async function trackPageView() {
-            try {
-                await sb.from('page_views').insert([{
-                    page_url: window.location.pathname, // Akan merekam '/privacy.html'
-                    user_agent: navigator.userAgent
-                }]);
-                console.log("📊 Analytics tracked: Privacy Page");
-            } catch (error) {
-                console.error("Analytics Error:", error.message);
-            }
-        }
-
-        // --- 3. INISIALISASI SAAT HALAMAN DIMUAT ---
         window.onload = function() {
-            window.scrollTo(0, 0); // Reset scroll ke atas
-            initScrollAnimations(); // Jalankan animasi scroll
-            trackPageView(); // Jalankan analytics
+            window.scrollTo(0, 0);
+            initScrollAnimations();
         };
 
-        // --- 4. OBSERVER UNTUK ANIMASI SCROLL ---
         function initScrollAnimations() {
             const observerOptions = {
                 root: null,
