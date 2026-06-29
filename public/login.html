@@ -11,6 +11,10 @@
     <!-- SUPABASE SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- ========== TAMBAHAN: PI SDK ========== -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <!-- ======================================= -->
+
     <style>
         :root {
             --luxury-gold: #d4af37;
@@ -277,6 +281,7 @@
         }
         .btn-pi:hover { background: var(--luxury-gold); color: black; border-color: var(--luxury-gold); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
         .btn-pi:active { transform: scale(0.98); }
+        .btn-pi:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-pi svg { width: 20px; height: 20px; flex-shrink: 0; }
         .btn-pi .pi-divider { width: 1px; height: 20px; background: rgba(255, 255, 255, 0.15); }
 
@@ -355,6 +360,76 @@
         const { createClient } = supabase;
         const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // ====================================================================
+        //  TAMBAHAN: KONFIGURASI PI NETWORK
+        // ====================================================================
+        window.APP_CONFIG = window.APP_CONFIG || { sandbox: true };
+
+        // ====================================================================
+        //  TAMBAHAN: DETEKSI LOOP LOGIN (bersihkan auth lama jika retry)
+        // ====================================================================
+        (function detectLoginLoop() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('retry') === 'true') {
+                console.warn("[Pi] Terdeteksi loop login. Membersihkan sesi auth lama...");
+                localStorage.removeItem('aurora_user');
+                localStorage.removeItem('aurora_token');
+                localStorage.removeItem('aurora_role');
+                localStorage.removeItem('pi_user');
+                localStorage.removeItem('pi_auth');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        })();
+
+        // ====================================================================
+        //  TAMBAHAN: DEBUG LOG (hanya muncul jika URL ada ?debug=1)
+        // ====================================================================
+        function logPi(msg, isError) {
+            console.log('[Pi]', msg);
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('debug') === '1') {
+                var box = document.getElementById('pi-debug-log');
+                if (!box) {
+                    box = document.createElement('div');
+                    box.id = 'pi-debug-log';
+                    box.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:9999;padding:10px;background:rgba(0,0,0,0.95);border:1px solid #333;color:#4ade80;font-family:monospace;font-size:0.7rem;text-align:left;max-height:150px;overflow-y:auto;border-radius:8px;';
+                    document.body.appendChild(box);
+                }
+                var p = document.createElement('p');
+                p.style.marginBottom = '2px';
+                p.style.borderBottom = '1px solid #111';
+                p.style.paddingBottom = '2px';
+                if (isError) p.style.color = '#ef4444';
+                p.textContent = '> ' + msg;
+                box.appendChild(p);
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        // ====================================================================
+        //  TAMBAHAN: TIMEOUT WRAPPER (mencegah hang forever)
+        // ====================================================================
+        function withTimeout(promise, ms) {
+            var timeout = new Promise(function(_, reject) {
+                setTimeout(function() {
+                    reject(new Error('Timeout: tidak ada respons dalam ' + ms + 'ms'));
+                }, ms);
+            });
+            return Promise.race([promise, timeout]);
+        }
+
+        // ====================================================================
+        //  TAMBAHAN: INCOMPLETE PAYMENT HANDLER
+        // ====================================================================
+        function onIncompletePaymentFound(payment) {
+            logPi("Incomplete payment ditemukan: " + payment.identifier);
+            localStorage.setItem('incomplete_payment_id', payment.identifier);
+        }
+
+        // ====================================================================
+        //  AKHIR TAMBAHAN PI NETWORK
+        // ====================================================================
+
         const ui = {
             title: document.getElementById('status-title'),
             desc: document.getElementById('status-desc'),
@@ -392,19 +467,86 @@
         }
 
         // ====================================================================
-        //  PI NETWORK LOGIN — SUDAH DIFIX: /authorize + redirect URI benar
+        //  PI NETWORK LOGIN — DITINGKATKAN: SDK jika di Pi Browser, 
+        //  fallback OAuth redirect jika di browser biasa
         // ====================================================================
-        function loginWithPi() {
-            const clientId = "XpwXnMcYe2aCXibYAXyfOLLZack7jFwP8bEAeY26ogA";
-            const redirectUri = "https://back-three-theta.vercel.app/callback.html";
+        async function loginWithPi() {
+            const originalText = ui.btnPi.innerHTML;
+            ui.btnPi.disabled = true;
+            ui.btnPi.innerHTML = `<svg class="spin-anim" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-6 2.3l-4-4"></path></svg> Menghubungkan ke Pi...`;
 
-            const url =
-                "https://api.minepi.com/v2/oauth2/authorize" +
-                "?response_type=token" +
-                "&client_id=" + clientId +
-                "&redirect_uri=" + encodeURIComponent(redirectUri);
+            try {
+                // --- JALUR 1: Pi SDK tersedia (berarti dibuka dari Pi Browser) ---
+                if (typeof Pi !== 'undefined') {
+                    logPi("Pi SDK terdeteksi, menggunakan authenticate()...");
+                    
+                    ui.title.innerText = "Menghubungkan...";
+                    ui.desc.innerText = "Menyiapkan koneksi aman ke Pi Network";
+                    ui.mascot.style.display = 'none';
+                    ui.spinner.style.display = 'block';
 
-            window.location.href = url;
+                    var isSandbox = (typeof window.APP_CONFIG !== 'undefined') ? window.APP_CONFIG.sandbox : true;
+                    await Pi.init({ version: "2.0", sandbox: isSandbox });
+                    logPi("Pi.init() sukses");
+
+                    ui.title.innerText = "Autentikasi...";
+                    ui.desc.innerText = "Mohon izinkan akses akun Pi Anda...";
+
+                    var scopes = ['username', 'payments'];
+                    var auth = await withTimeout(
+                        Pi.authenticate(scopes, onIncompletePaymentFound),
+                        60000
+                    );
+                    
+                    logPi("Auth sukses! User: " + auth.user.username);
+                    
+                    ui.title.innerText = "Berhasil!";
+                    ui.desc.innerText = "Selamat datang, " + auth.user.username;
+
+                    // Simpan data user & token Pi
+                    localStorage.setItem('aurora_user', JSON.stringify(auth.user));
+                    localStorage.setItem('aurora_token', auth.accessToken);
+                    localStorage.setItem('pi_user', JSON.stringify(auth.user));
+                    localStorage.setItem('pi_auth', auth.accessToken);
+
+                    // Cek apakah ada pembayaran yang terputus
+                    var incompletePayment = localStorage.getItem('incomplete_payment_id');
+                    if (incompletePayment) {
+                        logPi("Redirect ke payment.html untuk resume pembayaran");
+                        localStorage.removeItem('incomplete_payment_id');
+                        setTimeout(function() {
+                            window.location.href = "payment.html?resume=" + incompletePayment;
+                        }, 1500);
+                    } else {
+                        setTimeout(function() {
+                            window.location.href = "store.html";
+                        }, 1500);
+                    }
+
+                // --- JALUR 2: SDK tidak ada (browser biasa), fallback OAuth redirect ---
+                } else {
+                    logPi("Pi SDK tidak terdeteksi, fallback ke OAuth redirect");
+                    var clientId = "XpwXnMcYe2aCXibYAXyfOLLZack7jFwP8bEAeY26ogA";
+                    var redirectUri = "https://back-three-theta.vercel.app/callback.html";
+                    var url =
+                        "https://api.minepi.com/v2/oauth2/authorize" +
+                        "?response_type=token" +
+                        "&client_id=" + clientId +
+                        "&redirect_uri=" + encodeURIComponent(redirectUri);
+                    window.location.href = url;
+                }
+
+            } catch (err) {
+                logPi(err.message, true);
+                ui.title.innerText = "Login Pi Gagal";
+                ui.desc.innerText = "Terjadi kendala saat menyambungkan.";
+                ui.errorBox.style.display = 'block';
+                ui.errorMsg.innerText = err.message;
+                ui.btnPi.disabled = false;
+                ui.btnPi.innerHTML = originalText;
+                ui.mascot.style.display = 'block';
+                ui.spinner.style.display = 'none';
+            }
         }
 
         // --- CEK SESSION ---
@@ -450,6 +592,26 @@
                     }
 
                 } else {
+                    // ========================================================
+                    //  TAMBAHAN: Cek sesi Pi sebelum menampilkan tombol login
+                    // ========================================================
+                    var piUser = localStorage.getItem('aurora_user');
+                    var piToken = localStorage.getItem('aurora_token');
+
+                    if (piUser && piToken) {
+                        logPi("Sesi Pi ditemukan di localStorage, mengarahkan ke store...");
+                        ui.title.innerText = "Sesi Pi Aktif";
+                        ui.desc.innerText = "Mengarahkan ke toko...";
+                        ui.mascot.style.display = 'none';
+                        ui.spinner.style.display = 'block';
+                        ui.btnGoogle.style.display = 'none';
+                        ui.btnPi.style.display = 'none';
+
+                        setTimeout(function() { window.location.href = 'store.html'; }, 1000);
+                        return;
+                    }
+                    // ========================================================
+
                     ui.title.innerText = "Aurorra"; 
                     ui.desc.innerText = "Masuk untuk melanjutkan";
                     ui.mascot.style.display = 'block'; 
