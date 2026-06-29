@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menghubungkan Akun Pi...</title>
+    <style>
+        /* Styling sederhana agar tidak terlihat kosong saat loading cepat */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0f0c15;
+            color: #d4af37;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(212, 175, 55, 0.1);
+            border-top: 3px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        p { font-size: 0.9rem; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div>
+        <div class="spinner"></div>
+        <p>Menghubungkan ke Pi Network...</p>
+    </div>
+
+    <script>
+        // Ambil data dari URL hash (#access_token=...)
+        const hash = window.location.hash;
+        const params = new URLSearchParams(hash.replace("#", "?"));
+
+        const accessToken = params.get("access_token");
+
+        if (accessToken) {
+            // Simpan token login Pi ke local storage
+            localStorage.setItem("pi_token", accessToken);
+            console.log("✅ Pi Login Success. Token disimpan.");
+
+            // Arahkan ke halaman utama toko Anda
+            // (Ganti 'store.html' jika ingin diarahkan ke halaman lain)
+            window.location.href = "store.html";
+            
+        } else {
+            alert("Login Pi gagal atau token tidak ditemukan.");
+            // Kembalikan ke halaman login jika gagal
+            window.location.href = "login.html";
+        }
+    </script>
+
+</body>
+</html>
